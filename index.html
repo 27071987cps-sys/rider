@@ -1,82 +1,115 @@
-export default async function handler(req, res) {
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090a0c">
+<meta name="description" content="RIDER - rutas para motociclistas">
+<title>RIDER</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090a0c;color:#fff;font-family:Arial,sans-serif}
+header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 18px}
+.logo{font-size:30px;font-weight:900;letter-spacing:5px}
+#gps{border:0;background:#191b20;color:#fff;width:44px;height:44px;border-radius:50%;font-size:20px}
+#map{height:40vh;min-height:280px;background:linear-gradient(135deg,#17201c,#11161a);display:flex;align-items:center;justify-content:center;text-align:center;padding:25px}
+.map-content{color:#a0a6ad}.bike{font-size:62px;margin-bottom:12px}
+.panel{padding:20px}h1{font-size:24px;margin:0 0 6px}
+.subtitle{color:#858b94;line-height:1.45;margin-bottom:20px}
+label{display:block;color:#a0a6ae;font-size:12px;font-weight:bold;margin:16px 0 7px}
+input[type=range]{width:100%;accent-color:#fff}
+select{width:100%;background:#181a1e;color:#fff;border:0;border-radius:12px;padding:14px;font-size:16px}
+.switch{background:#15171b;padding:14px;border-radius:14px;margin-top:18px;display:flex;justify-content:space-between;align-items:center}
+.route{width:100%;border:0;border-radius:14px;padding:17px;margin-top:18px;background:#fff;color:#090a0c;font-size:15px;font-weight:900}
+#result{margin-top:16px;padding:17px;border-radius:16px;background:#171a1f;display:none;line-height:1.55}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">RIDER</div>
+<button id="gps" aria-label="Mi ubicación">📍</button>
+</header>
 
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "Method not allowed"
-    });
+<section id="map">
+<div class="map-content">
+<div class="bike">🏍️</div>
+<strong>RIDER</strong>
+<p>Pulsa 📍 para obtener<br>tu ubicación GPS</p>
+</div>
+</section>
+
+<section class="panel">
+<h1>¿Dónde quieres rodar?</h1>
+<p class="subtitle">Diseña tu ruta según el tipo de conducción que buscas.</p>
+
+<label>🔥 CURVAS</label>
+<input id="curves" type="range" min="0" max="10" value="8">
+
+<label>⛰️ MONTAÑA</label>
+<input id="mountain" type="range" min="0" max="10" value="7">
+
+<label>🌲 CARRETERAS SECUNDARIAS</label>
+<input id="secondary" type="range" min="0" max="10" value="9">
+
+<label>🌄 PAISAJE</label>
+<input id="scenery" type="range" min="0" max="10" value="7">
+
+<label>📏 DISTANCIA</label>
+<select id="distance">
+<option>100 km</option>
+<option>200 km</option>
+<option selected>250 km</option>
+<option>350 km</option>
+<option>500 km</option>
+</select>
+
+<div class="switch">
+<span>🛣️ Evitar autopistas</span>
+<input id="highways" type="checkbox" checked>
+</div>
+
+<button class="route" onclick="createRoute()">🏍️ CREAR RUTA</button>
+<div id="result"></div>
+</section>
+
+<script>
+let position=null;
+
+document.getElementById("gps").addEventListener("click",getLocation);
+
+function getLocation(){
+  if(!navigator.geolocation){
+    alert("Tu navegador no permite obtener la ubicación GPS.");
+    return;
   }
-
-  try {
-
-    const {
-      origin,
-      distance,
-      bike,
-      preferences
-    } = req.body;
-
-
-    if (
-      !origin ||
-      typeof origin.lat !== "number" ||
-      typeof origin.lng !== "number"
-    ) {
-
-      return res.status(400).json({
-        error: "Ubicación inválida"
-      });
-
-    }
-
-
-    /*
-     * Aquí conectaremos el motor de routing.
-     *
-     * Ejemplo conceptual:
-     *
-     * const response = await fetch(
-     *   GRAPHOPPER_URL,
-     *   ...
-     * );
-     *
-     * La API key permanece en:
-     *
-     * process.env.ROUTING_API_KEY
-     */
-
-
-    /*
-     * IMPORTANTE:
-     *
-     * Esta respuesta es solamente un contrato
-     * para que el frontend ya esté preparado.
-     *
-     * El siguiente paso es conectar aquí
-     * GraphHopper/autohospedado.
-     */
-
-    return res.status(501).json({
-
-      error:
-        "Motor de rutas todavía no conectado",
-
-      received: {
-        origin,
-        distance,
-        bike,
-        preferences
-      }
-
-    });
-
-  } catch (error) {
-
-    console.error(error);
-
-    return res.status(500).json({
-      error:"Error interno de routing"
-    });
-
-  }
-
+  const map=document.getElementById("map");
+  map.innerHTML='<div class="map-content"><div class="bike">📡</div><strong>BUSCANDO TU UBICACIÓN...</strong><p>Espera unos segundos</p></div>';
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      position=pos.coords;
+      map.innerHTML='<div class="map-content"><div class="bike">🏍️</div><strong>📍 TU UBICACIÓN</strong><p>Latitud: '+position.latitude.toFixed(5)+'<br>Longitud: '+position.longitude.toFixed(5)+'</p></div>';
+      document.getElementById("gps").textContent="✅";
+    },
+    function(){
+      map.innerHTML='<div class="map-content"><div class="bike">⚠️</div><strong>NO SE HA PODIDO OBTENER EL GPS</strong><p>Comprueba el permiso de ubicación de Chrome.</p></div>';
+    },
+    {enableHighAccuracy:true,timeout:15000,maximumAge:0}
+  );
 }
+
+function createRoute(){
+  const result=document.getElementById("result");
+  const distance=document.getElementById("distance").value;
+  result.style.display="block";
+  result.innerHTML="<h2>🏍️ Ruta RIDER</h2>"+
+    "<p><strong>Distancia:</strong> "+distance+"</p>"+
+    "<p>🔥 Curvas: "+document.getElementById("curves").value+"/10<br>"+
+    "⛰️ Montaña: "+document.getElementById("mountain").value+"/10<br>"+
+    "🌲 Secundarias: "+document.getElementById("secondary").value+"/10<br>"+
+    "🌄 Paisaje: "+document.getElementById("scenery").value+"/10</p>"+
+    "<p>🛣️ Autopistas: "+(document.getElementById("highways").checked?"evitadas":"permitidas")+"</p>"+
+    "<p>"+(position?"📍 Ruta desde tu ubicación GPS.":"📍 Activa el GPS para usar tu ubicación.")+"</p>";
+}
+</script>
+</body>
+</html>
