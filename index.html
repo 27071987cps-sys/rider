@@ -1,115 +1,94 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#090a0c">
-<meta name="description" content="RIDER - rutas para motociclistas">
-<title>RIDER</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#090a0c;color:#fff;font-family:Arial,sans-serif}
-header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 18px}
-.logo{font-size:30px;font-weight:900;letter-spacing:5px}
-#gps{border:0;background:#191b20;color:#fff;width:44px;height:44px;border-radius:50%;font-size:20px}
-#map{height:40vh;min-height:280px;background:linear-gradient(135deg,#17201c,#11161a);display:flex;align-items:center;justify-content:center;text-align:center;padding:25px}
-.map-content{color:#a0a6ad}.bike{font-size:62px;margin-bottom:12px}
-.panel{padding:20px}h1{font-size:24px;margin:0 0 6px}
-.subtitle{color:#858b94;line-height:1.45;margin-bottom:20px}
-label{display:block;color:#a0a6ae;font-size:12px;font-weight:bold;margin:16px 0 7px}
-input[type=range]{width:100%;accent-color:#fff}
-select{width:100%;background:#181a1e;color:#fff;border:0;border-radius:12px;padding:14px;font-size:16px}
-.switch{background:#15171b;padding:14px;border-radius:14px;margin-top:18px;display:flex;justify-content:space-between;align-items:center}
-.route{width:100%;border:0;border-radius:14px;padding:17px;margin-top:18px;background:#fff;color:#090a0c;font-size:15px;font-weight:900}
-#result{margin-top:16px;padding:17px;border-radius:16px;background:#171a1f;display:none;line-height:1.55}
-</style>
-</head>
-<body>
-<header>
-<div class="logo">RIDER</div>
-<button id="gps" aria-label="Mi ubicación">📍</button>
-</header>
+from pathlib import Path
+import zipfile
 
-<section id="map">
-<div class="map-content">
-<div class="bike">🏍️</div>
-<strong>RIDER</strong>
-<p>Pulsa 📍 para obtener<br>tu ubicación GPS</p>
-</div>
-</section>
+html = """<!doctype html>
 
-<section class="panel">
-<h1>¿Dónde quieres rodar?</h1>
-<p class="subtitle">Diseña tu ruta según el tipo de conducción que buscas.</p>
-
-<label>🔥 CURVAS</label>
-<input id="curves" type="range" min="0" max="10" value="8">
-
-<label>⛰️ MONTAÑA</label>
-<input id="mountain" type="range" min="0" max="10" value="7">
-
-<label>🌲 CARRETERAS SECUNDARIAS</label>
-<input id="secondary" type="range" min="0" max="10" value="9">
-
-<label>🌄 PAISAJE</label>
-<input id="scenery" type="range" min="0" max="10" value="7">
-
-<label>📏 DISTANCIA</label>
-<select id="distance">
-<option>100 km</option>
-<option>200 km</option>
-<option selected>250 km</option>
-<option>350 km</option>
-<option>500 km</option>
-</select>
-
-<div class="switch">
-<span>🛣️ Evitar autopistas</span>
-<input id="highways" type="checkbox" checked>
-</div>
-
-<button class="route" onclick="createRoute()">🏍️ CREAR RUTA</button>
-<div id="result"></div>
-</section>
-
-<script>
-let position=null;
-
-document.getElementById("gps").addEventListener("click",getLocation);
-
-function getLocation(){
-  if(!navigator.geolocation){
-    alert("Tu navegador no permite obtener la ubicación GPS.");
-    return;
-  }
-  const map=document.getElementById("map");
-  map.innerHTML='<div class="map-content"><div class="bike">📡</div><strong>BUSCANDO TU UBICACIÓN...</strong><p>Espera unos segundos</p></div>';
-  navigator.geolocation.getCurrentPosition(
-    function(pos){
-      position=pos.coords;
-      map.innerHTML='<div class="map-content"><div class="bike">🏍️</div><strong>📍 TU UBICACIÓN</strong><p>Latitud: '+position.latitude.toFixed(5)+'<br>Longitud: '+position.longitude.toFixed(5)+'</p></div>';
-      document.getElementById("gps").textContent="✅";
-    },
-    function(){
-      map.innerHTML='<div class="map-content"><div class="bike">⚠️</div><strong>NO SE HA PODIDO OBTENER EL GPS</strong><p>Comprueba el permiso de ubicación de Chrome.</p></div>';
-    },
-    {enableHighAccuracy:true,timeout:15000,maximumAge:0}
-  );
-}
-
-function createRoute(){
-  const result=document.getElementById("result");
-  const distance=document.getElementById("distance").value;
-  result.style.display="block";
-  result.innerHTML="<h2>🏍️ Ruta RIDER</h2>"+
-    "<p><strong>Distancia:</strong> "+distance+"</p>"+
-    "<p>🔥 Curvas: "+document.getElementById("curves").value+"/10<br>"+
-    "⛰️ Montaña: "+document.getElementById("mountain").value+"/10<br>"+
-    "🌲 Secundarias: "+document.getElementById("secondary").value+"/10<br>"+
-    "🌄 Paisaje: "+document.getElementById("scenery").value+"/10</p>"+
-    "<p>🛣️ Autopistas: "+(document.getElementById("highways").checked?"evitadas":"permitidas")+"</p>"+
-    "<p>"+(position?"📍 Ruta desde tu ubicación GPS.":"📍 Activa el GPS para usar tu ubicación.")+"</p>";
-}
-</script>
-</body>
-</html>
+<html lang="es">  
+<head>  
+<meta charset="utf-8">  
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">  
+<meta name="theme-color" content="#090a0c">  
+<title>RIDER</title>  
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">  
+<style>  
+*{box-sizing:border-box}html,body{margin:0;background:#090a0c;color:#fff;font-family:system-ui,Arial,sans-serif}  
+header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 16px}  
+.logo{font-size:27px;font-weight:900;letter-spacing:5px}.gps{width:44px;height:44px;border-radius:50%;border:1px solid #292d35;background:#1b1e24;color:#fff;font-size:20px}  
+#map{height:55vh;min-height:360px}.panel{padding:16px}.sub{color:#9ba1aa;line-height:1.4}  
+.row{display:flex;gap:8px}.row input{flex:1}.row button,.route,.clear{border-radius:12px;padding:13px 15px;font-weight:800}  
+input,select{background:#191c22;color:#fff;border:1px solid #292d35;border-radius:12px;padding:13px;font-size:15px;width:100%}  
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.card{background:#121419;border:1px solid #292d35;border-radius:13px;padding:10px}  
+.card label{display:block;font-size:11px;color:#9ba1aa;font-weight:800;margin-bottom:6px}input[type=range]{padding:0;accent-color:#fff}  
+.route{width:100%;margin-top:10px;border:0;background:#fff;color:#090a0c}.clear{width:100%;margin-top:8px;border:1px solid #292d35;background:#171a20;color:#fff}  
+.status{margin-top:10px;background:#121419;border:1px solid #292d35;border-radius:13px;padding:12px;color:#9ba1aa;font-size:13px}  
+.loc-dot{width:18px;height:18px;border-radius:50%;background:#1677ff;border:3px solid #fff;box-shadow:0 0 0 5px #1677ff33}.dest-dot{width:18px;height:18px;border-radius:50%;background:#111;border:3px solid #fff}  
+</style>  
+</head>  
+<body>  
+<header><div class="logo">RIDER</div><button id="locate" class="gps">📍</button></header>  
+<div id="map"></div>  
+<section class="panel">  
+<h1>Tu próxima ruta</h1>  
+<p class="sub">Mapa real, GPS en tiempo real y cálculo de ruta. Toca el mapa para elegir destino.</p>  
+<div class="row"><input id="search" placeholder="Buscar pueblo, ciudad o lugar"><button id="find">Buscar</button></div>  
+<div class="controls">  
+<div class="card"><label>🔥 CURVAS</label><input id="curves" type="range" min="0" max="10" value="8"></div>  
+<div class="card"><label>⛰️ MONTAÑA</label><input id="mountain" type="range" min="0" max="10" value="7"></div>  
+<div class="card"><label>🌲 SECUNDARIAS</label><input id="secondary" type="range" min="0" max="10" value="9"></div>  
+<div class="card"><label>🌄 PAISAJE</label><input id="scenery" type="range" min="0" max="10" value="7"></div>  
+</div>  
+<select id="distance" style="margin-top:10px"><option>100 km</option><option>200 km</option><option selected>250 km</option><option>350 km</option><option>500 km</option></select>  
+<button id="route" class="route">🏍️ CALCULAR RUTA AL DESTINO</button>  
+<button id="clear" class="clear">Limpiar destino y ruta</button>  
+<div id="status" class="status"><strong>Estado:</strong> toca 📍 para usar tu GPS o toca un punto del mapa.</div>  
+</section>  
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>  
+<script>  
+const map=L.map('map').setView([40.4168,-3.7038],6);  
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);  
+const status=document.getElementById('status');let user=null,accuracy=null,dest=null,route=null,watch=null;  
+const userIcon=L.divIcon({className:'',html:'<div class="loc-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]});  
+const destIcon=L.divIcon({className:'',html:'<div class="dest-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]});  
+function msg(x){status.innerHTML='<strong>Estado:</strong> '+x}  
+function position(p,center=true){  
+ const ll=[p.coords.latitude,p.coords.longitude],a=p.coords.accuracy;  
+ if(!user)user=L.marker(ll,{icon:userIcon}).addTo(map).bindPopup('📍 Tu ubicación');else user.setLatLng(ll);  
+ if(!accuracy)accuracy=L.circle(ll,{radius:a,color:'#1677ff',fillColor:'#1677ff',fillOpacity:.12,weight:1}).addTo(map);else{accuracy.setLatLng(ll);accuracy.setRadius(a)}  
+ if(center)map.setView(ll,15);msg('GPS activo · precisión aproximada: <strong>'+Math.round(a)+' m</strong>.');  
+}  
+function locate(){  
+ if(!navigator.geolocation)return msg('Este navegador no permite geolocalización.');  
+ msg('Solicitando ubicación GPS…');  
+ navigator.geolocation.getCurrentPosition(position,e=>msg('No se pudo obtener el GPS. Comprueba el permiso de ubicación de Chrome.'),{enableHighAccuracy:true,timeout:15000,maximumAge:5000});  
+ if(watch===null)watch=navigator.geolocation.watchPosition(p=>position(p,false),()=>{},{enableHighAccuracy:true,maximumAge:5000,timeout:20000});  
+}  
+document.getElementById('locate').onclick=locate;  
+map.on('click',e=>{if(dest)map.removeLayer(dest);dest=L.marker(e.latlng,{icon:destIcon}).addTo(map).bindPopup('🏁 Destino RIDER').openPopup();msg('Destino seleccionado. Pulsa <strong>CALCULAR RUTA</strong>.')});  
+async function find(){  
+ const q=document.getElementById('search').value.trim();if(!q)return;msg('Buscando lugar…');  
+ try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(q));const a=await r.json();if(!a.length)return msg('No he encontrado ese lugar.');  
+ const ll=[+a[0].lat,+a[0].lon];if(dest)map.removeLayer(dest);dest=L.marker(ll,{icon:destIcon}).addTo(map).bindPopup('🏁 '+a[0].display_name).openPopup();map.setView(ll,13);msg('Destino encontrado. Pulsa <strong>CALCULAR RUTA</strong>.')  
+ }catch(e){msg('No se pudo buscar el lugar ahora.')}  
+}  
+document.getElementById('find').onclick=find;document.getElementById('search').onkeydown=e=>{if(e.key==='Enter')find()};  
+async function makeRoute(){  
+ if(!user){locate();return msg('Primero activa el GPS y vuelve a pulsar calcular ruta.')}  
+ if(!dest)return msg('Selecciona un destino tocando el mapa o usando Buscar.');  
+ const a=user.getLatLng(),b=dest.getLatLng();msg('Calculando la ruta…');  
+ try{const u='https://router.project-osrm.org/route/v1/driving/'+a.lng+','+a.lat+';'+b.lng+','+b.lat+'?overview=full&geometries=geojson';  
+ const r=await fetch(u);const d=await r.json();if(!d.routes?.length)throw 0;const x=d.routes[0];  
+ if(route)map.removeLayer(route);route=L.geoJSON(x.geometry,{style:{color:'#111',weight:7,opacity:.85}}).addTo(map);map.fitBounds(route.getBounds(),{padding:[25,25]});  
+ msg('<strong>Ruta lista:</strong> '+(x.distance/1000).toFixed(1)+' km · '+Math.round(x.duration/60)+' min. Parámetros: curvas '+document.getElementById('curves').value+'/10, montaña '+document.getElementById('mountain').value+'/10, secundarias '+document.getElementById('secondary').value+'/10.')  
+ }catch(e){msg('No se pudo calcular la ruta. El servicio gratuito de demostración puede estar limitado.')}  
+}  
+document.getElementById('route').onclick=makeRoute;  
+document.getElementById('clear').onclick=()=>{if(dest){map.removeLayer(dest);dest=null}if(route){map.removeLayer(route);route=null}msg('Destino y ruta limpiados.')}  
+</script>  
+</body>  
+</html>"""  
+p=Path("/mnt/data/index.html")  
+p.write_text(html,encoding="utf-8")  
+z=Path("/mnt/data/rider-v2-mapa-gps.zip")  
+with zipfile.ZipFile(z,"w",zipfile.ZIP_DEFLATED) as f:f.write(p,"index.html")  
+print("Listo:",p)  
+print("ZIP:",z)  
