@@ -3,142 +3,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RIDER - Curve & Route Planner</title>
+  <title>RIDER 2.0</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
-      --bg: #0b0d10;
-      --panel: #12151c;
-      --panel-card: #1a1e28;
-      --border: #262c3a;
-      --accent: #ff3b30;
-      --accent-glow: rgba(255, 59, 48, 0.25);
-      --text: #f0f3f8;
-      --text-dim: #7e8b9b;
+      --bg: #0f1115;
+      --panel: #16191f;
+      --panel2: #212631;
+      --line: #2d3442;
+      --red: #ff3b30;
+      --text: #f0f2f5;
+      --muted: #8a93a0;
     }
 
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
     body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-    /* HEADER ORIGINAL */
-    header { height: 64px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 1000; }
-    .brand { font-weight: 900; font-size: 20px; letter-spacing: 3px; display: flex; align-items: center; gap: 8px; }
-    .brand span { color: var(--accent); }
-    .tag { font-size: 9px; background: rgba(255,59,48,0.15); color: var(--accent); border: 1px solid var(--accent); padding: 2px 6px; border-radius: 4px; font-weight: 800; letter-spacing: 1px; }
+    header { height: 60px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; }
+    .logo { font-weight: 900; font-size: 18px; letter-spacing: 2px; color: #fff; }
+    .logo span { color: var(--red); }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .icon-btn { background: var(--panel2); border: 1px solid var(--line); color: #fff; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 14px; font-weight: bold; }
 
-    .header-btns { display: flex; gap: 10px; }
-    .btn-icon { background: var(--panel-card); border: 1px solid var(--border); color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-    .btn-icon:hover { border-color: var(--accent); }
+    .main-container { display: flex; flex: 1; position: relative; overflow: hidden; }
+    .sidebar { width: 380px; background: var(--panel); border-right: 1px solid var(--line); padding: 20px; display: flex; flex-direction: column; gap: 20px; z-index: 500; overflow-y: auto; }
+    .section-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
 
-    /* ESTRUCTURA PRINCIPAL */
-    .app-body { display: flex; flex: 1; position: relative; overflow: hidden; }
-
-    /* SIDEBAR ORIGINAL */
-    .sidebar { width: 400px; background: var(--panel); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; gap: 20px; z-index: 500; overflow-y: auto; }
+    /* CUADROS GRANDES DE MOTO CON ICONOS */
+    .bike-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .bike-card { 
+      background: var(--panel2); 
+      border: 2px solid var(--line); 
+      border-radius: 12px; 
+      padding: 16px 10px; 
+      text-align: center; 
+      cursor: pointer; 
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .bike-card svg { width: 32px; height: 32px; fill: var(--muted); transition: all 0.2s; }
+    .bike-card span { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: 0.5px; }
     
-    .block-title { font-size: 10px; font-weight: 800; color: var(--text-dim); letter-spacing: 1.5px; margin-bottom: 10px; text-transform: uppercase; }
+    .bike-card:hover { border-color: #505a6e; }
+    .bike-card.active { border-color: var(--red); background: rgba(255, 59, 48, 0.12); }
+    .bike-card.active svg { fill: var(--red); }
+    .bike-card.active span { color: #fff; }
 
-    .search-box { position: relative; }
-    .input-field { width: 100%; background: var(--panel-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: #fff; font-size: 13px; outline: none; }
-    .input-field:focus { border-color: var(--accent); }
+    .input-box { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; width: 100%; color: #fff; font-size: 13px; outline: none; }
+    .input-box:focus { border-color: var(--red); }
 
-    /* SELECTORES Y TARJETAS ORIGINALES */
-    .grid-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .card-opt { background: var(--panel-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.2s; }
-    .card-opt .label { font-size: 11px; font-weight: 800; display: block; }
-    .card-opt.active { border-color: var(--accent); background: var(--accent-glow); color: #fff; }
+    .btn-main { background: var(--red); color: #fff; border: 0; padding: 15px; border-radius: 10px; font-weight: 800; width: 100%; cursor: pointer; font-size: 14px; letter-spacing: 0.5px; }
+    .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* DESLIZADOR Y BOTÓN PRINCIPAL */
-    .range-container { background: var(--panel-card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
-    .range-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
-    input[type=range] { width: 100%; accent-color: var(--accent); }
+    /* MAPA EN MODO CLARO NORMAL DE OPENSTREETMAP */
+    #map { flex: 1; height: 100%; background: #e5e3df; }
 
-    .btn-action { background: var(--accent); color: #fff; border: 0; padding: 16px; border-radius: 10px; font-weight: 900; font-size: 14px; letter-spacing: 1px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(255,59,48,0.3); }
-    .btn-action:hover { opacity: 0.9; }
+    .notice { background: rgba(255,59,48,0.15); border: 1px solid var(--red); color: #fff; padding: 10px; border-radius: 8px; font-size: 12px; }
+    .result-panel { background: var(--panel2); border-radius: 12px; padding: 15px; border: 1px solid var(--line); }
+    .metrics { display: flex; justify-content: space-around; margin-top: 10px; }
+    .metric { text-align: center; }
+    .metric-val { font-size: 18px; font-weight: 900; color: var(--red); }
+    .metric-lbl { font-size: 10px; color: var(--muted); font-weight: bold; }
 
-    /* MAPA */
-    #map { flex: 1; background: #000; }
-
-    /* PANEL DE RESULTADOS Y MÉTRICAS */
-    .results-card { background: var(--panel-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: none; }
-    .metric-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
-    .metric-box { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
-    .metric-val { font-size: 20px; font-weight: 900; color: var(--accent); }
-    .metric-lbl { font-size: 9px; color: var(--text-dim); font-weight: 700; margin-top: 2px; }
-
-    /* MODAL GARAJE */
-    .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; place-items: center; padding: 20px; }
-    .modal-box { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 100%; max-width: 400px; }
+    .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; place-items: center; padding: 20px; }
+    .modal-box { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; max-width: 380px; width: 100%; }
 
     @media (max-width: 768px) {
-      .app-body { flex-direction: column-reverse; }
-      .sidebar { width: 100%; height: 55vh; }
+      .main-container { flex-direction: column-reverse; }
+      .sidebar { width: 100%; height: 50vh; }
     }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="brand">RIDER <span>2.0</span> <span class="tag">ASPHALT ACTIVE</span></div>
-    <div class="header-btns">
-      <button class="btn-icon" id="openUserModal">👤 GARAJE</button>
-      <button class="btn-icon" id="locateButton">📍 GPS</button>
+    <div class="logo">RIDER <span>2.0</span></div>
+    <div class="header-actions">
+      <button class="icon-btn" id="openUserModal">👤 Garaje</button>
+      <button class="icon-btn" id="locateButton">📍 GPS</button>
     </div>
   </header>
 
-  <div class="app-body">
+  <div class="main-container">
     <div class="sidebar">
       <div>
-        <div class="block-title">DESTINO O TIPO DE RUTA</div>
-        <div class="search-box">
-          <input type="text" id="destInput" class="input-field" placeholder="Haz clic en el mapa o busca destino...">
-        </div>
-        <div style="margin-top:10px; display:flex; align-items:center; gap:8px; font-size:12px; background:var(--panel-card); padding:10px; border-radius:8px; border:1px solid var(--border);">
-          <input type="checkbox" id="circularCheck" style="accent-color:var(--accent); transform:scale(1.2);"> 
+        <div class="section-title">CONFIGURACIÓN DE RUTA</div>
+        <input type="text" id="destInput" class="input-box" placeholder="Buscar destino...">
+        <div style="margin-top:10px; display:flex; align-items:center; gap:8px; font-size:12px; background:var(--panel2); padding:10px; border-radius:8px; border:1px solid var(--line);">
+          <input type="checkbox" id="circularCheck" style="accent-color:var(--red); transform:scale(1.2);"> 
           <label for="circularCheck" style="cursor:pointer;"><strong>🔄 Ruta Circular</strong> (Salida y Llegada aquí)</label>
         </div>
       </div>
 
       <div>
-        <div class="block-title">CONFIGURACIÓN MOTO</div>
-        <div class="grid-selector">
-          <div class="card-opt active" data-bike="sport"><span class="label">SPORT</span></div>
-          <div class="card-opt" data-bike="naked"><span class="label">NAKED</span></div>
-          <div class="card-opt" data-bike="trail"><span class="label">TRAIL</span></div>
-          <div class="card-opt" data-bike="touring"><span class="label">TOURING</span></div>
-          <div class="card-opt" data-bike="custom"><span class="label">CUSTOM</span></div>
-          <div class="card-opt" data-bike="supermoto"><span class="label">SUPERMOTO</span></div>
+        <div class="section-title">TIPO DE MOTO</div>
+        <div class="bike-grid">
+          <div class="bike-card active" data-bike="sport">
+            <svg viewBox="0 0 24 24"><path d="M19.44 9.03L15.42 5.5a1 1 0 0 0-1.32.07l-2.4 2.43H8a1 1 0 0 0-1 1v1.5a1 1 0 0 0 1 1h1.17l-1.9 2.85A4 4 0 1 0 5 18a4 4 0 0 0 3.87-3h6.26A4 4 0 1 0 19 18a3.96 3.96 0 0 0-.25-1.38l.69-1.03a1 1 0 0 0 .16-.54V10a1 1 0 0 0-.16-.97zM5 19a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm14 0a2 2 0 1 1 2-2 2 2 0 0 1-2 2z"/></svg>
+            <span>SPORT</span>
+          </div>
+          <div class="bike-card" data-bike="naked">
+            <svg viewBox="0 0 24 24"><path d="M19 13a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zM5 13a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm8-10h-2V5h2zm5.6 2.6L17.2 10H15V8h3a1 1 0 0 0 .6-.2zM6.8 11.6L5.4 10H3V8h3a1 1 0 0 1 .8.4z"/></svg>
+            <span>NAKED</span>
+          </div>
+          <div class="bike-card" data-bike="trail">
+            <svg viewBox="0 0 24 24"><path d="M18.5 3L13 8.5V11h-2V7L5.5 3H3v2.5L7 11v2H5a4 4 0 1 0 4 4h6a4 4 0 1 0 4-4v-3.5l2-2V3zM5 19a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm14 0a2 2 0 1 1 2-2 2 2 0 0 1-2 2z"/></svg>
+            <span>TRAIL</span>
+          </div>
+          <div class="bike-card" data-bike="touring">
+            <svg viewBox="0 0 24 24"><path d="M19 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm-14-6a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm12-7h-3v-2h3zm-8 0H6v-2h3z"/></svg>
+            <span>TOURING</span>
+          </div>
+          <div class="bike-card" data-bike="custom">
+            <svg viewBox="0 0 24 24"><path d="M19 11a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm-14-6a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm11-4h-4V7h2V5h-4v8h6z"/></svg>
+            <span>CUSTOM</span>
+          </div>
+          <div class="bike-card" data-bike="supermoto">
+            <svg viewBox="0 0 24 24"><path d="M21 9l-4-4h-3l2 3h-4l-2-3H7L3 9v2h2a4 4 0 1 0 4 4h6a4 4 0 1 0 4-4h2zm-16 8a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm14 0a2 2 0 1 1 2-2 2 2 0 0 1-2 2z"/></svg>
+            <span>SUPERMOTO</span>
+          </div>
         </div>
       </div>
 
       <div>
-        <div class="block-title">CURVÁMETRO & DISTANCIA</div>
-        <div class="range-container">
-          <div class="range-header">
-            <span>RANGO MÁXIMO</span>
-            <span id="distVal" style="color:var(--accent)">250 KM</span>
-          </div>
-          <input type="range" id="distRange" min="50" max="500" value="250">
-        </div>
+        <div class="section-title">DISTANCIA MÁXIMA (KM)</div>
+        <input type="range" id="distRange" min="50" max="500" value="250" style="width:100%; accent-color:var(--red);">
+        <div style="text-align:right; font-size:12px; color:var(--muted); font-weight:bold; margin-top:4px;" id="distVal">250 km</div>
       </div>
 
-      <button class="btn-action" id="generateButton">GENERAR RUTA</button>
+      <button class="btn-main" id="generateButton">GENERAR RUTA</button>
 
-      <div id="notice" style="display:none; background:rgba(255,59,48,0.1); border:1px solid var(--accent); color:#fff; padding:10px; border-radius:8px; font-size:12px;"></div>
-      <div id="loading" style="display:none; font-size:12px; text-align:center; color:var(--text-dim);">Calculando trazados de curvas...</div>
+      <div id="notice" class="notice" style="display:none;"></div>
+      <div id="loading" style="display:none; font-size:12px; text-align:center; color:var(--muted);">Calculando mejores rutas...</div>
 
-      <div id="result" class="results-card">
-        <div class="block-title" style="margin-bottom:8px;">ALTERNATVIAS DE RUTA</div>
+      <div id="result" class="result-panel" style="display:none;">
+        <div class="section-title">OPCIONES DISPONIBLES</div>
         <div id="routeSelectorContainer"></div>
-        <div class="metric-grid">
-          <div class="metric-box">
-            <div class="metric-val" id="distanceResult">0 km</div>
-            <div class="metric-lbl">DISTANCIA</div>
-          </div>
-          <div class="metric-box">
-            <div class="metric-val" id="timeResult">0h 0m</div>
-            <div class="metric-lbl">TIEMPO ESTIMADO</div>
-          </div>
+        <div class="metrics">
+          <div class="metric"><div class="metric-val" id="distanceResult">0 km</div><div class="metric-lbl">DISTANCIA</div></div>
+          <div class="metric"><div class="metric-val" id="timeResult">0h 0m</div><div class="metric-lbl">TIEMPO ESTIMADO</div></div>
         </div>
       </div>
     </div>
@@ -146,24 +152,22 @@
     <div id="map"></div>
   </div>
 
-  <!-- MODAL GARAJE -->
   <div id="userModal" class="modal-backdrop">
     <div class="modal-box">
-      <h3 id="modalTitle" style="font-size:16px; font-weight:800; margin-bottom:12px;">👤 TU GARAJE</h3>
-      
+      <h3 id="modalTitle" style="margin-top:0; font-size:18px;">👤 Tu Garaje</h3>
       <div id="authForm">
-        <input type="email" id="userEmail" placeholder="Tu Email" class="input-field" style="margin-bottom:10px;">
-        <input type="password" id="userPass" placeholder="Contraseña" class="input-field" style="margin-bottom:12px;">
-        <button id="loginBtn" class="btn-action" style="padding:12px;">Iniciar Sesión</button>
+        <input type="email" id="userEmail" placeholder="Tu Email" class="input-box" style="margin-bottom:10px;">
+        <input type="password" id="userPass" placeholder="Contraseña" class="input-box" style="margin-bottom:12px;">
+        <button id="loginBtn" class="btn-main">Iniciar Sesión</button>
       </div>
       
       <div id="garageForm" style="display:none;">
-        <div style="font-size:11px; color:var(--text-dim); margin-bottom:8px; font-weight:700;">MOTOS GUARDADAS:</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">Motos registradas:</div>
         <div id="bikeList"></div>
-        <hr style="border-color:var(--border); margin:12px 0;">
-        <div style="font-size:11px; font-weight:700; margin-bottom:6px;">AÑADIR NUEVA MOTO:</div>
-        <input type="text" id="bikeName" placeholder="Modelo (Ej: Monster 821)" class="input-field" style="margin-bottom:8px;">
-        <select id="bikeTypeSelect" class="input-field" style="margin-bottom:12px;">
+        <hr style="border-color:var(--line); margin:12px 0;">
+        <div style="font-size:12px; font-weight:bold; margin-bottom:6px;">Agregar moto:</div>
+        <input type="text" id="bikeName" placeholder="Modelo (Ej. MT-09)" class="input-box" style="margin-bottom:8px; font-size:12px;">
+        <select id="bikeTypeSelect" class="input-box" style="margin-bottom:12px; font-size:12px;">
           <option value="sport">Sport</option>
           <option value="naked">Naked</option>
           <option value="trail">Trail</option>
@@ -171,10 +175,10 @@
           <option value="custom">Custom</option>
           <option value="supermoto">Supermoto</option>
         </select>
-        <button id="addBikeBtn" class="btn-action" style="background:var(--panel-card); border:1px solid var(--border); padding:10px;">+ Guardar en Garaje</button>
-        <button id="logoutBtn" style="width:100%; background:transparent; border:0; color:var(--text-dim); font-size:11px; margin-top:10px; cursor:pointer;">Cerrar Sesión</button>
+        <button id="addBikeBtn" class="btn-main" style="background:var(--panel2); border:1px solid var(--line);">+ Añadir a mi garaje</button>
+        <button id="logoutBtn" style="width:100%; padding:8px; background:transparent; color:var(--muted); border:0; font-size:11px; margin-top:8px; cursor:pointer;">Cerrar sesión</button>
       </div>
-      <button id="closeModalBtn" style="width:100%; background:transparent; border:0; color:#fff; font-size:12px; margin-top:10px; cursor:pointer;">Cerrar</button>
+      <button id="closeModalBtn" style="width:100%; padding:8px; margin-top:8px; background:transparent; color:#fff; border:0; text-decoration:underline; font-size:12px; cursor:pointer;">Cerrar</button>
     </div>
   </div>
 
@@ -183,14 +187,12 @@
   <script>
   const OSRM = "https://router.project-osrm.org";
   
-  // MAPA ESTILO OSCURO CARTO-DB
-  const map = L.map("map", { zoomControl: false }).setView([41.3851, 2.1734], 10);
-  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  // MAPA ESTÁNDAR CLARO (OPENSTREETMAP ORIGINAL)
+  const map = L.map("map", { zoomControl:true }).setView([41.3851, 2.1734], 10);
 
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
-    subdomains: 'abcd',
-    attribution: '&copy; <a href="https://carto.com/">CARTO</a>'
+    attribution: "&copy; OpenStreetMap"
   }).addTo(map);
 
   let userPosition = null;
@@ -214,7 +216,7 @@
       $("garageForm").style.display = "block";
       renderGarage();
     } else {
-      $("modalTitle").textContent = "👤 ACCESO AL GARAJE";
+      $("modalTitle").textContent = "👤 PERFIL DE USUARIO";
       $("authForm").style.display = "block";
       $("garageForm").style.display = "none";
     }
@@ -224,14 +226,14 @@
     const list = $("bikeList");
     list.innerHTML = "";
     if(!userGarage.length) {
-      list.innerHTML = "<span style='font-size:11px; color:var(--text-dim);'>No tienes motos guardadas.</span>";
+      list.innerHTML = "<span style='font-size:11px; color:var(--muted);'>Sin motos en el garaje.</span>";
       return;
     }
     userGarage.forEach((b, idx) => {
       const div = document.createElement("div");
-      div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:8px; background:var(--panel-card); margin-top:6px; border-radius:6px; font-size:12px; border:1px solid var(--border);";
+      div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:8px; background:var(--panel2); margin-top:6px; border-radius:6px; font-size:12px;";
       div.innerHTML = `<span><strong>${b.name}</strong> (${b.type.toUpperCase()})</span>
-        <button onclick="selectGarageBike(${idx})" style="background:var(--accent); color:#fff; border:0; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer;">SELECCIONAR</button>`;
+        <button onclick="selectGarageBike(${idx})" style="background:var(--red); color:#fff; border:0; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer;">Usar</button>`;
       list.appendChild(div);
     });
   }
@@ -239,14 +241,14 @@
   window.selectGarageBike = function(idx) {
     const bike = userGarage[idx];
     selectedBike = bike.type;
-    document.querySelectorAll(".card-opt").forEach(x => x.classList.toggle("active", x.dataset.bike === bike.type));
+    document.querySelectorAll(".bike-card").forEach(x => x.classList.toggle("active", x.dataset.bike === bike.type));
     $("userModal").style.display = "none";
     showNotice(`Moto activa: <strong>${bike.name}</strong>`);
   };
 
   $("loginBtn").addEventListener("click", () => {
     const email = $("userEmail").value.trim();
-    if(!email) return alert("Ingresa tu email");
+    if(!email) return alert("Introduce tu email");
     currentUser = { email };
     localStorage.setItem("rider_user", JSON.stringify(currentUser));
     updateAuthUI();
@@ -255,7 +257,7 @@
   $("addBikeBtn").addEventListener("click", () => {
     const name = $("bikeName").value.trim();
     const type = $("bikeTypeSelect").value;
-    if(!name) return alert("Escribe el nombre de tu moto");
+    if(!name) return alert("Escribe el nombre de la moto");
     userGarage.push({ name, type });
     localStorage.setItem("rider_garage", JSON.stringify(userGarage));
     $("bikeName").value = "";
@@ -271,9 +273,9 @@
   $("openUserModal").onclick = () => { updateAuthUI(); $("userModal").style.display = "grid"; };
   $("closeModalBtn").onclick = () => $("userModal").style.display = "none";
 
-  document.querySelectorAll(".card-opt").forEach(card => {
+  document.querySelectorAll(".bike-card").forEach(card => {
     card.addEventListener("click", () => {
-      document.querySelectorAll(".card-opt").forEach(c => c.classList.remove("active"));
+      document.querySelectorAll(".bike-card").forEach(c => c.classList.remove("active"));
       card.classList.add("active");
       selectedBike = card.dataset.bike;
     });
@@ -281,7 +283,7 @@
 
   $("distRange").addEventListener("input", (e) => {
     selectedDistance = e.target.value;
-    $("distVal").textContent = selectedDistance + " KM";
+    $("distVal").textContent = selectedDistance + " km";
   });
 
   function destinationPoint(origin, bearingDeg, distanceKm) {
@@ -304,7 +306,7 @@
 
   async function generateRoute() {
     if (!userPosition) {
-      showNotice("Ubicando posición GPS...");
+      showNotice("Ubícate usando el botón GPS.");
       locateUser();
       return;
     }
@@ -312,10 +314,12 @@
     const isCircularRoute = $("circularCheck").checked;
 
     if (!isCircularRoute && !destinationPosition) {
-      showNotice("Selecciona un destino en el mapa o marca Ruta Circular.");
+      showNotice("Marca un destino en el mapa o activa 'Ruta Circular'.");
       return;
     }
 
+    const button = $("generateButton");
+    button.disabled = true;
     $("loading").style.display = "block";
 
     try {
@@ -352,7 +356,7 @@
         } catch (e) {}
       }
 
-      if (!generatedRoutes.length) throw new Error("No se pudo calcular la ruta.");
+      if (!generatedRoutes.length) throw new Error("No fue posible calcular las alternativas.");
 
       renderMultiRouteUI();
       selectRouteOption(0);
@@ -360,6 +364,7 @@
     } catch (err) {
       showNotice(err.message);
     } finally {
+      button.disabled = false;
       $("loading").style.display = "none";
     }
   }
@@ -374,12 +379,13 @@
     generatedRoutes.forEach((r, idx) => {
       selectorHTML += `
         <button onclick="selectRouteOption(${idx})" id="routeBtn_${idx}" 
-          style="flex:1; padding:8px; border:1px solid var(--border); border-radius:8px; background:var(--panel-card); color:#fff; cursor:pointer;">
+          style="flex:1; padding:8px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:#fff; cursor:pointer;">
           <strong>${r.title}</strong><br>
-          <small style="color:var(--text-dim);">${r.km} km</small>
+          <small style="color:var(--muted);">${r.km} km</small>
         </button>`;
     });
     selectorHTML += `</div>`;
+
     $("routeSelectorContainer").innerHTML = selectorHTML;
   }
 
@@ -390,9 +396,9 @@
       const isSelected = idx === index;
       const layer = L.geoJSON(rData.route.geometry, {
         style: {
-          color: isSelected ? "#ff3b30" : "#4a5568",
+          color: isSelected ? "#ff3b30" : "#0066cc",
           weight: isSelected ? 6 : 3,
-          opacity: isSelected ? 0.9 : 0.4
+          opacity: isSelected ? 0.9 : 0.5
         }
       }).addTo(map);
 
@@ -400,8 +406,8 @@
 
       const btn = $(`routeBtn_${idx}`);
       if(btn) {
-        btn.style.borderColor = isSelected ? "var(--accent)" : "var(--border)";
-        btn.style.background = isSelected ? "var(--accent-glow)" : "var(--panel-card)";
+        btn.style.borderColor = isSelected ? "var(--red)" : "var(--line)";
+        btn.style.background = isSelected ? "rgba(255,59,48,0.2)" : "var(--panel2)";
       }
     });
 
@@ -409,7 +415,7 @@
     $("distanceResult").textContent = active.km + " km";
     $("timeResult").textContent = Math.floor(active.time/60) + "h " + (active.time%60) + "m";
     $("result").style.display = "block";
-    map.fitBounds(routeLayers[index].getBounds(), { padding: [40, 40] });
+    map.fitBounds(routeLayers[index].getBounds(), { padding: [30, 30] });
   };
 
   function showNotice(msg) {
@@ -433,7 +439,7 @@
     if (destinationMarker) map.removeLayer(destinationMarker);
     destinationMarker = L.marker([destinationPosition.lat, destinationPosition.lng]).addTo(map);
     $("destInput").value = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
-    showNotice("Destino marcado");
+    showNotice("Destino seleccionado");
   });
 
   $("locateButton").addEventListener("click", locateUser);
