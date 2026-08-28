@@ -25,7 +25,7 @@ main{padding:25px 18px 60px}.section{margin-bottom:30px}.eyebrow{color:var(--red
 .controls{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.control{padding:16px;background:var(--panel);border:1px solid var(--line);border-radius:17px}.control-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.control-title{font-size:11px;font-weight:900}.value{color:var(--red);font-size:12px;font-weight:900}
 input[type=range]{width:100%;height:4px;appearance:none;background:#2a2f36;border-radius:20px}input[type=range]::-webkit-slider-thumb{appearance:none;width:19px;height:19px;border-radius:50%;background:#fff;border:4px solid var(--red)}input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:#fff;border:4px solid var(--red)}
 .distance{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:15px}.distance button{padding:13px 4px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);color:#aeb5bd;font-size:11px;font-weight:900}.distance button.active{color:#fff;background:var(--red);border-color:var(--red)}
-.options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.option{display:flex;justify-content:space-between;align-items:center;padding:15px;background:var(--panel);border:1px solid var(--line);border-radius:15px}.option-title{font-size:11px;font-weight:900}.option-description{margin-top:4px;color:var(--muted);font-size:9px}.switch{width:43px;height:24px;border-radius:20px;background:#292e35;position:relative;flex:none}.switch::after{content:"";position:absolute;width:18px;height:18px;top:3px;left:3px;border-radius:50%;background:#747b83;transition:.2s}.switch.active{background:var(--red)}.switch.active::after{left:22px;background:white}
+.destination-box{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:15px}.destination-box input{width:100%;padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--panel);color:white;font-size:12px;outline:none}.destination-box input:focus{border-color:var(--red)}.destination-box button{padding:14px 16px;border:0;border-radius:13px;background:var(--red);color:#fff;font-weight:900}.destination-hint{margin-top:9px;color:var(--muted);font-size:10px;line-height:1.4}.destination-selected{display:none;margin-top:9px;padding:10px 12px;border-radius:10px;background:var(--panel2);color:#fff;font-size:10px}.options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.option{display:flex;justify-content:space-between;align-items:center;padding:15px;background:var(--panel);border:1px solid var(--line);border-radius:15px}.option-title{font-size:11px;font-weight:900}.option-description{margin-top:4px;color:var(--muted);font-size:9px}.switch{width:43px;height:24px;border-radius:20px;background:#292e35;position:relative;flex:none}.switch::after{content:"";position:absolute;width:18px;height:18px;top:3px;left:3px;border-radius:50%;background:#747b83;transition:.2s}.switch.active{background:var(--red)}.switch.active::after{left:22px;background:white}
 .generate{width:100%;margin-top:22px;padding:18px;border:0;border-radius:16px;color:#fff;background:linear-gradient(135deg,var(--red),var(--red2));font-size:14px;font-weight:1000;letter-spacing:.7px;box-shadow:0 14px 35px rgba(255,59,48,.2)}.generate:disabled{opacity:.55}
 .result{display:none;margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden}.result-head{padding:20px;background:linear-gradient(135deg,rgba(255,59,48,.17),transparent),var(--panel2)}
 .result-label{color:var(--red);font-size:9px;font-weight:900;letter-spacing:2px}.result-name{margin:6px 0;font-size:25px;font-style:italic}.result-subtitle{color:var(--muted);font-size:11px;line-height:1.45}
@@ -37,7 +37,7 @@ input[type=range]{width:100%;height:4px;appearance:none;background:#2a2f36;borde
 footer{padding:0 20px 35px;text-align:center;color:#505761;font-size:9px;letter-spacing:1.5px}
 .leaflet-control-zoom a{background:#11151a!important;color:white!important;border-color:#292e35!important}.leaflet-control-attribution{background:rgba(7,9,12,.75)!important;color:#9ba2aa!important}.leaflet-control-attribution a{color:#c4cad0!important}
 .osm-tag{font-size:10px;color:#aeb5bd;margin-top:8px}.source-badge{display:inline-block;margin-top:10px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#0d1014;font-size:8px;color:#9da5af}
-@media(max-width:700px){.map-wrap{height:55vh;min-height:400px}.bikes{display:flex;overflow-x:auto;scrollbar-width:none}.bikes::-webkit-scrollbar{display:none}.bike{min-width:125px}.controls,.options{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.stat:nth-child(1),.stat:nth-child(2){border-bottom:1px solid var(--line)}.stat:nth-child(2){border-right:0}.result-details{grid-template-columns:repeat(2,1fr)}.result-buttons{grid-template-columns:1fr}}
+@media(max-width:700px){.destination-box{grid-template-columns:1fr}.map-wrap{height:55vh;min-height:400px}.bikes{display:flex;overflow-x:auto;scrollbar-width:none}.bikes::-webkit-scrollbar{display:none}.bike{min-width:125px}.controls,.options{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.stat:nth-child(1),.stat:nth-child(2){border-bottom:1px solid var(--line)}.stat:nth-child(2){border-right:0}.result-details{grid-template-columns:repeat(2,1fr)}.result-buttons{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -103,7 +103,19 @@ footer{padding:0 20px 35px;text-align:center;color:#505761;font-size:9px;letter-
 </section>
 
 <section class="section">
-  <div class="eyebrow">04 — CARRETERA</div>
+  <div class="eyebrow">04 — DESTINO</div>
+  <h2>¿A DÓNDE QUIERES IR?</h2>
+  <p class="description">Escribe un lugar, carretera, pueblo o punto de interés. También puedes tocar directamente el mapa para fijar el destino.</p>
+  <div class="destination-box">
+    <input id="destinationInput" type="text" placeholder="Ej. Montserrat, Andorra, Sitges..." autocomplete="off">
+    <button id="destinationSearch">BUSCAR</button>
+  </div>
+  <div class="destination-hint">📍 Pulsa el mapa para elegir cualquier punto. El destino aparecerá marcado.</div>
+  <div class="destination-selected" id="destinationSelected"></div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">05 — CARRETERA</div>
   <h2>DEFINE EL TERRENO.</h2>
   <div class="options">
     <div class="option" data-option="highways"><div><div class="option-title">🛣️ EVITAR AUTOPISTAS</div><div class="option-description">Penalizar autopistas y vías rápidas</div></div><div class="switch active"></div></div>
@@ -172,6 +184,8 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 let userPosition = null;
 let userMarker = null;
+let destinationPosition = null;
+let destinationMarker = null;
 let routeLayer = null;
 let candidateLayer = null;
 let lastRoute = null;
@@ -745,6 +759,10 @@ async function generateRoute(){
     locateUser();
     return;
   }
+  if(!destinationPosition){
+    showNotice("Elige un destino escribiéndolo arriba o tocando el mapa.");
+    return;
+  }
 
   const button=$("generateButton");
   button.disabled=true;
@@ -785,6 +803,16 @@ async function generateRoute(){
     setLoading("📍 Seleccionando carreteras interesantes...<br><br>RIDER está construyendo varios circuitos.");
 
     const loops=buildLoops(selected);
+    // El destino elegido por el usuario es siempre el último punto de la ruta.
+    // Para conservar el carácter motero, usamos como máximo dos puntos OSM intermedios.
+    const destinationLoops=[];
+    for(const loop of loops){
+      const middle=loop.slice(0,2);
+      destinationLoops.push([...middle,{center:destinationPosition,features:{mountain:0,curve:{turns:0,turnsPerKm:0},roads:50,urban:60},way:{tags:{},geometry:[]},score:0}]);
+    }
+    if(!destinationLoops.length){
+      destinationLoops.push([{center:destinationPosition,features:{mountain:0,curve:{turns:0,turnsPerKm:0},roads:50,urban:60},way:{tags:{},geometry:[]},score:0}]);
+    }
     const routes=[];
 
     const exclude=[];
@@ -795,16 +823,15 @@ async function generateRoute(){
      * Máximo 4 consultas OSRM para evitar castigar
      * los servicios públicos.
      */
-    for(let i=0;i<Math.min(4,loops.length);i++){
-      const chosen=loops[i];
+    for(let i=0;i<Math.min(4,destinationLoops.length);i++){
+      const chosen=destinationLoops[i];
 
       const raw=[
         userPosition,
-        ...chosen.map(c=>c.center),
-        userPosition
+        ...chosen.map(c=>c.center)
       ];
 
-      setLoading(`🏍️ Calculando circuito ${i+1}/${Math.min(4,loops.length)}...<br><br>Conectando los puntos con carreteras reales.`);
+      setLoading(`🏍️ Calculando ruta ${i+1}/${Math.min(4,destinationLoops.length)}...<br><br>Conectando tu salida con el destino por carreteras reales.`);
 
       const snapped=await snapPoints(raw);
 
@@ -912,7 +939,8 @@ function routeName(){
     scooter:"URBAN ESCAPE",
     customized:"RIDER CUSTOM LOOP"
   };
-  return (names[selectedBike]||"RIDER LOOP")+" · "+selectedDistance+" KM";
+  const destName=destinationPosition ? ($("destinationInput").value.trim() || "DESTINO") : "DESTINO";
+  return (names[selectedBike]||"RIDER LOOP")+" · "+selectedDistance+" KM · "+destName.split(",")[0];
 }
 
 function escapeHtml(s){
@@ -920,6 +948,42 @@ function escapeHtml(s){
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
   })[c]);
 }
+
+/* =========================================================
+   DESTINO
+========================================================= */
+
+function setDestination(point,label="Destino seleccionado"){
+  destinationPosition={lat:Number(point.lat),lng:Number(point.lng)};
+  if(destinationMarker) map.removeLayer(destinationMarker);
+  destinationMarker=L.marker([destinationPosition.lat,destinationPosition.lng]).addTo(map);
+  destinationMarker.bindPopup("<strong>📍 DESTINO</strong><br>"+escapeHtml(label));
+  $("destinationSelected").textContent="📍 "+label;
+  $("destinationSelected").style.display="block";
+  $("destinationInput").value=label;
+}
+
+async function searchDestination(){
+  const q=$("destinationInput").value.trim();
+  if(!q){ showNotice("Escribe un destino antes de buscar."); return; }
+  const button=$("destinationSearch");
+  button.disabled=true;
+  try{
+    const url="https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=es&q="+encodeURIComponent(q);
+    const r=await fetch(url,{headers:{"Accept":"application/json"}});
+    if(!r.ok) throw new Error("No se pudo consultar el buscador de OpenStreetMap.");
+    const data=await r.json();
+    if(!data.length) throw new Error("No encontramos ese destino. Prueba con otro nombre.");
+    setDestination({lat:data[0].lat,lng:data[0].lon},data[0].display_name);
+    map.setView([Number(data[0].lat),Number(data[0].lon)],11);
+    $("notice").style.display="none";
+  }catch(e){ showNotice(e.message); }
+  finally{ button.disabled=false; }
+}
+
+map.on("click",e=>{
+  setDestination(e.latlng,"Punto elegido en el mapa");
+});
 
 /* =========================================================
    GPS
@@ -989,6 +1053,10 @@ function locateUser(){
 
 $("locateButton").addEventListener("click",locateUser);
 $("generateButton").addEventListener("click",generateRoute);
+$("destinationSearch").addEventListener("click",searchDestination);
+$("destinationInput").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){ e.preventDefault(); searchDestination(); }
+});
 
 $("saveButton").addEventListener("click",()=>{
   if(!lastRoute){
@@ -1086,7 +1154,14 @@ $("resetButton").addEventListener("click",()=>{
     map.removeLayer(userMarker);
     userMarker=null;
   }
+  if(destinationMarker){
+    map.removeLayer(destinationMarker);
+    destinationMarker=null;
+  }
 
+  destinationPosition=null;
+  $("destinationSelected").style.display="none";
+  $("destinationInput").value="";
   userPosition=null;
   lastRoute=null;
 
