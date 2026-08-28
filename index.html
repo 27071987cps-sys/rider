@@ -3,17 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RIDER 2.0 — Rutas en Moto</title>
-  
-  <!-- Leaflet CSS -->
+  <title>RIDER 2.0</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
   <style>
     :root {
-      --bg: #0d0f12;
-      --panel: #16191e;
-      --panel2: #21252d;
-      --line: #2e3440;
+      --bg: #0f1115;
+      --panel: #16191f;
+      --panel2: #212631;
+      --line: #2d3442;
       --red: #ff3b30;
       --text: #f0f2f5;
       --muted: #8a93a0;
@@ -22,21 +19,16 @@
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { margin: 0; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    /* HEADER */
     header { height: 60px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; }
     .logo { font-weight: 900; font-size: 18px; letter-spacing: 2px; color: #fff; }
     .logo span { color: var(--red); }
     .header-actions { display: flex; gap: 10px; align-items: center; }
     .icon-btn { background: var(--panel2); border: 1px solid var(--line); color: #fff; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 14px; }
 
-    /* LAYOUT PRINCIPAL */
     .main-container { display: flex; flex: 1; position: relative; overflow: hidden; }
-    
-    /* PANEL LATERAL */
     .sidebar { width: 380px; background: var(--panel); border-right: 1px solid var(--line); padding: 20px; display: flex; flex-direction: column; gap: 20px; z-index: 500; overflow-y: auto; }
     .section-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px; margin-bottom: 8px; }
 
-    /* CONTROLES */
     .bike-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .bike-card { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; font-size: 11px; font-weight: bold; }
     .bike-card.active { border-color: var(--red); background: rgba(255, 59, 48, 0.15); color: #fff; }
@@ -45,10 +37,8 @@
     .btn-main { background: var(--red); color: #fff; border: 0; padding: 14px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; font-size: 14px; }
     .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* MAPA */
     #map { flex: 1; height: 100%; background: #000; }
 
-    /* NOTIFICACIONES Y RESULTADOS */
     .notice { background: rgba(255,59,48,0.1); border: 1px solid var(--red); color: #fff; padding: 10px; border-radius: 8px; font-size: 12px; display: none; }
     .result-panel { background: var(--panel2); border-radius: 12px; padding: 15px; border: 1px solid var(--line); display: none; }
     .metrics { display: flex; justify-content: space-around; margin-top: 10px; }
@@ -67,7 +57,7 @@
   <header>
     <div class="logo">RIDER <span>2.0</span></div>
     <div class="header-actions">
-      <button class="icon-btn" id="openUserModal">👤 Perfil / Garaje</button>
+      <button class="icon-btn" id="openUserModal">👤 Garaje</button>
       <button class="icon-btn" id="locateButton">📍 GPS</button>
     </div>
   </header>
@@ -76,12 +66,10 @@
     <div class="sidebar">
       <div>
         <div class="section-title">CONFIGURACIÓN DE RUTA</div>
-        <div class="destination-box">
-          <input type="text" id="destInput" class="input-box" placeholder="Haz clic en el mapa para fijar destino...">
-        </div>
+        <input type="text" id="destInput" class="input-box" placeholder="Buscar destino...">
         <div style="margin-top:10px; display:flex; align-items:center; gap:8px; font-size:12px;">
           <input type="checkbox" id="circularCheck" style="accent-color:var(--red);"> 
-          <label for="circularCheck"><strong>🔄 RUTA CIRCULAR</strong> (Volver al origen)</label>
+          <label for="circularCheck"><strong>🔄 Ruta Circular</strong> (Origen/Llegada)</label>
         </div>
       </div>
 
@@ -103,13 +91,13 @@
         <div style="text-align:right; font-size:12px; color:var(--muted);" id="distVal">250 km</div>
       </div>
 
-      <button class="btn-main" id="generateButton">GENERAR OPCIONES DE RUTA</button>
+      <button class="btn-main" id="generateButton">GENERAR RUTA</button>
 
       <div id="notice" class="notice"></div>
-      <div id="loading" style="display:none; font-size:12px; text-align:center; color:var(--muted);">🛰️ Generando alternativas de ruta...</div>
+      <div id="loading" style="display:none; font-size:12px; text-align:center; color:var(--muted);">Calculando mejores rutas...</div>
 
       <div id="result" class="result-panel">
-        <div class="result-head" style="font-size:12px; font-weight:bold; margin-bottom:10px;">RUTAS DISPONIBLES:</div>
+        <div class="result-head" style="font-size:12px; font-weight:bold; margin-bottom:10px;">OPCIONES:</div>
         <div class="metrics">
           <div class="metric"><div class="metric-val" id="distanceResult">0 km</div><div class="metric-lbl">DISTANCIA</div></div>
           <div class="metric"><div class="metric-val" id="timeResult">0h 0m</div><div class="metric-lbl">TIEMPO ESTIMADO</div></div>
@@ -120,73 +108,61 @@
     <div id="map"></div>
   </div>
 
-  <!-- MODAL DE AUTENTICACIÓN Y GARAJE -->
   <div id="userModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:2000; place-items:center; padding:20px;">
-    <div style="background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:25px; max-width:400px; width:100%;">
-      <h2 id="modalTitle" style="margin-top:0; font-size:20px;">👤 PERFIL DE PILOTO</h2>
+    <div style="background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px; max-width:380px; width:100%;">
+      <h3 id="modalTitle" style="margin-top:0; font-size:18px;">👤 Tu Garaje</h3>
       <div id="authForm">
-        <input type="email" id="userEmail" placeholder="Tu email" class="input-box" style="margin-bottom:10px;">
-        <input type="password" id="userPass" placeholder="Contraseña" class="input-box" style="margin-bottom:15px;">
-        <button id="loginBtn" class="btn-main">INICIAR SESIÓN / REGISTRARSE</button>
+        <input type="email" id="userEmail" placeholder="Tu Email" class="input-box" style="margin-bottom:10px;">
+        <input type="password" id="userPass" placeholder="Contraseña" class="input-box" style="margin-bottom:12px;">
+        <button id="loginBtn" class="btn-main">Iniciar Sesión</button>
       </div>
       
       <div id="garageForm" style="display:none;">
-        <p style="font-size:12px; color:var(--muted);">Motos en tu garaje:</p>
-        <div id="bikeList" style="margin-bottom:15px;"></div>
-        <hr style="border-color:var(--line); margin:15px 0;">
-        <span style="font-size:11px; font-weight:bold;">Añadir nueva moto:</span>
-        <input type="text" id="bikeName" placeholder="Ej. Yamaha MT-07" class="input-box" style="margin:8px 0; font-size:12px;">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">Motos registradas:</div>
+        <div id="bikeList"></div>
+        <hr style="border-color:var(--line); margin:12px 0;">
+        <div style="font-size:12px; font-weight:bold; margin-bottom:6px;">Agregar moto:</div>
+        <input type="text" id="bikeName" placeholder="Modelo (Ej. MT-09)" class="input-box" style="margin-bottom:8px; font-size:12px;">
         <select id="bikeTypeSelect" class="input-box" style="margin-bottom:12px; font-size:12px;">
           <option value="sport">Sport</option>
           <option value="naked">Naked</option>
-          <option value="trail">Trail / Adventure</option>
+          <option value="trail">Trail</option>
           <option value="touring">Touring</option>
           <option value="custom">Custom</option>
           <option value="supermoto">Supermoto</option>
         </select>
-        <button id="addBikeBtn" class="btn-main" style="background:var(--panel2); border:1px solid var(--line);">+ AÑADIR A MI GARAJE</button>
-        <button id="logoutBtn" style="width:100%; padding:8px; background:transparent; color:var(--muted); border:0; font-size:11px; margin-top:10px; cursor:pointer;">Cerrar sesión</button>
+        <button id="addBikeBtn" class="btn-main" style="background:var(--panel2); border:1px solid var(--line);">+ Añadir a mi garaje</button>
+        <button id="logoutBtn" style="width:100%; padding:8px; background:transparent; color:var(--muted); border:0; font-size:11px; margin-top:8px; cursor:pointer;">Cerrar sesión</button>
       </div>
-      <button id="closeModalBtn" style="width:100%; padding:8px; margin-top:10px; background:transparent; color:#fff; border:0; text-decoration:underline; font-size:12px; cursor:pointer;">Cerrar</button>
+      <button id="closeModalBtn" style="width:100%; padding:8px; margin-top:8px; background:transparent; color:#fff; border:0; text-decoration:underline; font-size:12px; cursor:pointer;">Cerrar</button>
     </div>
   </div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-  /* =========================================================
-     RIDER 2.0 — MOTOR COMPLETO DE RUTAS Y USUARIOS
-  ========================================================= */
-
   const OSRM = "https://router.project-osrm.org";
-
   const map = L.map("map", { zoomControl:true }).setView([41.3851,2.1734], 10);
+
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
-    attribution: "&copy; OpenStreetMap contributors"
+    attribution: "&copy; OpenStreetMap"
   }).addTo(map);
 
-  // ESTADOS GENERALES
   let userPosition = null;
   let userMarker = null;
   let destinationPosition = null;
   let destinationMarker = null;
   let routeLayers = [];
   let generatedRoutes = [];
-  let selectedRouteIndex = 0;
-  let isCircularRoute = false;
 
-  // USUARIO Y GARAJE
   let currentUser = JSON.parse(localStorage.getItem("rider_user")) || null;
   let userGarage = JSON.parse(localStorage.getItem("rider_garage")) || [];
-
   let selectedBike = "sport";
   let selectedDistance = 250;
 
   const $ = id => document.getElementById(id);
 
-  /* INTERFAZ DE USUARIOS Y GARAJE */
   function updateAuthUI() {
     if(currentUser) {
       $("modalTitle").textContent = "🏍️ GARAJE DE " + currentUser.email.split("@")[0].toUpperCase();
@@ -194,7 +170,7 @@
       $("garageForm").style.display = "block";
       renderGarage();
     } else {
-      $("modalTitle").textContent = "👤 INICIAR SESIÓN";
+      $("modalTitle").textContent = "👤 PERFIL DE USUARIO";
       $("authForm").style.display = "block";
       $("garageForm").style.display = "none";
     }
@@ -204,14 +180,14 @@
     const list = $("bikeList");
     list.innerHTML = "";
     if(!userGarage.length) {
-      list.innerHTML = "<span style='font-size:11px; color:var(--muted);'>No tienes motos registradas.</span>";
+      list.innerHTML = "<span style='font-size:11px; color:var(--muted);'>Sin motos en el garaje.</span>";
       return;
     }
     userGarage.forEach((b, idx) => {
       const div = document.createElement("div");
-      div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:8px; background:var(--panel2); margin-top:5px; border-radius:8px; font-size:12px;";
+      div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:8px; background:var(--panel2); margin-top:6px; border-radius:6px; font-size:12px;";
       div.innerHTML = `<span><strong>${b.name}</strong> (${b.type.toUpperCase()})</span>
-        <button onclick="selectGarageBike(${idx})" style="background:var(--red); color:#fff; border:0; padding:4px 8px; border-radius:5px; font-size:10px; cursor:pointer;">Usar</button>`;
+        <button onclick="selectGarageBike(${idx})" style="background:var(--red); color:#fff; border:0; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer;">Usar</button>`;
       list.appendChild(div);
     });
   }
@@ -221,12 +197,12 @@
     selectedBike = bike.type;
     document.querySelectorAll(".bike-card").forEach(x => x.classList.toggle("active", x.dataset.bike === bike.type));
     $("userModal").style.display = "none";
-    showNotice(`Moto seleccionada: <strong>${bike.name}</strong>`);
+    showNotice(`Moto activa: <strong>${bike.name}</strong>`);
   };
 
   $("loginBtn").addEventListener("click", () => {
     const email = $("userEmail").value.trim();
-    if(!email) return alert("Introduce un email válido");
+    if(!email) return alert("Introduce tu email");
     currentUser = { email };
     localStorage.setItem("rider_user", JSON.stringify(currentUser));
     updateAuthUI();
@@ -235,7 +211,7 @@
   $("addBikeBtn").addEventListener("click", () => {
     const name = $("bikeName").value.trim();
     const type = $("bikeTypeSelect").value;
-    if(!name) return alert("Nombre de moto requerido");
+    if(!name) return alert("Escribe el nombre de la moto");
     userGarage.push({ name, type });
     localStorage.setItem("rider_garage", JSON.stringify(userGarage));
     $("bikeName").value = "";
@@ -248,13 +224,9 @@
     updateAuthUI();
   });
 
-  $("openUserModal").onclick = () => {
-    updateAuthUI();
-    $("userModal").style.display = "grid";
-  };
+  $("openUserModal").onclick = () => { updateAuthUI(); $("userModal").style.display = "grid"; };
   $("closeModalBtn").onclick = () => $("userModal").style.display = "none";
 
-  /* SELECCIÓN DE MOTO Y DISTANCIA */
   document.querySelectorAll(".bike-card").forEach(card => {
     card.addEventListener("click", () => {
       document.querySelectorAll(".bike-card").forEach(c => c.classList.remove("active"));
@@ -268,7 +240,6 @@
     $("distVal").textContent = selectedDistance + " km";
   });
 
-  /* GEOMETRÍA Y PUNTOS */
   function destinationPoint(origin, bearingDeg, distanceKm) {
     const R = 6371;
     const lat1 = origin.lat * Math.PI / 180, lon1 = origin.lng * Math.PI / 180;
@@ -278,27 +249,26 @@
     return { lat: lat2 * 180 / Math.PI, lng: ((lon2 * 180 / Math.PI + 540) % 360) - 180 };
   }
 
-  /* MOTOR DE RUTAS */
   async function osrmRoute(points) {
     const coords = points.map(p => `${p.lng},${p.lat}`).join(";");
     const url = `${OSRM}/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true`;
     const r = await fetch(url);
-    if (!r.ok) throw new Error("Error en el servidor de mapas");
+    if (!r.ok) throw new Error("Error OSRM");
     const data = await r.json();
     return data.routes[0];
   }
 
   async function generateRoute() {
     if (!userPosition) {
-      showNotice("Activa tu GPS para comenzar.");
+      showNotice("Ubícate usando el botón GPS.");
       locateUser();
       return;
     }
 
-    isCircularRoute = $("circularCheck").checked;
+    const isCircularRoute = $("circularCheck").checked;
 
     if (!isCircularRoute && !destinationPosition) {
-      showNotice("Elige un destino en el mapa o marca 'Ruta Circular'.");
+      showNotice("Marca un destino en el mapa o activa 'Ruta Circular'.");
       return;
     }
 
@@ -340,7 +310,7 @@
         } catch (e) {}
       }
 
-      if (!generatedRoutes.length) throw new Error("No se pudo calcular ninguna opción.");
+      if (!generatedRoutes.length) throw new Error("No fue posible calcular las alternativas.");
 
       renderMultiRouteUI();
       selectRouteOption(0);
@@ -353,20 +323,19 @@
     }
   }
 
-  /* RENDERIZAR RUTAS Y SELECCIÓN */
   function clearRouteLayers() {
     routeLayers.forEach(l => map.removeLayer(l));
     routeLayers = [];
   }
 
   function renderMultiRouteUI() {
-    let selectorHTML = `<div style="display:flex; gap:8px; margin-bottom:15px;" id="routeOptionsContainer">`;
+    let selectorHTML = `<div style="display:flex; gap:8px; margin-bottom:12px;" id="routeOptionsContainer">`;
     generatedRoutes.forEach((r, idx) => {
       selectorHTML += `
         <button onclick="selectRouteOption(${idx})" id="routeBtn_${idx}" 
           style="flex:1; padding:8px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:#fff; cursor:pointer;">
           <strong>${r.title}</strong><br>
-          <small style="color:var(--muted);">${r.km} km · ${r.time}m</small>
+          <small style="color:var(--muted);">${r.km} km</small>
         </button>`;
     });
     selectorHTML += `</div>`;
@@ -379,7 +348,6 @@
   }
 
   window.selectRouteOption = function(index) {
-    selectedRouteIndex = index;
     clearRouteLayers();
 
     generatedRoutes.forEach((rData, idx) => {
@@ -408,7 +376,6 @@
     map.fitBounds(routeLayers[index].getBounds(), { padding: [30, 30] });
   };
 
-  /* EVENTOS Y GPS */
   function showNotice(msg) {
     $("notice").innerHTML = msg;
     $("notice").style.display = "block";
@@ -421,7 +388,7 @@
       if (userMarker) map.removeLayer(userMarker);
       userMarker = L.circleMarker([userPosition.lat, userPosition.lng], { radius: 8, fillColor: "#ff3b30", color: "#fff", weight: 3, fillOpacity: 1 }).addTo(map);
       map.setView([userPosition.lat, userPosition.lng], 11);
-      showNotice("📍 GPS Activo y ubicado");
+      showNotice("📍 GPS listo");
     });
   }
 
@@ -429,13 +396,13 @@
     destinationPosition = { lat: e.latlng.lat, lng: e.latlng.lng };
     if (destinationMarker) map.removeLayer(destinationMarker);
     destinationMarker = L.marker([destinationPosition.lat, destinationPosition.lng]).addTo(map);
-    showNotice("Destino seleccionado en el mapa");
+    $("destInput").value = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
+    showNotice("Destino seleccionado");
   });
 
   $("locateButton").addEventListener("click", locateUser);
   $("generateButton").addEventListener("click", generateRoute);
 
-  // Auto-obtener localización al cargar
   locateUser();
   </script>
 </body>
