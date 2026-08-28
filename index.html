@@ -1,409 +1,321 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RIDER 2.0</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    :root {
-      --bg: #0b0f17;
-      --panel: #121824;
-      --panel2: #1b2333;
-      --line: #283347;
-      --red: #ff3b30;
-      --text: #f0f4f8;
-      --muted: #8292a6;
-    }
-
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { margin: 0; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-
-    header { height: 60px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; }
-    .logo { font-weight: 900; font-size: 18px; letter-spacing: 2px; color: #fff; }
-    .logo span { color: var(--red); }
-    .header-actions { display: flex; gap: 10px; align-items: center; }
-    .icon-btn { background: var(--panel2); border: 1px solid var(--line); color: #fff; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 14px; }
-
-    .main-container { display: flex; flex: 1; position: relative; overflow: hidden; }
-    .sidebar { width: 380px; background: var(--panel); border-right: 1px solid var(--line); padding: 20px; display: flex; flex-direction: column; gap: 20px; z-index: 500; overflow-y: auto; }
-    .section-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px; margin-bottom: 8px; }
-
-    .bike-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .bike-card { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; font-size: 11px; font-weight: bold; }
-    .bike-card.active { border-color: var(--red); background: rgba(255, 59, 48, 0.15); color: #fff; }
-
-    .input-box { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px; width: 100%; color: #fff; font-size: 13px; }
-    .btn-main { background: var(--red); color: #fff; border: 0; padding: 14px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; font-size: 14px; }
-    .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    #map { flex: 1; height: 100%; background: #000; }
-
-    .notice { background: rgba(255,59,48,0.1); border: 1px solid var(--red); color: #fff; padding: 10px; border-radius: 8px; font-size: 12px; display: none; }
-    .result-panel { background: var(--panel2); border-radius: 12px; padding: 15px; border: 1px solid var(--line); display: none; }
-    .metrics { display: flex; justify-content: space-around; margin-top: 10px; }
-    .metric { text-align: center; }
-    .metric-val { font-size: 18px; font-weight: bold; color: var(--red); }
-    .metric-lbl { font-size: 10px; color: var(--muted); }
-
-    @media (max-width: 768px) {
-      .main-container { flex-direction: column-reverse; }
-      .sidebar { width: 100%; height: 50vh; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RIDER 2.0 — Motorcycle Routes</title>
+<meta name="theme-color" content="#07090c">
+<meta name="description" content="RIDER 2.0 — rutas inteligentes para motoristas">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#07090c;--panel:#101318;--panel2:#171b21;--line:rgba(255,255,255,.08);--text:#f6f7f8;--muted:#858d98;--red:#ff3b30;--red2:#ff5a36;--green:#57e389}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}body{min-height:100vh}.app{max-width:1200px;margin:auto}
+header{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(7,9,12,.86);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}.logo{font-size:26px;font-weight:1000;font-style:italic;letter-spacing:5px}.logo span{color:var(--red)}.header-actions{display:flex;gap:8px}.icon{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--panel2);color:white;display:grid;place-items:center;font-size:18px}
+.map-wrap{position:relative;height:62vh;min-height:430px;margin-top:68px}#map{width:100%;height:100%;background:#101418}.map-top{position:absolute;top:18px;left:18px;z-index:500}.status{padding:9px 13px;background:rgba(7,9,12,.88);border:1px solid var(--line);border-radius:30px;font-size:10px;font-weight:900;letter-spacing:1px}.status.gps{color:var(--green)}.map-bottom{position:absolute;left:15px;right:15px;bottom:15px;z-index:500;padding:18px;border:1px solid var(--line);border-radius:20px;background:rgba(8,10,13,.92);backdrop-filter:blur(18px)}.map-bottom small{color:var(--red);font-size:9px;font-weight:900;letter-spacing:2px}.map-bottom h1{margin:6px 0 3px;font-size:27px;font-style:italic}.map-bottom p{margin:0;color:var(--muted);font-size:12px}
+main{padding:25px 18px 60px}.section{margin-bottom:30px}.eyebrow{color:var(--red);font-size:9px;font-weight:900;letter-spacing:2px}h2{margin:6px 0;font-size:24px;font-style:italic}.description{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+.bikes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:17px}.bike{min-height:105px;padding:14px;text-align:left;color:white;background:var(--panel);border:1px solid var(--line);border-radius:17px;transition:.2s}.bike:hover{transform:translateY(-2px)}.bike.active{border-color:var(--red);background:linear-gradient(145deg,rgba(255,59,48,.17),rgba(255,59,48,.03)),var(--panel)}.bike-icon{font-size:27px;display:block;margin-bottom:12px}.bike strong{display:block;font-size:11px}.bike small{display:block;margin-top:4px;color:var(--muted);font-size:9px}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}.control{padding:16px;background:var(--panel);border:1px solid var(--line);border-radius:17px}.control-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.control-title{font-size:11px;font-weight:900}.value{color:var(--red);font-size:12px;font-weight:900}input[type=range]{width:100%;height:4px;appearance:none;background:#2a2f36;border-radius:20px}input[type=range]::-webkit-slider-thumb{appearance:none;width:19px;height:19px;border-radius:50%;background:#fff;border:4px solid var(--red)}input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:#fff;border:4px solid var(--red)}
+.distance{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:15px}.distance button{padding:13px 4px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);color:#aeb5bd;font-size:11px;font-weight:900}.distance button.active{color:#fff;background:var(--red);border-color:var(--red)}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.option{display:flex;justify-content:space-between;align-items:center;padding:15px;background:var(--panel);border:1px solid var(--line);border-radius:15px}.option-title{font-size:11px;font-weight:900}.option-description{margin-top:4px;color:var(--muted);font-size:9px}.switch{width:43px;height:24px;border-radius:20px;background:#292e35;position:relative}.switch::after{content:"";position:absolute;width:18px;height:18px;top:3px;left:3px;border-radius:50%;background:#747b83;transition:.2s}.switch.active{background:var(--red)}.switch.active::after{left:22px;background:white}
+.generate{width:100%;margin-top:22px;padding:18px;border:0;border-radius:16px;color:#fff;background:linear-gradient(135deg,var(--red),var(--red2));font-size:14px;font-weight:1000;letter-spacing:.7px;box-shadow:0 14px 35px rgba(255,59,48,.2)}.generate:disabled{opacity:.55}.result{display:none;margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden}.result-head{padding:20px;background:linear-gradient(135deg,rgba(255,59,48,.17),transparent),var(--panel2)}.result-label{color:var(--red);font-size:9px;font-weight:900;letter-spacing:2px}.result-name{margin:6px 0;font-size:25px;font-style:italic}.result-subtitle{color:var(--muted);font-size:11px}.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.stat{padding:16px 5px;text-align:center;border-right:1px solid var(--line)}.stat:last-child{border:0}.stat strong{display:block;font-size:16px}.stat span{display:block;margin-top:4px;color:var(--muted);font-size:8px;text-transform:uppercase}.result-body{padding:18px}.score{display:flex;justify-content:space-between;align-items:center}.score-title{font-size:10px;font-weight:900}.score-number{color:var(--red);font-size:24px;font-weight:1000}.bar{height:5px;margin-top:9px;background:#292e35;border-radius:20px;overflow:hidden}.bar div{height:100%;width:0;background:var(--red);transition:1s}.result-buttons{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-top:18px}.result-buttons button{padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);color:white;font-size:11px;font-weight:900}.loading{display:none;text-align:center;padding:20px;color:var(--muted);font-size:12px}footer{padding:0 20px 35px;text-align:center;color:#505761;font-size:9px;letter-spacing:1.5px}
+.leaflet-control-zoom a{background:#11151a!important;color:white!important;border-color:#292e35!important}.leaflet-control-attribution{background:rgba(7,9,12,.75)!important;color:#9ba2aa!important}.leaflet-control-attribution a{color:#c4cad0!important}
+.notice{display:none;margin-top:12px;padding:12px;border-radius:12px;background:#1b1413;border:1px solid rgba(255,59,48,.25);color:#ffb0aa;font-size:11px;line-height:1.45}
+@media(max-width:700px){.map-wrap{height:55vh;min-height:400px}.bikes{display:flex;overflow-x:auto;scrollbar-width:none}.bikes::-webkit-scrollbar{display:none}.bike{min-width:125px}.controls,.options{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.stat:nth-child(1),.stat:nth-child(2){border-bottom:1px solid var(--line)}.stat:nth-child(2){border-right:0}.result-buttons{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
+<div class="app">
+<header><div class="logo">RIDER<span>.</span></div><div class="header-actions"><button class="icon" id="locateButton" title="Mi ubicación">📍</button><button class="icon" id="resetButton" title="Reiniciar">↻</button></div></header>
+<section class="map-wrap"><div id="map"></div><div class="map-top"><div class="status" id="gpsStatus">● GPS NO ACTIVO</div></div><div class="map-bottom"><small>RIDE DIFFERENT</small><h1>ENCUENTRA TU<br>PRÓXIMA RUTA.</h1><p id="mapText">Activa el GPS y deja que RIDER encuentre carreteras que merezcan ser conducidas.</p></div></section>
+<main>
+<section class="section"><div class="eyebrow">01 — PERFIL</div><h2>¿CON QUÉ VAS A RODAR?</h2><p class="description">RIDER adapta el estilo de ruta al comportamiento de tu moto.</p><div class="bikes">
+<button class="bike active" data-bike="sport"><span class="bike-icon">🏁</span><strong>SPORT</strong><small>Curvas / técnica</small></button><button class="bike" data-bike="naked"><span class="bike-icon">🏍️</span><strong>NAKED</strong><small>Equilibrada</small></button><button class="bike" data-bike="trail"><span class="bike-icon">🧭</span><strong>TRAIL</strong><small>Aventura</small></button><button class="bike" data-bike="touring"><span class="bike-icon">🛣️</span><strong>TOURING</strong><small>Distancia</small></button><button class="bike" data-bike="custom"><span class="bike-icon">😎</span><strong>CUSTOM</strong><small>Paisaje</small></button><button class="bike" data-bike="supermoto"><span class="bike-icon">⚡</span><strong>SUPERMOTO</strong><small>Diversión</small></button><button class="bike" data-bike="scooter"><span class="bike-icon">🛵</span><strong>SCOOTER</strong><small>Versátil</small></button><button class="bike" data-bike="customized"><span class="bike-icon">⚙️</span><strong>A MEDIDA</strong><small>Tú decides</small></button>
+</div></section>
+<section class="section"><div class="eyebrow">02 — ESTILO DE RUTA</div><h2>¿QUÉ TE APETECE HOY?</h2><p class="description">Cuanto más alto, más peso tendrá ese factor en el cálculo.</p><div class="controls">
+<div class="control"><div class="control-header"><span class="control-title">🔥 CURVAS</span><span class="value" id="curvesValue">9</span></div><input id="curves" type="range" min="0" max="10" value="9"></div>
+<div class="control"><div class="control-header"><span class="control-title">⛰️ MONTAÑA</span><span class="value" id="mountainValue">8</span></div><input id="mountain" type="range" min="0" max="10" value="8"></div>
+<div class="control"><div class="control-header"><span class="control-title">🌲 SECUNDARIAS</span><span class="value" id="secondaryValue">9</span></div><input id="secondary" type="range" min="0" max="10" value="9"></div>
+<div class="control"><div class="control-header"><span class="control-title">🌄 PAISAJE</span><span class="value" id="sceneryValue">7</span></div><input id="scenery" type="range" min="0" max="10" value="7"></div>
+<div class="control"><div class="control-header"><span class="control-title">⚡ DIVERSIÓN</span><span class="value" id="funValue">9</span></div><input id="fun" type="range" min="0" max="10" value="9"></div>
+</div></section>
+<section class="section"><div class="eyebrow">03 — DISTANCIA</div><h2>¿CUÁNTOS KM?</h2><div class="distance"><button data-distance="100">100 KM</button><button data-distance="200">200 KM</button><button class="active" data-distance="250">250 KM</button><button data-distance="350">350 KM</button><button data-distance="500">500+</button></div></section>
+<section class="section"><div class="eyebrow">04 — CARRETERA</div><h2>DEFINE EL TERRENO.</h2><div class="options">
+<div class="option" data-option="highways"><div><div class="option-title">🛣️ EVITAR AUTOPISTAS</div><div class="option-description">Priorizar carreteras secundarias</div></div><div class="switch active"></div></div>
+<div class="option" data-option="cities"><div><div class="option-title">🏙️ EVITAR CIUDADES</div><div class="option-description">Menos tráfico urbano</div></div><div class="switch active"></div></div>
+<div class="option" data-option="tolls"><div><div class="option-title">💳 EVITAR PEAJES</div><div class="option-description">Sin carreteras de pago</div></div><div class="switch active"></div></div>
+<div class="option" data-option="mountainPasses"><div><div class="option-title">🏔️ PUERTOS</div><div class="option-description">Buscar carreteras de montaña</div></div><div class="switch active"></div></div>
+</div></section>
+<button class="generate" id="generateButton">🏍️ &nbsp; GENERAR RUTA RIDER</button>
+<div class="notice" id="notice"></div>
+<div class="loading" id="loading">🛰️ Analizando carreteras cercanas...<br><br>Buscando curvas, montaña y secundarias.</div>
+<section class="result" id="result"><div class="result-head"><div class="result-label">RIDER ROUTE</div><div class="result-name" id="resultName">RUTA ENCONTRADA</div><div class="result-subtitle" id="resultSubtitle">Ruta adaptada a tu perfil.</div></div><div class="stats"><div class="stat"><strong id="distanceResult">—</strong><span>Distancia</span></div><div class="stat"><strong id="timeResult">—</strong><span>Tiempo</span></div><div class="stat"><strong id="elevationResult">—</strong><span>Desnivel</span></div><div class="stat"><strong id="scoreResult">—</strong><span>RIDER SCORE</span></div></div><div class="result-body"><div class="score"><span class="score-title">COMPATIBILIDAD CON TU PERFIL</span><span class="score-number" id="scoreNumber">—</span></div><div class="bar"><div id="scoreBar"></div></div><div class="result-buttons"><button id="saveButton">♡ GUARDAR</button><button id="shareButton">↗ COMPARTIR</button><button id="gpxButton">⇩ GPX</button></div></div></section>
+</main>
+<footer>RIDER · RIDE DIFFERENT · POWERED BY OPENSTREETMAP</footer>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const OSRM="https://router.project-osrm.org/route/v1/driving/";
+const map=L.map("map",{zoomControl:true}).setView([41.3851,2.1734],10);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap contributors"}).addTo(map);
 
-  <header>
-    <div class="logo">RIDER <span>2.0</span></div>
-    <div class="header-actions">
-      <button class="icon-btn" id="openUserModal">👤 Garaje</button>
-      <button class="icon-btn" id="locateButton">📍 GPS</button>
-    </div>
-  </header>
+let userPosition=null,userMarker=null,routeLayer=null,lastRoute=null,selectedBike="sport",selectedDistance=250;
+const preferences={highways:true,cities:true,tolls:true,mountainPasses:true};
+const bikeProfiles={
+  sport:{name:"SPORT",curves:10,mountain:8,secondary:9,scenery:6,fun:10},
+  naked:{name:"NAKED",curves:8,mountain:7,secondary:8,scenery:7,fun:9},
+  trail:{name:"TRAIL / ADVENTURE",curves:7,mountain:10,secondary:10,scenery:10,fun:8},
+  touring:{name:"TOURING",curves:5,mountain:6,secondary:7,scenery:9,fun:6},
+  custom:{name:"CUSTOM / CRUISER",curves:5,mountain:5,secondary:8,scenery:10,fun:6},
+  supermoto:{name:"SUPERMOTO",curves:10,mountain:9,secondary:10,scenery:6,fun:10},
+  scooter:{name:"SCOOTER",curves:5,mountain:3,secondary:6,scenery:7,fun:6},
+  customized:{name:"PERSONALIZADA",curves:8,mountain:8,secondary:8,scenery:8,fun:8}
+};
 
-  <div class="main-container">
-    <div class="sidebar">
-      <div>
-        <div class="section-title">CONFIGURACIÓN DE RUTA</div>
-        <input type="text" id="destInput" class="input-box" placeholder="Buscar destino...">
-        <div style="margin-top:10px; display:flex; align-items:center; gap:8px; font-size:12px;">
-          <input type="checkbox" id="circularCheck" style="accent-color:var(--red);"> 
-          <label for="circularCheck"><strong>🔄 Ruta Circular</strong> (Origen/Llegada)</label>
-        </div>
-      </div>
+const $=id=>document.getElementById(id);
+function setSlider(id,value){$(id).value=value;$(id+"Value").textContent=value}
+function values(){return{curves:+$("curves").value,mountain:+$("mountain").value,secondary:+$("secondary").value,scenery:+$("scenery").value,fun:+$("fun").value}}
 
-      <div>
-        <div class="section-title">TIPO DE MOTO</div>
-        <div class="bike-selector">
-          <div class="bike-card active" data-bike="sport">SPORT</div>
-          <div class="bike-card" data-bike="naked">NAKED</div>
-          <div class="bike-card" data-bike="trail">TRAIL</div>
-          <div class="bike-card" data-bike="touring">TOURING</div>
-          <div class="bike-card" data-bike="custom">CUSTOM</div>
-          <div class="bike-card" data-bike="supermoto">SUPERMOTO</div>
-        </div>
-      </div>
+document.querySelectorAll(".bike").forEach(card=>card.addEventListener("click",()=>{
+  document.querySelectorAll(".bike").forEach(x=>x.classList.remove("active"));
+  card.classList.add("active");
+  selectedBike=card.dataset.bike;
+  const p=bikeProfiles[selectedBike];
+  ["curves","mountain","secondary","scenery","fun"].forEach(id=>setSlider(id,p[id]));
+  saveSettings();
+}));
 
-      <div>
-        <div class="section-title">DISTANCIA MÁXIMA (KM)</div>
-        <input type="range" id="distRange" min="50" max="500" value="250" style="width:100%; accent-color:var(--red);">
-        <div style="text-align:right; font-size:12px; color:var(--muted);" id="distVal">250 km</div>
-      </div>
+document.querySelectorAll('input[type="range"]').forEach(s=>s.addEventListener("input",()=>{
+  $(s.id+"Value").textContent=s.value;
+  saveSettings();
+}));
 
-      <button class="btn-main" id="generateButton">GENERAR RUTA</button>
+document.querySelectorAll(".distance button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".distance button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  selectedDistance=Number(b.dataset.distance);
+  saveSettings();
+}));
 
-      <div id="notice" class="notice"></div>
-      <div id="loading" style="display:none; font-size:12px; text-align:center; color:var(--muted);">Calculando mejores rutas...</div>
+document.querySelectorAll(".option").forEach(o=>o.addEventListener("click",()=>{
+  const k=o.dataset.option;
+  preferences[k]=!preferences[k];
+  o.querySelector(".switch").classList.toggle("active",preferences[k]);
+  saveSettings();
+}));
 
-      <div id="result" class="result-panel">
-        <div class="result-head" style="font-size:12px; font-weight:bold; margin-bottom:10px;">OPCIONES:</div>
-        <div class="metrics">
-          <div class="metric"><div class="metric-val" id="distanceResult">0 km</div><div class="metric-lbl">DISTANCIA</div></div>
-          <div class="metric"><div class="metric-val" id="timeResult">0h 0m</div><div class="metric-lbl">TIEMPO ESTIMADO</div></div>
-        </div>
-      </div>
-    </div>
+function saveSettings(){
+  localStorage.setItem("rider-settings",JSON.stringify({bike:selectedBike,distance:selectedDistance,preferences,values:values()}));
+}
 
-    <div id="map"></div>
-  </div>
+function loadSettings(){
+  try{
+    const s=JSON.parse(localStorage.getItem("rider-settings"));
+    if(!s)return;
+    selectedBike=s.bike||selectedBike;
+    selectedDistance=s.distance||selectedDistance;
+    Object.assign(preferences,s.preferences||{});
+    if(s.values)Object.entries(s.values).forEach(([k,v])=>setSlider(k,v));
+    document.querySelectorAll(".bike").forEach(x=>x.classList.toggle("active",x.dataset.bike===selectedBike));
+    document.querySelectorAll(".distance button").forEach(x=>x.classList.toggle("active",+x.dataset.distance===selectedDistance));
+    document.querySelectorAll(".option").forEach(x=>x.querySelector(".switch").classList.toggle("active",!!preferences[x.dataset.option]));
+  }catch(e){}
+}
+loadSettings();
 
-  <div id="userModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:2000; place-items:center; padding:20px;">
-    <div style="background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px; max-width:380px; width:100%;">
-      <h3 id="modalTitle" style="margin-top:0; font-size:18px;">👤 Tu Garaje</h3>
-      <div id="authForm">
-        <input type="email" id="userEmail" placeholder="Tu Email" class="input-box" style="margin-bottom:10px;">
-        <input type="password" id="userPass" placeholder="Contraseña" class="input-box" style="margin-bottom:12px;">
-        <button id="loginBtn" class="btn-main">Iniciar Sesión</button>
-      </div>
-      
-      <div id="garageForm" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">Motos registradas:</div>
-        <div id="bikeList"></div>
-        <hr style="border-color:var(--line); margin:12px 0;">
-        <div style="font-size:12px; font-weight:bold; margin-bottom:6px;">Agregar moto:</div>
-        <input type="text" id="bikeName" placeholder="Modelo (Ej. MT-09)" class="input-box" style="margin-bottom:8px; font-size:12px;">
-        <select id="bikeTypeSelect" class="input-box" style="margin-bottom:12px; font-size:12px;">
-          <option value="sport">Sport</option>
-          <option value="naked">Naked</option>
-          <option value="trail">Trail</option>
-          <option value="touring">Touring</option>
-          <option value="custom">Custom</option>
-          <option value="supermoto">Supermoto</option>
-        </select>
-        <button id="addBikeBtn" class="btn-main" style="background:var(--panel2); border:1px solid var(--line);">+ Añadir a mi garaje</button>
-        <button id="logoutBtn" style="width:100%; padding:8px; background:transparent; color:var(--muted); border:0; font-size:11px; margin-top:8px; cursor:pointer;">Cerrar sesión</button>
-      </div>
-      <button id="closeModalBtn" style="width:100%; padding:8px; margin-top:8px; background:transparent; color:#fff; border:0; text-decoration:underline; font-size:12px; cursor:pointer;">Cerrar</button>
-    </div>
-  </div>
+function locateUser(){
+  if(!navigator.geolocation){alert("Tu navegador no soporta GPS.");return}
+  const status=$("gpsStatus");
+  status.textContent="● BUSCANDO GPS...";
+  navigator.geolocation.getCurrentPosition(pos=>{
+    userPosition={lat:pos.coords.latitude,lng:pos.coords.longitude};
+    if(userMarker)map.removeLayer(userMarker);
+    userMarker=L.circleMarker([userPosition.lat,userPosition.lng],{radius:8,color:"#fff",weight:4,fillColor:"#ff3b30",fillOpacity:1}).addTo(map);
+    userMarker.bindPopup("<strong>📍 TU POSICIÓN</strong>");
+    map.setView([userPosition.lat,userPosition.lng],12);
+    status.textContent="● GPS ACTIVO";
+    status.classList.add("gps");
+    $("mapText").textContent="Ubicación detectada. RIDER está listo para diseñar tu ruta.";
+  },err=>{
+    status.textContent="● ERROR GPS";
+    alert("No se pudo obtener tu ubicación. Comprueba los permisos de ubicación.");
+  },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+}
+$("locateButton").addEventListener("click",locateUser);
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+function destination(origin,bearing,distanceKm){
+  const R=6371,lat1=origin.lat*Math.PI/180,lon1=origin.lng*Math.PI/180,b=bearing*Math.PI/180,d=distanceKm/R;
+  const lat2=Math.asin(Math.sin(lat1)*Math.cos(d)+Math.cos(lat1)*Math.sin(d)*Math.cos(b));
+  const lon2=lon1+Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(lat1),Math.cos(d)-Math.sin(lat1)*Math.sin(lat2));
+  return{lat:lat2*180/Math.PI,lng:((lon2*180/Math.PI+540)%360)-180};
+}
 
-  <script>
-  const OSRM = "https://router.project-osrm.org";
-  const map = L.map("map", { zoomControl:true }).setView([41.3851,2.1734], 10);
+function routeUrl(points,exclude){
+  const coords=points.map(p=>p.lng+","+p.lat).join(";");
+  let u=OSRM+coords+"?overview=full&geometries=geojson&alternatives=false&steps=false";
+  if(exclude.length)u+="&exclude="+exclude.join(",");
+  return u;
+}
 
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: "&copy; OpenStreetMap"
-  }).addTo(map);
+function estimateElevation(route, prefs){
+  const totalKm = route.distance / 1000;
+  const mountainFactor = (prefs.mountain / 10) * 1.5 + 0.5;
+  const numCoords = route.geometry.coordinates.length;
+  const sinuosity = Math.min(numCoords / (totalKm || 1), 30) / 10;
+  const elevation = Math.round(totalKm * 12 * mountainFactor * sinuosity);
+  return Math.max(150, elevation);
+}
 
-  let userPosition = null;
-  let userMarker = null;
-  let destinationPosition = null;
-  let destinationMarker = null;
-  let routeLayers = [];
-  let generatedRoutes = [];
+function scoreRoute(route,prefs){
+  const avg=(prefs.curves+prefs.mountain+prefs.secondary+prefs.scenery+prefs.fun)/5;
+  let score=65+avg*2.8;
+  const distKm = route.distance / 1000;
+  if(Math.abs(distKm - selectedDistance) < selectedDistance * 0.25) score += 8;
+  return Math.max(50,Math.min(99,Math.round(score)));
+}
 
-  let currentUser = JSON.parse(localStorage.getItem("rider_user")) || null;
-  let userGarage = JSON.parse(localStorage.getItem("rider_garage")) || [];
-  let selectedBike = "sport";
-  let selectedDistance = 250;
+async function osrm(points,exclude){
+  const r=await fetch(routeUrl(points,exclude));
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  const d=await r.json();
+  if(d.code!=="Ok"||!d.routes?.length)throw new Error(d.message||"No route found");
+  return d.routes[0];
+}
 
-  const $ = id => document.getElementById(id);
-
-  function updateAuthUI() {
-    if(currentUser) {
-      $("modalTitle").textContent = "🏍️ GARAJE DE " + currentUser.email.split("@")[0].toUpperCase();
-      $("authForm").style.display = "none";
-      $("garageForm").style.display = "block";
-      renderGarage();
-    } else {
-      $("modalTitle").textContent = "👤 PERFIL DE USUARIO";
-      $("authForm").style.display = "block";
-      $("garageForm").style.display = "none";
-    }
+async function generateRoute(){
+  if(!userPosition){
+    alert("Primero activa el GPS para que RIDER conozca tu punto de partida.");
+    locateUser();
+    return;
   }
+  const button=$("generateButton"),loading=$("loading"),notice=$("notice");
+  button.disabled=true;
+  loading.style.display="block";
+  notice.style.display="none";
 
-  function renderGarage() {
-    const list = $("bikeList");
-    list.innerHTML = "";
-    if(!userGarage.length) {
-      list.innerHTML = "<span style='font-size:11px; color:var(--muted);'>Sin motos en el garaje.</span>";
-      return;
-    }
-    userGarage.forEach((b, idx) => {
-      const div = document.createElement("div");
-      div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:8px; background:var(--panel2); margin-top:6px; border-radius:6px; font-size:12px;";
-      div.innerHTML = `<span><strong>${b.name}</strong> (${b.type.toUpperCase()})</span>
-        <button onclick="selectGarageBike(${idx})" style="background:var(--red); color:#fff; border:0; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer;">Usar</button>`;
-      list.appendChild(div);
-    });
-  }
-
-  window.selectGarageBike = function(idx) {
-    const bike = userGarage[idx];
-    selectedBike = bike.type;
-    document.querySelectorAll(".bike-card").forEach(x => x.classList.toggle("active", x.dataset.bike === bike.type));
-    $("userModal").style.display = "none";
-    showNotice(`Moto activa: <strong>${bike.name}</strong>`);
-  };
-
-  $("loginBtn").addEventListener("click", () => {
-    const email = $("userEmail").value.trim();
-    if(!email) return alert("Introduce tu email");
-    currentUser = { email };
-    localStorage.setItem("rider_user", JSON.stringify(currentUser));
-    updateAuthUI();
-  });
-
-  $("addBikeBtn").addEventListener("click", () => {
-    const name = $("bikeName").value.trim();
-    const type = $("bikeTypeSelect").value;
-    if(!name) return alert("Escribe el nombre de la moto");
-    userGarage.push({ name, type });
-    localStorage.setItem("rider_garage", JSON.stringify(userGarage));
-    $("bikeName").value = "";
-    renderGarage();
-  });
-
-  $("logoutBtn").addEventListener("click", () => {
-    currentUser = null;
-    localStorage.removeItem("rider_user");
-    updateAuthUI();
-  });
-
-  $("openUserModal").onclick = () => { updateAuthUI(); $("userModal").style.display = "grid"; };
-  $("closeModalBtn").onclick = () => $("userModal").style.display = "none";
-
-  document.querySelectorAll(".bike-card").forEach(card => {
-    card.addEventListener("click", () => {
-      document.querySelectorAll(".bike-card").forEach(c => c.classList.remove("active"));
-      card.classList.add("active");
-      selectedBike = card.dataset.bike;
-    });
-  });
-
-  $("distRange").addEventListener("input", (e) => {
-    selectedDistance = e.target.value;
-    $("distVal").textContent = selectedDistance + " km";
-  });
-
-  function destinationPoint(origin, bearingDeg, distanceKm) {
-    const R = 6371;
-    const lat1 = origin.lat * Math.PI / 180, lon1 = origin.lng * Math.PI / 180;
-    const b = bearingDeg * Math.PI / 180, d = distanceKm / R;
-    const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(b));
-    const lon2 = lon1 + Math.atan2(Math.sin(b) * Math.sin(d) * Math.cos(lat1), Math.cos(d) - Math.sin(lat1) * Math.sin(lat2));
-    return { lat: lat2 * 180 / Math.PI, lng: ((lon2 * 180 / Math.PI + 540) % 360) - 180 };
-  }
-
-  async function osrmRoute(points) {
-    const coords = points.map(p => `${p.lng},${p.lat}`).join(";");
-    const url = `${OSRM}/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true`;
-    const r = await fetch(url);
-    if (!r.ok) throw new Error("Error OSRM");
-    const data = await r.json();
-    return data.routes[0];
-  }
-
-  async function generateRoute() {
-    if (!userPosition) {
-      showNotice("Ubícate usando el botón GPS.");
-      locateUser();
-      return;
-    }
-
-    const isCircularRoute = $("circularCheck").checked;
-
-    if (!isCircularRoute && !destinationPosition) {
-      showNotice("Marca un destino en el mapa o activa 'Ruta Circular'.");
-      return;
-    }
-
-    const button = $("generateButton");
-    button.disabled = true;
-    $("loading").style.display = "block";
-
-    try {
-      let waypointsSets = [];
-      const radius = selectedDistance * 0.15;
-
-      if (isCircularRoute) {
-        waypointsSets = [
-          [destinationPoint(userPosition, 45, radius), destinationPoint(userPosition, 180, radius), userPosition],
-          [destinationPoint(userPosition, 120, radius), destinationPoint(userPosition, 270, radius), userPosition],
-          [destinationPoint(userPosition, 300, radius), destinationPoint(userPosition, 60, radius), userPosition]
-        ];
-      } else {
-        waypointsSets = [
-          [destinationPoint(userPosition, 30, radius * 0.5), destinationPosition],
-          [destinationPoint(userPosition, 330, radius * 0.5), destinationPosition],
-          [destinationPosition]
-        ];
-      }
-
-      generatedRoutes = [];
-      clearRouteLayers();
-
-      for (let i = 0; i < waypointsSets.length; i++) {
-        const waypoints = [userPosition, ...waypointsSets[i]];
-        try {
-          const route = await osrmRoute(waypoints);
-          generatedRoutes.push({
-            route,
-            title: isCircularRoute ? `Circuito ${i+1}` : `Opción ${i+1}`,
-            km: (route.distance / 1000).toFixed(0),
-            time: Math.round(route.duration / 60)
-          });
-        } catch (e) {}
-      }
-
-      if (!generatedRoutes.length) throw new Error("No fue posible calcular las alternativas.");
-
-      renderMultiRouteUI();
-      selectRouteOption(0);
-
-    } catch (err) {
-      showNotice(err.message);
-    } finally {
-      button.disabled = false;
-      $("loading").style.display = "none";
-    }
-  }
-
-  function clearRouteLayers() {
-    routeLayers.forEach(l => map.removeLayer(l));
-    routeLayers = [];
-  }
-
-  function renderMultiRouteUI() {
-    let selectorHTML = `<div style="display:flex; gap:8px; margin-bottom:12px;" id="routeOptionsContainer">`;
-    generatedRoutes.forEach((r, idx) => {
-      selectorHTML += `
-        <button onclick="selectRouteOption(${idx})" id="routeBtn_${idx}" 
-          style="flex:1; padding:8px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:#fff; cursor:pointer;">
-          <strong>${r.title}</strong><br>
-          <small style="color:var(--muted);">${r.km} km</small>
-        </button>`;
-    });
-    selectorHTML += `</div>`;
-
-    const resultContainer = $("result");
-    const existingSelector = $("routeOptionsContainer");
-    if(existingSelector) existingSelector.remove();
+  try{
+    const p=values();
+    const target=selectedDistance;
+    const radii=target * 0.16;
     
-    resultContainer.querySelector(".result-head").insertAdjacentHTML("afterend", selectorHTML);
-  }
+    let exclude=[];
+    if(preferences.highways)exclude.push("motorway");
+    if(preferences.tolls)exclude.push("toll");
 
-  window.selectRouteOption = function(index) {
-    clearRouteLayers();
+    const angleSets = [
+      [20, 110, 200, 290],
+      [60, 150, 240, 330],
+      [10, 130, 220, 310],
+      [45, 135, 225, 315]
+    ];
 
-    generatedRoutes.forEach((rData, idx) => {
-      const isSelected = idx === index;
-      const layer = L.geoJSON(rData.route.geometry, {
-        style: {
-          color: isSelected ? "#ff3b30" : "#747b83",
-          weight: isSelected ? 6 : 3,
-          opacity: isSelected ? 0.9 : 0.4
-        }
-      }).addTo(map);
+    let route = null;
+    let lastErr = null;
 
-      routeLayers.push(layer);
-
-      const btn = $(`routeBtn_${idx}`);
-      if(btn) {
-        btn.style.borderColor = isSelected ? "var(--red)" : "var(--line)";
-        btn.style.background = isSelected ? "rgba(255,59,48,0.2)" : "var(--panel2)";
+    for (let angles of angleSets) {
+      try {
+        const points = [
+          userPosition,
+          ...angles.map((a, i) => destination(userPosition, a, radii * (i % 2 ? 1.1 : 0.9))),
+          userPosition
+        ];
+        route = await osrm(points, exclude);
+        if (route) break;
+      } catch(err) {
+        lastErr = err;
       }
-    });
+    }
 
-    const active = generatedRoutes[index];
-    $("distanceResult").textContent = active.km + " km";
-    $("timeResult").textContent = Math.floor(active.time/60) + "h " + (active.time%60) + "m";
-    $("result").style.display = "block";
-    map.fitBounds(routeLayers[index].getBounds(), { padding: [30, 30] });
-  };
+    if (!route && exclude.length > 0) {
+      const points = [
+        userPosition,
+        ...angleSets[0].map((a, i) => destination(userPosition, a, radii * (i % 2 ? 1.1 : 0.9))),
+        userPosition
+      ];
+      route = await osrm(points, []);
+    }
 
-  function showNotice(msg) {
-    $("notice").innerHTML = msg;
-    $("notice").style.display = "block";
+    if (!route) throw lastErr || new Error("No se pudo calcular la ruta");
+
+    const elevation = estimateElevation(route, p);
+    const score = scoreRoute(route, p);
+    
+    lastRoute = {...route, score, elevation};
+    displayRoute(lastRoute);
+  }catch(e){
+    console.error(e);
+    notice.innerHTML="No se ha podido obtener una ruta adecuada en esta zona. Intenta desactivar la opción 'Evitar Autopistas' o prueba desde otra ubicación.";
+    notice.style.display="block";
+  }finally{
+    button.disabled=false;
+    loading.style.display="none";
   }
+}
 
-  function locateUser() {
-    if (!navigator.geolocation) return showNotice("GPS no soportado");
-    navigator.geolocation.getCurrentPosition(pos => {
-      userPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      if (userMarker) map.removeLayer(userMarker);
-      userMarker = L.circleMarker([userPosition.lat, userPosition.lng], { radius: 8, fillColor: "#ff3b30", color: "#fff", weight: 3, fillOpacity: 1 }).addTo(map);
-      map.setView([userPosition.lat, userPosition.lng], 11);
-      showNotice("📍 GPS listo");
-    });
+function displayRoute(route){
+  if(routeLayer)map.removeLayer(routeLayer);
+  routeLayer=L.geoJSON(route.geometry,{style:{color:"#ff3b30",weight:6,opacity:.9}}).addTo(map);
+  map.fitBounds(routeLayer.getBounds(),{padding:[35,35]});
+  
+  const distanceKm=route.distance/1000,hours=Math.floor(route.duration/3600),minutes=Math.round((route.duration%3600)/60),score=route.score; 
+  $("distanceResult").textContent=distanceKm.toFixed(0)+" km";
+  $("timeResult").textContent=hours+"h "+minutes+"m";
+  $("elevationResult").textContent="+"+route.elevation+"m";
+  $("scoreResult").textContent=score+"%";
+  $("scoreNumber").textContent=score+"%";
+  $("scoreBar").style.width=score+"%";
+  $("resultName").textContent=routeName();
+  $("resultSubtitle").textContent=bikeProfiles[selectedBike].name+" · ruta circular optimizada para tu estilo";
+  $("result").style.display="block";
+  $("result").scrollIntoView({behavior:"smooth"});
+}
+
+function routeName(){
+  const names={sport:"CURVES ATTACK",naked:"RIDER LOOP",trail:"MOUNTAIN ADVENTURE",touring:"GRAND TOUR",custom:"SCENIC CRUISE",supermoto:"SUPERMOTO ATTACK",scooter:"URBAN ESCAPE",customized:"RIDER CUSTOM LOOP"};
+  return names[selectedBike]+" · "+selectedDistance+" KM";
+}
+
+$("generateButton").addEventListener("click",generateRoute);
+
+$("saveButton").addEventListener("click",()=>{
+  if(!lastRoute){alert("Genera primero una ruta.");return}
+  localStorage.setItem("rider-last-route",JSON.stringify(lastRoute));
+  $("saveButton").textContent="♥ GUARDADA";
+});
+
+$("shareButton").addEventListener("click",async()=>{
+  const data={title:"RIDER — Motorcycle Route",text:$("resultName").textContent+" 🏍️",url:location.href};
+  if(navigator.share){
+    try{await navigator.share(data)}catch(e){}
+  }else{
+    try{await navigator.clipboard.writeText(location.href);alert("Enlace copiado.")}catch(e){alert("No se pudo copiar el enlace.")}
   }
+});
 
-  map.on("click", (e) => {
-    destinationPosition = { lat: e.latlng.lat, lng: e.latlng.lng };
-    if (destinationMarker) map.removeLayer(destinationMarker);
-    destinationMarker = L.marker([destinationPosition.lat, destinationPosition.lng]).addTo(map);
-    $("destInput").value = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
-    showNotice("Destino seleccionado");
-  });
+$("gpxButton").addEventListener("click",()=>{
+  if(!lastRoute){alert("Genera primero una ruta.");return}
+  const c=lastRoute.geometry.coordinates;
+  let g='<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="RIDER 2.0" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>'+routeName()+'</name><trkseg>';
+  c.forEach(x=>g+='<trkpt lat="'+x[1]+'" lon="'+x[0]+'"></trkpt>');
+  g+='</trkseg></trk></gpx>';
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([g],{type:"application/gpx+xml"}));
+  a.download="rider-route.gpx";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
 
-  $("locateButton").addEventListener("click", locateUser);
-  $("generateButton").addEventListener("click", generateRoute);
-
-  locateUser();
-  </script>
+$("resetButton").addEventListener("click",()=>{
+  if(routeLayer){map.removeLayer(routeLayer);routeLayer=null}
+  if(userMarker){map.removeLayer(userMarker);userMarker=null}
+  userPosition=null;
+  lastRoute=null;
+  $("gpsStatus").textContent="● GPS NO ACTIVO";
+  $("gpsStatus").classList.remove("gps");
+  $("result").style.display="none";
+  $("notice").style.display="none";
+  $("mapText").textContent="Activa el GPS y deja que RIDER encuentre carreteras que merezcan ser conducidas.";
+  map.setView([41.3851,2.1734],10);
+});
+</script>
 </body>
 </html>
