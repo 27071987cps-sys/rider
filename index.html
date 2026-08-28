@@ -599,15 +599,16 @@ async function osrmRoute(points,exclude=[]){
     alternatives:"false",
     steps:"true",
     annotations:"true",
-    continue_straight:"false",
-    roundtrip:"true",
-    source:"first",
-    destination:"last"
+    continue_straight:"false"
   });
   if(exclude.length) q.set("exclude",exclude.join(","));
 
   const r=await fetch(`${OSRM}/route/v1/driving/${coords}?${q.toString()}`);
-  if(!r.ok) throw new Error("OSRM HTTP "+r.status);
+  if(!r.ok){
+    let detail="";
+    try{ const e=await r.json(); detail=e.message||e.code||""; }catch(_){ }
+    throw new Error(`OSRM HTTP ${r.status}${detail?" — "+detail:""}`);
+  }
   const data=await r.json();
   if(data.code!=="Ok" || !data.routes?.length) throw new Error(data.message||data.code||"OSRM no encontró ruta.");
   return data.routes[0];
