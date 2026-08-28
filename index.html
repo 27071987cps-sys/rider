@@ -1,1314 +1,1102 @@
-<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html><html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>RIDER 2.2 — Motorcycle Routes</title>
 <meta name="theme-color" content="#07090c">
-<meta name="description" content="RIDER 2.2 — rutas inteligentes para motoristas">
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
-<style>
+<meta name="description" content="RIDER 2.1 — rutas inteligentes para motoristas">
+<title>RIDER 2.1 — Motorcycle Routes</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+integrity="sha256-p4NxAoJBhIINfQ3p8KfJf3vJ7wK9ZKx8h0Jw1gM5xM="
+crossorigin=""/><style>
 :root{
-  --bg:#07090c;
-  --panel:#101318;
-  --panel2:#171b21;
-  --line:rgba(255,255,255,.08);
-  --text:#f6f7f8;
-  --muted:#858d98;
-  --red:#ff3b30;
-  --red2:#ff5a36;
-  --green:#57e389;
-  --yellow:#ffd60a;
+--bg:#07090c;
+--panel:#101318;
+--panel2:#171b21;
+--line:rgba(255,255,255,.08);
+--text:#f6f7f8;
+--muted:#858d98;
+--red:#ff3b30;
+--red2:#ff5a36;
+--green:#57e389;
 }
 
 *{
-  box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent
+box-sizing:border-box;
+-webkit-tap-highlight-color:transparent;
 }
 
 html,body{
-  margin:0;
-  padding:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Arial,Helvetica,sans-serif
+margin:0;
+padding:0;
+background:var(--bg);
+color:var(--text);
+font-family:Arial,Helvetica,sans-serif;
 }
 
 body{
-  min-height:100vh
+min-height:100vh;
 }
 
 button,input{
-  font:inherit
+font-family:inherit;
 }
 
 button{
-  cursor:pointer
+cursor:pointer;
+-webkit-appearance:none;
 }
 
 .app{
-  max-width:1200px;
-  margin:auto
+max-width:1200px;
+margin:auto;
 }
 
 /* HEADER */
 
 header{
-  height:68px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 18px;
-  position:fixed;
-  top:0;
-  left:0;
-  right:0;
-  z-index:1000;
-  background:rgba(7,9,12,.86);
-  backdrop-filter:blur(18px);
-  -webkit-backdrop-filter:blur(18px);
-  border-bottom:1px solid var(--line)
+height:68px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 18px;
+position:fixed;
+top:0;
+left:0;
+right:0;
+z-index:2000;
+background:rgba(7,9,12,.90);
+backdrop-filter:blur(18px);
+-webkit-backdrop-filter:blur(18px);
+border-bottom:1px solid var(--line);
 }
 
 .logo{
-  font-size:26px;
-  font-weight:1000;
-  font-style:italic;
-  letter-spacing:5px
+font-size:26px;
+font-weight:1000;
+font-style:italic;
+letter-spacing:5px;
 }
 
 .logo span{
-  color:var(--red)
+color:var(--red);
 }
 
 .header-actions{
-  display:flex;
-  gap:8px
+display:flex;
+gap:8px;
 }
 
 .icon{
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  border:1px solid var(--line);
-  background:var(--panel2);
-  color:white;
-  display:grid;
-  place-items:center;
-  font-size:18px
+width:42px;
+height:42px;
+border-radius:50%;
+border:1px solid var(--line);
+background:var(--panel2);
+color:white;
+display:grid;
+place-items:center;
+font-size:18px;
 }
 
 /* MAP */
 
 .map-wrap{
-  position:relative;
-  height:62vh;
-  min-height:430px;
-  margin-top:68px
+position:relative;
+height:62vh;
+min-height:430px;
+margin-top:68px;
+background:#101418;
 }
 
 #map{
-  width:100%;
-  height:100%;
-  background:#101418
+width:100%;
+height:100%;
+background:#101418;
 }
 
 .map-top{
-  position:absolute;
-  top:18px;
-  left:18px;
-  z-index:500
+position:absolute;
+top:18px;
+left:18px;
+z-index:1000;
 }
 
 .status{
-  padding:9px 13px;
-  background:rgba(7,9,12,.88);
-  border:1px solid var(--line);
-  border-radius:30px;
-  font-size:10px;
-  font-weight:900;
-  letter-spacing:1px
+padding:9px 13px;
+background:rgba(7,9,12,.90);
+border:1px solid var(--line);
+border-radius:30px;
+font-size:10px;
+font-weight:900;
+letter-spacing:1px;
 }
 
 .status.gps{
-  color:var(--green)
+color:var(--green);
 }
 
-.status.active{
-  color:var(--red)
+.status.navigation{
+background:var(--red);
+color:white;
+border-color:var(--red);
 }
 
 .map-bottom{
-  position:absolute;
-  left:15px;
-  right:15px;
-  bottom:15px;
-  z-index:500;
-  padding:18px;
-  border:1px solid var(--line);
-  border-radius:20px;
-  background:rgba(8,10,13,.92);
-  backdrop-filter:blur(18px);
-  -webkit-backdrop-filter:blur(18px)
+position:absolute;
+left:15px;
+right:15px;
+bottom:15px;
+z-index:1000;
+padding:18px;
+border:1px solid var(--line);
+border-radius:20px;
+background:rgba(8,10,13,.92);
+backdrop-filter:blur(18px);
+-webkit-backdrop-filter:blur(18px);
 }
 
 .map-bottom small{
-  color:var(--red);
-  font-size:9px;
-  font-weight:900;
-  letter-spacing:2px
+color:var(--red);
+font-size:9px;
+font-weight:900;
+letter-spacing:2px;
 }
 
 .map-bottom h1{
-  margin:6px 0 3px;
-  font-size:27px;
-  font-style:italic
+margin:6px 0 3px;
+font-size:27px;
+font-style:italic;
 }
 
 .map-bottom p{
-  margin:0;
-  color:var(--muted);
-  font-size:12px
+margin:0;
+color:var(--muted);
+font-size:12px;
 }
 
-/* NAVIGATION HUD */
+/* NAVIGATION PANEL */
 
-.navigation-hud{
-  display:none;
-  position:absolute;
-  top:72px;
-  left:15px;
-  right:15px;
-  z-index:600;
-  padding:14px;
-  border-radius:18px;
-  background:rgba(8,10,13,.94);
-  border:1px solid rgba(255,59,48,.35);
-  box-shadow:0 10px 30px rgba(0,0,0,.35)
+.navigation-panel{
+display:none;
+position:absolute;
+left:15px;
+right:15px;
+top:70px;
+z-index:1100;
+background:rgba(8,10,13,.96);
+border:1px solid rgba(255,59,48,.35);
+border-radius:18px;
+padding:16px;
+box-shadow:0 12px 35px rgba(0,0,0,.35);
 }
 
-.navigation-hud.active{
-  display:block
+.navigation-panel.active{
+display:block;
 }
 
-.nav-top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px
+.nav-title{
+font-size:10px;
+font-weight:900;
+letter-spacing:2px;
+color:var(--red);
 }
 
-.nav-state{
-  color:var(--red);
-  font-size:10px;
-  font-weight:1000;
-  letter-spacing:1.5px
+.nav-main{
+margin-top:5px;
+font-size:20px;
+font-weight:1000;
 }
 
-.nav-follow{
-  padding:7px 10px;
-  border:1px solid var(--line);
-  border-radius:9px;
-  background:var(--panel2);
-  color:white;
-  font-size:9px;
-  font-weight:900
-}
-
-.nav-follow.active{
-  background:var(--red);
-  border-color:var(--red)
-}
-
-.nav-stats{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-  margin-top:11px
+.nav-info{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:8px;
+margin-top:12px;
 }
 
 .nav-stat{
-  padding:10px;
-  border-radius:10px;
-  background:var(--panel2);
-  text-align:center
+padding:10px;
+border-radius:10px;
+background:var(--panel2);
+text-align:center;
 }
 
 .nav-stat strong{
-  display:block;
-  font-size:16px
+display:block;
+font-size:13px;
 }
 
 .nav-stat span{
-  display:block;
-  margin-top:3px;
-  color:var(--muted);
-  font-size:8px;
-  text-transform:uppercase
+display:block;
+font-size:8px;
+color:var(--muted);
+margin-top:3px;
+text-transform:uppercase;
+}
+
+.stop-navigation{
+width:100%;
+margin-top:12px;
+padding:12px;
+border:1px solid rgba(255,255,255,.1);
+border-radius:11px;
+background:#20252b;
+color:white;
+font-size:11px;
+font-weight:900;
 }
 
 /* MAIN */
 
 main{
-  padding:25px 18px 60px
+padding:25px 18px 60px;
 }
 
 .section{
-  margin-bottom:30px
+margin-bottom:30px;
 }
 
 .eyebrow{
-  color:var(--red);
-  font-size:9px;
-  font-weight:900;
-  letter-spacing:2px
+color:var(--red);
+font-size:9px;
+font-weight:900;
+letter-spacing:2px;
 }
 
 h2{
-  margin:6px 0;
-  font-size:24px;
-  font-style:italic
+margin:6px 0;
+font-size:24px;
+font-style:italic;
 }
 
 .description{
-  margin:0;
-  color:var(--muted);
-  font-size:13px;
-  line-height:1.5
+margin:0;
+color:var(--muted);
+font-size:13px;
+line-height:1.5;
 }
 
 /* BIKES */
 
 .bikes{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
-  margin-top:17px
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+margin-top:17px;
 }
 
 .bike{
-  min-height:105px;
-  padding:14px;
-  text-align:left;
-  color:white;
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:17px;
-  transition:.2s
+min-height:105px;
+padding:14px;
+text-align:left;
+color:white;
+background:var(--panel);
+border:1px solid var(--line);
+border-radius:17px;
+transition:.2s;
 }
 
 .bike:hover{
-  transform:translateY(-2px)
+transform:translateY(-2px);
 }
 
 .bike.active{
-  border-color:var(--red);
-  background:
-    linear-gradient(145deg,rgba(255,59,48,.17),rgba(255,59,48,.03)),
-    var(--panel)
+border-color:var(--red);
+background:
+linear-gradient(145deg,rgba(255,59,48,.17),rgba(255,59,48,.03)),
+var(--panel);
 }
 
 .bike-icon{
-  font-size:27px;
-  display:block;
-  margin-bottom:12px
+font-size:27px;
+display:block;
+margin-bottom:12px;
 }
 
 .bike strong{
-  display:block;
-  font-size:11px
+display:block;
+font-size:11px;
 }
 
 .bike small{
-  display:block;
-  margin-top:4px;
-  color:var(--muted);
-  font-size:9px
+display:block;
+margin-top:4px;
+color:var(--muted);
+font-size:9px;
 }
 
 /* CONTROLS */
 
 .controls{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
 }
 
 .control{
-  padding:16px;
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:17px
+padding:16px;
+background:var(--panel);
+border:1px solid var(--line);
+border-radius:17px;
 }
 
 .control-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:14px
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:14px;
 }
 
 .control-title{
-  font-size:11px;
-  font-weight:900
+font-size:11px;
+font-weight:900;
 }
 
 .value{
-  color:var(--red);
-  font-size:12px;
-  font-weight:900
+color:var(--red);
+font-size:12px;
+font-weight:900;
 }
 
 input[type=range]{
-  width:100%;
-  height:4px;
-  appearance:none;
-  background:#2a2f36;
-  border-radius:20px
+width:100%;
+height:4px;
+appearance:none;
+-webkit-appearance:none;
+background:#2a2f36;
+border-radius:20px;
 }
 
 input[type=range]::-webkit-slider-thumb{
-  appearance:none;
-  width:19px;
-  height:19px;
-  border-radius:50%;
-  background:#fff;
-  border:4px solid var(--red)
+appearance:none;
+-webkit-appearance:none;
+width:19px;
+height:19px;
+border-radius:50%;
+background:#fff;
+border:4px solid var(--red);
 }
 
 input[type=range]::-moz-range-thumb{
-  width:13px;
-  height:13px;
-  border-radius:50%;
-  background:#fff;
-  border:4px solid var(--red)
+width:13px;
+height:13px;
+border-radius:50%;
+background:#fff;
+border:4px solid var(--red);
 }
 
 /* MODE */
 
 .mode-selector{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:15px
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-top:15px;
 }
 
 .mode-btn{
-  padding:14px;
-  border:1px solid var(--line);
-  border-radius:14px;
-  background:var(--panel2);
-  color:#aeb5bd;
-  font-size:12px;
-  font-weight:900
+padding:14px;
+border:1px solid var(--line);
+border-radius:14px;
+background:var(--panel2);
+color:#aeb5bd;
+font-size:12px;
+font-weight:900;
 }
 
 .mode-btn.active{
-  color:#fff;
-  background:var(--red);
-  border-color:var(--red)
+color:#fff;
+background:var(--red);
+border-color:var(--red);
 }
 
 .dest-input{
-  width:100%;
-  margin-top:10px;
-  padding:14px;
-  border-radius:12px;
-  border:1px solid var(--line);
-  background:var(--panel2);
-  color:#fff;
-  font-size:13px;
-  display:none
+width:100%;
+margin-top:10px;
+padding:14px;
+border-radius:12px;
+border:1px solid var(--line);
+background:var(--panel2);
+color:#fff;
+font-size:13px;
+outline:none;
 }
 
+.dest-input:focus{
+border-color:var(--red);
+}
+
+/* DISTANCE */
+
 .distance{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:8px;
-  margin-top:15px
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:8px;
+margin-top:15px;
 }
 
 .distance button{
-  padding:13px 4px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  background:var(--panel2);
-  color:#aeb5bd;
-  font-size:11px;
-  font-weight:900
+padding:13px 4px;
+border:1px solid var(--line);
+border-radius:12px;
+background:var(--panel2);
+color:#aeb5bd;
+font-size:11px;
+font-weight:900;
 }
 
 .distance button.active{
-  color:#fff;
-  background:var(--red);
-  border-color:var(--red)
+color:#fff;
+background:var(--red);
+border-color:var(--red);
 }
 
 /* OPTIONS */
 
 .options{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:15px
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-top:15px;
 }
 
 .option{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:15px;
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:15px
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px;
+background:var(--panel);
+border:1px solid var(--line);
+border-radius:15px;
 }
 
 .option-title{
-  font-size:11px;
-  font-weight:900
+font-size:11px;
+font-weight:900;
 }
 
 .option-description{
-  margin-top:4px;
-  color:var(--muted);
-  font-size:9px
+margin-top:4px;
+color:var(--muted);
+font-size:9px;
 }
 
 .switch{
-  width:43px;
-  height:24px;
-  border-radius:20px;
-  background:#292e35;
-  position:relative;
-  flex-shrink:0
+width:43px;
+height:24px;
+border-radius:20px;
+background:#292e35;
+position:relative;
+flex-shrink:0;
+margin-left:10px;
 }
 
 .switch::after{
-  content:"";
-  position:absolute;
-  width:18px;
-  height:18px;
-  top:3px;
-  left:3px;
-  border-radius:50%;
-  background:#747b83;
-  transition:.2s
+content:"";
+position:absolute;
+width:18px;
+height:18px;
+top:3px;
+left:3px;
+border-radius:50%;
+background:#747b83;
+transition:.2s;
 }
 
 .switch.active{
-  background:var(--red)
+background:var(--red);
 }
 
 .switch.active::after{
-  left:22px;
-  background:white
+left:22px;
+background:white;
 }
 
 /* GENERATE */
 
 .generate{
-  width:100%;
-  margin-top:22px;
-  padding:18px;
-  border:0;
-  border-radius:16px;
-  color:#fff;
-  background:linear-gradient(135deg,var(--red),var(--red2));
-  font-size:14px;
-  font-weight:1000;
-  letter-spacing:.7px;
-  box-shadow:0 14px 35px rgba(255,59,48,.2)
+width:100%;
+margin-top:22px;
+padding:18px;
+border:0;
+border-radius:16px;
+color:#fff;
+background:linear-gradient(135deg,var(--red),var(--red2));
+font-size:14px;
+font-weight:1000;
+letter-spacing:.7px;
+box-shadow:0 14px 35px rgba(255,59,48,.2);
 }
 
 .generate:disabled{
-  opacity:.55
+opacity:.55;
+}
+
+/* NOTICE */
+
+.notice{
+display:none;
+margin-top:12px;
+padding:12px;
+border-radius:12px;
+background:#1b1413;
+border:1px solid rgba(255,59,48,.25);
+color:#ffb0aa;
+font-size:11px;
+line-height:1.45;
+}
+
+/* LOADING */
+
+.loading{
+display:none;
+text-align:center;
+padding:20px;
+color:var(--muted);
+font-size:12px;
 }
 
 /* RESULT */
 
 .result{
-  display:none;
-  margin-top:18px;
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:20px;
-  overflow:hidden
+display:none;
+margin-top:18px;
+background:var(--panel);
+border:1px solid var(--line);
+border-radius:20px;
+overflow:hidden;
 }
 
 .result-head{
-  padding:20px;
-  background:
-    linear-gradient(135deg,rgba(255,59,48,.17),transparent),
-    var(--panel2)
+padding:20px;
+background:
+linear-gradient(135deg,rgba(255,59,48,.17),transparent),
+var(--panel2);
 }
 
 .result-label{
-  color:var(--red);
-  font-size:9px;
-  font-weight:900;
-  letter-spacing:2px
+color:var(--red);
+font-size:9px;
+font-weight:900;
+letter-spacing:2px;
 }
 
 .result-name{
-  margin:6px 0;
-  font-size:25px;
-  font-style:italic
+margin:6px 0;
+font-size:25px;
+font-style:italic;
 }
 
 .result-subtitle{
-  color:var(--muted);
-  font-size:11px
+color:var(--muted);
+font-size:11px;
 }
 
 .route-selector{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-  padding:15px 20px 0;
-  background:var(--panel)
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px;
+padding:15px 20px 0;
+background:var(--panel);
 }
 
 .route-opt{
-  padding:10px 5px;
-  border:1px solid var(--line);
-  border-radius:10px;
-  background:var(--panel2);
-  color:#aeb5bd;
-  font-size:11px;
-  font-weight:900
+padding:10px 5px;
+border:1px solid var(--line);
+border-radius:10px;
+background:var(--panel2);
+color:#aeb5bd;
+font-size:11px;
+font-weight:900;
 }
 
 .route-opt.active{
-  color:#fff;
-  background:var(--red);
-  border-color:var(--red)
+color:#fff;
+background:var(--red);
+border-color:var(--red);
 }
 
 .stats{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  border-top:1px solid var(--line);
-  border-bottom:1px solid var(--line);
-  margin-top:15px
+display:grid;
+grid-template-columns:repeat(4,1fr);
+border-top:1px solid var(--line);
+border-bottom:1px solid var(--line);
+margin-top:15px;
 }
 
 .stat{
-  padding:16px 5px;
-  text-align:center;
-  border-right:1px solid var(--line)
+padding:16px 5px;
+text-align:center;
+border-right:1px solid var(--line);
 }
 
 .stat:last-child{
-  border:0
+border:0;
 }
 
 .stat strong{
-  display:block;
-  font-size:16px
+display:block;
+font-size:16px;
 }
 
 .stat span{
-  display:block;
-  margin-top:4px;
-  color:var(--muted);
-  font-size:8px;
-  text-transform:uppercase
+display:block;
+margin-top:4px;
+color:var(--muted);
+font-size:8px;
+text-transform:uppercase;
 }
 
 .result-body{
-  padding:18px
+padding:18px;
 }
 
 .score{
-  display:flex;
-  justify-content:space-between;
-  align-items:center
+display:flex;
+justify-content:space-between;
+align-items:center;
 }
 
 .score-title{
-  font-size:10px;
-  font-weight:900
+font-size:10px;
+font-weight:900;
 }
 
 .score-number{
-  color:var(--red);
-  font-size:24px;
-  font-weight:1000
+color:var(--red);
+font-size:24px;
+font-weight:1000;
 }
 
 .bar{
-  height:5px;
-  margin-top:9px;
-  background:#292e35;
-  border-radius:20px;
-  overflow:hidden
+height:5px;
+margin-top:9px;
+background:#292e35;
+border-radius:20px;
+overflow:hidden;
 }
 
 .bar div{
-  height:100%;
-  width:0;
-  background:var(--red);
-  transition:1s
+height:100%;
+width:0;
+background:var(--red);
+transition:1s;
 }
 
 .result-buttons{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:9px;
-  margin-top:18px
+display:grid;
+grid-template-columns:1fr 1fr 1fr 1.2fr;
+gap:9px;
+margin-top:18px;
 }
 
 .result-buttons button{
-  padding:13px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  background:var(--panel2);
-  color:white;
-  font-size:11px;
-  font-weight:900
+padding:13px;
+border:1px solid var(--line);
+border-radius:12px;
+background:var(--panel2);
+color:white;
+font-size:11px;
+font-weight:900;
 }
 
-/* START NAV */
-
-.start-navigation{
-  width:100%;
-  margin-top:10px;
-  padding:17px;
-  border:0;
-  border-radius:15px;
-  background:linear-gradient(135deg,#fff,#d8d8d8);
-  color:#080a0d;
-  font-size:13px;
-  font-weight:1000;
-  letter-spacing:.6px
+.start-route{
+background:linear-gradient(135deg,var(--red),var(--red2)) !important;
+border-color:var(--red) !important;
 }
 
-.start-navigation:disabled{
-  opacity:.5
+.start-route.active{
+background:#272c32 !important;
+border-color:var(--line) !important;
 }
 
-.navigation-controls{
-  display:none;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:10px
+/* EXTRA NAV BUTTON */
+
+.external-navigation{
+display:none;
+margin-top:10px;
+grid-template-columns:1fr 1fr;
+gap:9px;
 }
 
-.navigation-controls.active{
-  display:grid
+.external-navigation button{
+padding:13px;
+border:1px solid var(--line);
+border-radius:12px;
+background:var(--panel2);
+color:white;
+font-size:10px;
+font-weight:900;
 }
 
-.pause-navigation,
-.finish-navigation{
-  padding:14px;
-  border-radius:13px;
-  border:1px solid var(--line);
-  color:#fff;
-  font-size:11px;
-  font-weight:1000
-}
-
-.pause-navigation{
-  background:var(--panel2)
-}
-
-.finish-navigation{
-  background:var(--red)
-}
-
-.navigation-message{
-  display:none;
-  margin-top:10px;
-  padding:12px;
-  border-radius:12px;
-  background:#15191e;
-  border:1px solid var(--line);
-  color:var(--muted);
-  font-size:10px;
-  line-height:1.4
-}
-
-.navigation-message.show{
-  display:block
-}
-
-/* LOADING / NOTICE */
-
-.loading{
-  display:none;
-  text-align:center;
-  padding:20px;
-  color:var(--muted);
-  font-size:12px
-}
-
-.notice{
-  display:none;
-  margin-top:12px;
-  padding:12px;
-  border-radius:12px;
-  background:#1b1413;
-  border:1px solid rgba(255,59,48,.25);
-  color:#ffb0aa;
-  font-size:11px;
-  line-height:1.45
+.external-navigation.visible{
+display:grid;
 }
 
 /* FOOTER */
 
 footer{
-  padding:0 20px 35px;
-  text-align:center;
-  color:#505761;
-  font-size:9px;
-  letter-spacing:1.5px
+padding:0 20px 35px;
+text-align:center;
+color:#505761;
+font-size:9px;
+letter-spacing:1.5px;
 }
 
 /* LEAFLET */
 
+.leaflet-container{
+font-family:Arial,Helvetica,sans-serif;
+}
+
 .leaflet-control-zoom a{
-  background:#11151a!important;
-  color:white!important;
-  border-color:#292e35!important
+background:#11151a!important;
+color:white!important;
+border-color:#292e35!important;
 }
 
 .leaflet-control-attribution{
-  background:rgba(7,9,12,.75)!important;
-  color:#9ba2aa!important
+background:rgba(7,9,12,.75)!important;
+color:#9ba2aa!important;
 }
 
 .leaflet-control-attribution a{
-  color:#c4cad0!important
+color:#c4cad0!important;
+}
+
+.user-pulse{
+animation:riderPulse 1.8s infinite;
+}
+
+@keyframes riderPulse{
+0%{opacity:1}
+50%{opacity:.55}
+100%{opacity:1}
 }
 
 /* MOBILE */
 
 @media(max-width:700px){
 
-  .map-wrap{
-    height:55vh;
-    min-height:400px
-  }
-
-  .bikes{
-    display:flex;
-    overflow-x:auto;
-    scrollbar-width:none
-  }
-
-  .bikes::-webkit-scrollbar{
-    display:none
-  }
-
-  .bike{
-    min-width:125px
-  }
-
-  .controls,
-  .options{
-    grid-template-columns:1fr
-  }
-
-  .stats{
-    grid-template-columns:repeat(2,1fr)
-  }
-
-  .stat:nth-child(1),
-  .stat:nth-child(2){
-    border-bottom:1px solid var(--line)
-  }
-
-  .stat:nth-child(2){
-    border-right:0
-  }
-
-  .result-buttons{
-    grid-template-columns:1fr
-  }
-
-  .navigation-hud{
-    top:70px
-  }
+.map-wrap{
+height:55vh;
+min-height:400px;
 }
-</style>
-</head>
 
-<body>
+.bikes{
+display:flex;
+overflow-x:auto;
+scrollbar-width:none;
+}
 
-<div class="app">
+.bikes::-webkit-scrollbar{
+display:none;
+}
 
-<header>
-  <div class="logo">RIDER<span>.</span></div>
+.bike{
+min-width:125px;
+}
 
-  <div class="header-actions">
-    <button class="icon" id="locateButton" title="Mi ubicación">📍</button>
-    <button class="icon" id="resetButton" title="Reiniciar">↻</button>
-  </div>
-</header>
+.controls,
+.options{
+grid-template-columns:1fr;
+}
 
-<section class="map-wrap">
+.stats{
+grid-template-columns:repeat(2,1fr);
+}
 
-  <div id="map"></div>
+.stat:nth-child(1),
+.stat:nth-child(2){
+border-bottom:1px solid var(--line);
+}
 
-  <div class="map-top">
-    <div class="status" id="gpsStatus">● GPS NO ACTIVO</div>
-  </div>
+.stat:nth-child(2){
+border-right:0;
+}
 
-  <!-- HUD DE NAVEGACIÓN -->
-  <div class="navigation-hud" id="navigationHud">
+.result-buttons{
+grid-template-columns:1fr 1fr;
+}
 
-    <div class="nav-top">
-      <div class="nav-state" id="navState">● RUTA ACTIVA</div>
-      <button class="nav-follow active" id="followButton">
-        SEGUIR GPS
-      </button>
-    </div>
+.start-route{
+grid-column:1 / -1;
+}
 
-    <div class="nav-stats">
+.navigation-panel{
+top:62px;
+}
 
-      <div class="nav-stat">
-        <strong id="navDistance">—</strong>
-        <span>Restante</span>
-      </div>
+.nav-info{
+grid-template-columns:repeat(3,1fr);
+}
 
-      <div class="nav-stat">
-        <strong id="navElapsed">00:00</strong>
-        <span>Tiempo</span>
-      </div>
+}
 
-      <div class="nav-stat">
-        <strong id="navSpeed">0</strong>
-        <span>Km/h</span>
-      </div>
+@media(max-width:400px){
 
-    </div>
+.logo{
+font-size:22px;
+letter-spacing:4px;
+}
 
-  </div>
+.map-bottom h1{
+font-size:23px;
+}
 
-  <div class="map-bottom">
-    <small>RIDE DIFFERENT</small>
-    <h1>ENCUENTRA TU<br>PRÓXIMA RUTA.</h1>
-    <p id="mapText">
-      Activa el GPS y deja que RIDER encuentre carreteras que merezcan ser conducidas.
-    </p>
-  </div>
+.distance{
+grid-template-columns:repeat(3,1fr);
+}
 
-</section>
+}
+</style></head><body><div class="app"><header>
+<div class="logo">RIDER<span>.</span></div><div class="header-actions">
+<button class="icon" id="locateButton" title="Mi ubicación">📍</button>
+<button class="icon" id="resetButton" title="Reiniciar">↻</button>
+</div>
+</header><section class="map-wrap"><div id="map"></div><div class="map-top">
+<div class="status" id="gpsStatus">● GPS NO ACTIVO</div>
+</div><div class="navigation-panel" id="navigationPanel"><div class="nav-title">RIDER NAVIGATION</div><div class="nav-main" id="navMain">
+RUTA ACTIVA
+</div><div class="nav-info"><div class="nav-stat">
+<strong id="navDistance">—</strong>
+<span>Restante</span>
+</div><div class="nav-stat">
+<strong id="navTime">—</strong>
+<span>Tiempo</span>
+</div><div class="nav-stat">
+<strong id="navSpeed">0</strong>
+<span>Km/h</span>
+</div></div><button class="stop-navigation" id="stopNavigation">
+■ DETENER RUTA
+</button></div><div class="map-bottom"><small>RIDE DIFFERENT</small>
 
-<main>
-
-<section class="section">
-
-<div class="eyebrow">01 — PERFIL</div>
-
-<h2>¿CON QUÉ VAS A RODAR?</h2>
-
-<p class="description">
+<h1>ENCUENTRA TU<br>PRÓXIMA RUTA.</h1><p id="mapText">
+Activa el GPS y deja que RIDER encuentre carreteras que merezcan ser conducidas.
+</p></div></section><main><!-- PERFIL --><section class="section"><div class="eyebrow">01 — PERFIL</div><h2>¿CON QUÉ VAS A RODAR?</h2><p class="description">
 RIDER adapta el estilo de ruta al comportamiento de tu moto.
-</p>
-
-<div class="bikes">
-
-<button class="bike active" data-bike="sport">
+</p><div class="bikes"><button class="bike active" data-bike="sport">
 <span class="bike-icon">🏁</span>
 <strong>SPORT</strong>
 <small>Curvas / técnica</small>
-</button>
-
-<button class="bike" data-bike="naked">
+</button><button class="bike" data-bike="naked">
 <span class="bike-icon">🏍️</span>
 <strong>NAKED</strong>
 <small>Equilibrada</small>
-</button>
-
-<button class="bike" data-bike="trail">
+</button><button class="bike" data-bike="trail">
 <span class="bike-icon">🧭</span>
 <strong>TRAIL</strong>
 <small>Aventura</small>
-</button>
-
-<button class="bike" data-bike="touring">
+</button><button class="bike" data-bike="touring">
 <span class="bike-icon">🛣️</span>
 <strong>TOURING</strong>
 <small>Distancia</small>
-</button>
-
-<button class="bike" data-bike="custom">
+</button><button class="bike" data-bike="custom">
 <span class="bike-icon">😎</span>
 <strong>CUSTOM</strong>
 <small>Paisaje</small>
-</button>
-
-<button class="bike" data-bike="supermoto">
+</button><button class="bike" data-bike="supermoto">
 <span class="bike-icon">⚡</span>
 <strong>SUPERMOTO</strong>
 <small>Diversión</small>
-</button>
-
-<button class="bike" data-bike="scooter">
+</button><button class="bike" data-bike="scooter">
 <span class="bike-icon">🛵</span>
 <strong>SCOOTER</strong>
 <small>Versátil</small>
-</button>
-
-<button class="bike" data-bike="customized">
+</button><button class="bike" data-bike="customized">
 <span class="bike-icon">⚙️</span>
 <strong>A MEDIDA</strong>
 <small>Tú decides</small>
-</button>
-
-</div>
-</section>
-
-
-<section class="section">
-
-<div class="eyebrow">02 — ESTILO DE RUTA</div>
-
-<h2>¿QUÉ TE APETECE HOY?</h2>
-
-<p class="description">
+</button></div>
+</section><!-- ESTILO --><section class="section"><div class="eyebrow">02 — ESTILO DE RUTA</div><h2>¿QUÉ TE APETECE HOY?</h2><p class="description">
 Cuanto más alto, más peso tendrá ese factor en el cálculo.
-</p>
-
-<div class="controls">
-
-<div class="control">
+</p><div class="controls"><div class="control">
 <div class="control-header">
 <span class="control-title">🔥 CURVAS</span>
 <span class="value" id="curvesValue">9</span>
 </div>
 <input id="curves" type="range" min="0" max="10" value="9">
-</div>
-
-<div class="control">
+</div><div class="control">
 <div class="control-header">
 <span class="control-title">⛰️ MONTAÑA</span>
 <span class="value" id="mountainValue">8</span>
 </div>
 <input id="mountain" type="range" min="0" max="10" value="8">
-</div>
-
-<div class="control">
+</div><div class="control">
 <div class="control-header">
 <span class="control-title">🌲 SECUNDARIAS</span>
 <span class="value" id="secondaryValue">9</span>
 </div>
 <input id="secondary" type="range" min="0" max="10" value="9">
-</div>
-
-<div class="control">
+</div><div class="control">
 <div class="control-header">
 <span class="control-title">🌄 PAISAJE</span>
 <span class="value" id="sceneryValue">7</span>
 </div>
 <input id="scenery" type="range" min="0" max="10" value="7">
-</div>
-
-<div class="control">
+</div><div class="control">
 <div class="control-header">
 <span class="control-title">⚡ DIVERSIÓN</span>
 <span class="value" id="funValue">9</span>
 </div>
 <input id="fun" type="range" min="0" max="10" value="9">
-</div>
-
-</div>
-</section>
-
-
-<section class="section">
-
-<div class="eyebrow">03 — TIPO Y DESTINO</div>
-
-<h2>¿CÓMO QUIERES NAVEGAR?</h2>
-
-<div class="mode-selector">
-
-<button class="mode-btn active" id="modeCircular">
+</div></div>
+</section><!-- TIPO --><section class="section"><div class="eyebrow">03 — TIPO Y DESTINO</div><h2>¿CÓMO QUIERES NAVEGAR?</h2><div class="mode-selector"><button class="mode-btn active" id="modeCircular">
 🔄 RUTA CIRCULAR
-</button>
-
-<button class="mode-btn" id="modeDest">
+</button><button class="mode-btn" id="modeDest">
 🎯 POR DESTINO
-</button>
-
-</div>
-
-<input
+</button></div><input
 type="text"
 id="destinationInput"
 class="dest-input"
 placeholder="Escribe ciudad o lugar de destino..."
-autocomplete="off"
->
+autocomplete="off">
 
-<div class="distance" id="distanceSelector">
-
-<button data-distance="100">100 KM</button>
+<div class="distance" id="distanceSelector"><button data-distance="100">100 KM</button>
 <button data-distance="200">200 KM</button>
 <button class="active" data-distance="250">250 KM</button>
 <button data-distance="350">350 KM</button>
 <button data-distance="500">500+</button>
 
-</div>
-
-</section>
-
-
-<section class="section">
-
-<div class="eyebrow">04 — CARRETERA</div>
-
-<h2>DEFINE EL TERRENO.</h2>
-
-<div class="options">
-
-<div class="option" data-option="highways">
+</div></section><!-- CARRETERA --><section class="section"><div class="eyebrow">04 — CARRETERA</div><h2>DEFINE EL TERRENO.</h2><div class="options"><div class="option" data-option="highways">
 <div>
 <div class="option-title">🛣️ EVITAR AUTOPISTAS</div>
-<div class="option-description">
-Priorizar carreteras secundarias
-</div>
+<div class="option-description">Priorizar carreteras secundarias</div>
 </div>
 <div class="switch active"></div>
-</div>
-
-<div class="option" data-option="cities">
+</div><div class="option" data-option="cities">
 <div>
 <div class="option-title">🏙️ EVITAR CIUDADES</div>
-<div class="option-description">
-Menos tráfico urbano
-</div>
+<div class="option-description">Menos tráfico urbano</div>
 </div>
 <div class="switch active"></div>
-</div>
-
-<div class="option" data-option="tolls">
+</div><div class="option" data-option="tolls">
 <div>
 <div class="option-title">💳 EVITAR PEAJES</div>
-<div class="option-description">
-Sin carreteras de pago
-</div>
+<div class="option-description">Sin carreteras de pago</div>
 </div>
 <div class="switch active"></div>
-</div>
-
-<div class="option" data-option="mountainPasses">
+</div><div class="option" data-option="mountainPasses">
 <div>
 <div class="option-title">🏔️ PUERTOS</div>
-<div class="option-description">
-Buscar carreteras de montaña
-</div>
+<div class="option-description">Buscar carreteras de montaña</div>
 </div>
 <div class="switch active"></div>
-</div>
-
-</div>
-</section>
-
-
-<button class="generate" id="generateButton">
+</div></div>
+</section><button class="generate" id="generateButton">
 🏍️ &nbsp; GENERAR RUTAS RIDER
-</button>
-
-<div class="notice" id="notice"></div>
-
-<div class="loading" id="loading">
+</button><div class="notice" id="notice"></div><div class="loading" id="loading">
 🛰️ Analizando trazados y curvas...
 <br><br>
 Generando opciones de ruta.
-</div>
-
-
-<section class="result" id="result">
-
-<div class="result-head">
-
-<div class="result-label">
+</div><!-- RESULTADO --><section class="result" id="result"><div class="result-head"><div class="result-label">
 RIDER ROUTES
-</div>
-
-<div class="result-name" id="resultName">
+</div><div class="result-name" id="resultName">
 OPCIONES ENCONTRADAS
-</div>
-
-<div class="result-subtitle" id="resultSubtitle">
+</div><div class="result-subtitle" id="resultSubtitle">
 Selecciona la variante que más te guste.
-</div>
-
-</div>
-
-
-<div class="route-selector">
-
-<button class="route-opt active" id="btnOpt0">
+</div></div><div class="route-selector"><button class="route-opt active" id="btnOpt0">
 OPCIÓN A
-</button>
-
-<button class="route-opt" id="btnOpt1">
+</button><button class="route-opt" id="btnOpt1">
 OPCIÓN B
-</button>
-
-<button class="route-opt" id="btnOpt2">
+</button><button class="route-opt" id="btnOpt2">
 OPCIÓN C
-</button>
-
-</div>
-
-
-<div class="stats">
-
-<div class="stat">
+</button></div><div class="stats"><div class="stat">
 <strong id="distanceResult">—</strong>
 <span>Distancia</span>
-</div>
-
-<div class="stat">
+</div><div class="stat">
 <strong id="timeResult">—</strong>
 <span>Tiempo</span>
-</div>
-
-<div class="stat">
+</div><div class="stat">
 <strong id="elevationResult">—</strong>
 <span>Desnivel</span>
-</div>
-
-<div class="stat">
+</div><div class="stat">
 <strong id="scoreResult">—</strong>
 <span>RIDER SCORE</span>
-</div>
-
-</div>
-
-
-<div class="result-body">
-
-<div class="score">
-<span class="score-title">
+</div></div><div class="result-body"><div class="score"><span class="score-title">
 COMPATIBILIDAD CON TU PERFIL
-</span>
-
-<span class="score-number" id="scoreNumber">
+</span><span class="score-number" id="scoreNumber">
 —
-</span>
-</div>
-
-<div class="bar">
+</span></div><div class="bar">
 <div id="scoreBar"></div>
-</div>
-
-
-<div class="result-buttons">
-
-<button id="saveButton">
+</div><div class="result-buttons"><button id="saveButton">
 ♡ GUARDAR
-</button>
-
-<button id="shareButton">
+</button><button id="shareButton">
 ↗ COMPARTIR
-</button>
-
-<button id="gpxButton">
+</button><button id="gpxButton">
 ⇩ GPX
-</button>
-
-</div>
-
-
-<!-- NUEVO BOTÓN -->
-
-<button class="start-navigation" id="startNavigation">
-▶ &nbsp; INICIAR RUTA
-</button>
-
-<div class="navigation-controls" id="navigationControls">
-
-<button class="pause-navigation" id="pauseNavigation">
-Ⅱ &nbsp; PAUSAR
-</button>
-
-<button class="finish-navigation" id="finishNavigation">
-■ &nbsp; FINALIZAR
-</button>
-
-</div>
-
-<div class="navigation-message" id="navigationMessage"></div>
-
-</div>
-
-</section>
-
-</main>
-
-<footer>
+</button><button id="startRouteButton" class="start-route">
+▶ INICIAR RUTA
+</button></div><div class="external-navigation" id="externalNavigation"><button id="googleMapsButton">
+🗺️ GOOGLE MAPS
+</button><button id="appleMapsButton">
+🍎 APPLE MAPS
+</button></div></div></section></main><footer>
 RIDER · RIDE DIFFERENT · POWERED BY OPENSTREETMAP
-</footer>
-
-</div>
-
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<script>
+</footer></div><script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+crossorigin="">
+</script><script>
 
 /* =========================================================
-   CONFIGURACIÓN
-========================================================= */
+   RIDER 2.1
+   ========================================================= */
 
-const OSRM =
-"https://router.project-osrm.org/route/v1/driving/";
-
-const NOMINATIM =
-"https://nominatim.openstreetmap.org/search?format=json&q=";
+"use strict";
 
 
-/* =========================================================
-   MAPA
-========================================================= */
+/* SERVICIOS */
 
-const map =
-L.map("map",{zoomControl:true})
-.setView([41.3851,2.1734],10);
+const OSRM="https://router.project-osrm.org/route/v1/driving/";
 
-L.tileLayer(
-"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+const NOMINATIM=
+"https://nominatim.openstreetmap.org/search?format=json&limit=1&q=";
+
+
+/* MAPA */
+
+const map=L.map("map",{
+zoomControl:true,
+preferCanvas:true
+}).setView([41.3851,2.1734],10);
+
+
+/*
+  Tile server HTTPS.
+  Importante para que funcione correctamente desde
+  GitHub Pages, Android y iPhone.
+*/
+
+const tileLayer=L.tileLayer(
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 {
 maxZoom:19,
+minZoom:2,
+tileSize:256,
 attribution:"&copy; OpenStreetMap contributors"
 }
-).addTo(map);
+);
+
+tileLayer.addTo(map);
 
 
-/* =========================================================
-   VARIABLES
-========================================================= */
+/* VARIABLES */
 
 let userPosition=null;
 let userMarker=null;
 let destMarker=null;
 let routeLayer=null;
+let navigationLayer=null;
 let lastRoute=null;
-
 let selectedBike="sport";
 let selectedDistance=250;
 let routeMode="circular";
-
 let generatedRoutes=[];
-
-let gpsWatchId=null;
+let navigationWatchId=null;
 let navigationActive=false;
-let navigationPaused=false;
-let navigationStartedAt=null;
-let navigationElapsedTimer=null;
+let navigationStartTime=null;
 
-let followGPS=true;
-let currentSpeed=0;
-
-const preferences={
+let preferences={
 highways:true,
 cities:true,
 tolls:true,
@@ -1316,9 +1104,7 @@ mountainPasses:true
 };
 
 
-/* =========================================================
-   PERFILES
-========================================================= */
+/* PERFILES */
 
 const bikeProfiles={
 
@@ -1397,11 +1183,10 @@ fun:8
 };
 
 
-/* =========================================================
-   UTILIDADES
-========================================================= */
+/* HELPERS */
 
 const $=id=>document.getElementById(id);
+
 
 function setSlider(id,value){
 
@@ -1409,6 +1194,7 @@ $(id).value=value;
 $(id+"Value").textContent=value;
 
 }
+
 
 function values(){
 
@@ -1420,16 +1206,18 @@ secondary:+$("secondary").value,
 scenery:+$("scenery").value,
 fun:+$("fun").value
 
-}
+};
 
 }
 
 
 /* =========================================================
-   GUARDAR CONFIGURACIÓN
-========================================================= */
+   SETTINGS
+   ========================================================= */
 
 function saveSettings(){
+
+try{
 
 localStorage.setItem(
 "rider-settings",
@@ -1443,21 +1231,24 @@ values:values()
 })
 );
 
+}catch(e){
+
+console.warn("No se pudo guardar configuración",e);
+
 }
 
+}
 
-/* =========================================================
-   CARGAR CONFIGURACIÓN
-========================================================= */
 
 function loadSettings(){
 
 try{
 
-const s=
-JSON.parse(localStorage.getItem("rider-settings"));
+const raw=localStorage.getItem("rider-settings");
 
-if(!s)return;
+if(!raw)return;
+
+const s=JSON.parse(raw);
 
 selectedBike=s.bike||selectedBike;
 selectedDistance=s.distance||selectedDistance;
@@ -1469,44 +1260,59 @@ s.preferences||{}
 
 if(s.values){
 
-Object.entries(s.values)
-.forEach(([k,v])=>{
-setSlider(k,v);
+Object.entries(s.values).forEach(([k,v])=>{
+
+if($(k))setSlider(k,v);
+
 });
 
 }
 
-document
-.querySelectorAll(".bike")
+
+/* BIKES */
+
+document.querySelectorAll(".bike")
 .forEach(x=>{
+
 x.classList.toggle(
 "active",
 x.dataset.bike===selectedBike
 );
+
 });
 
-document
-.querySelectorAll(".distance button")
+
+/* DISTANCIA */
+
+document.querySelectorAll(".distance button")
 .forEach(x=>{
+
 x.classList.toggle(
 "active",
 +x.dataset.distance===selectedDistance
 );
+
 });
 
-document
-.querySelectorAll(".option")
+
+/* OPTIONS */
+
+document.querySelectorAll(".option")
 .forEach(x=>{
+
+const key=x.dataset.option;
+
 x.querySelector(".switch")
 .classList.toggle(
 "active",
-!!preferences[x.dataset.option]
+!!preferences[key]
 );
+
 });
 
 }catch(e){
 
-console.warn("No se pudo cargar configuración",e);
+console.warn("Error cargando settings",e);
 
 }
 
@@ -1514,17 +1320,15 @@ console.warn("No se pudo cargar configuración",e);
 
 
 /* =========================================================
-   BIKES
-========================================================= */
+   BIKE SELECTOR
+   ========================================================= */
 
-document
-.querySelectorAll(".bike")
+document.querySelectorAll(".bike")
 .forEach(card=>{
 
 card.addEventListener("click",()=>{
 
-document
-.querySelectorAll(".bike")
+document.querySelectorAll(".bike")
 .forEach(x=>x.classList.remove("active"));
 
 card.classList.add("active");
@@ -1539,8 +1343,7 @@ const p=bikeProfiles[selectedBike];
 "secondary",
 "scenery",
 "fun"
-]
-.forEach(id=>setSlider(id,p[id]));
+].forEach(id=>setSlider(id,p[id]));
 
 saveSettings();
 
@@ -1549,12 +1352,9 @@ saveSettings();
 });
 
 
-/* =========================================================
-   SLIDERS
-========================================================= */
+/* SLIDERS */
 
-document
-.querySelectorAll('input[type="range"]')
+document.querySelectorAll('input[type="range"]')
 .forEach(s=>{
 
 s.addEventListener("input",()=>{
@@ -1568,24 +1368,21 @@ saveSettings();
 });
 
 
-/* =========================================================
-   DISTANCIAS
-========================================================= */
+/* DISTANCES */
 
-document
-.querySelectorAll(".distance button")
+document.querySelectorAll(".distance button")
 .forEach(b=>{
 
 b.addEventListener("click",()=>{
 
-document
-.querySelectorAll(".distance button")
+document.querySelectorAll(".distance button")
 .forEach(x=>x.classList.remove("active"));
 
 b.classList.add("active");
 
-selectedDistance=
-Number(b.dataset.distance);
+selectedDistance=Number(
+b.dataset.distance
+);
 
 saveSettings();
 
@@ -1594,12 +1391,9 @@ saveSettings();
 });
 
 
-/* =========================================================
-   OPCIONES
-========================================================= */
+/* OPTIONS */
 
-document
-.querySelectorAll(".option")
+document.querySelectorAll(".option")
 .forEach(o=>{
 
 o.addEventListener("click",()=>{
@@ -1621,80 +1415,90 @@ saveSettings();
 });
 
 
-/* =========================================================
-   MODO CIRCULAR
-========================================================= */
+/* CARGAR */
 
-$("modeCircular")
-.addEventListener("click",()=>{
+loadSettings();
+
+
+/* =========================================================
+   MODOS
+   ========================================================= */
+
+$("modeCircular").addEventListener("click",()=>{
 
 routeMode="circular";
 
-$("modeCircular")
-.classList.add("active");
+$("modeCircular").classList.add("active");
+$("modeDest").classList.remove("active");
 
-$("modeDest")
-.classList.remove("active");
-
-$("destinationInput")
-.style.display="none";
-
-$("distanceSelector")
-.style.display="grid";
+$("destinationInput").style.display="none";
+$("distanceSelector").style.display="grid";
 
 });
 
 
-/* =========================================================
-   MODO DESTINO
-========================================================= */
-
-$("modeDest")
-.addEventListener("click",()=>{
+$("modeDest").addEventListener("click",()=>{
 
 routeMode="destination";
 
-$("modeDest")
-.classList.add("active");
+$("modeDest").classList.add("active");
+$("modeCircular").classList.remove("active");
 
-$("modeCircular")
-.classList.remove("active");
+$("destinationInput").style.display="block";
+$("distanceSelector").style.display="none";
 
-$("destinationInput")
-.style.display="block";
+setTimeout(()=>{
 
-$("distanceSelector")
-.style.display="none";
+$("destinationInput").focus();
+
+},100);
 
 });
 
 
 /* =========================================================
-   GPS — POSICIÓN ÚNICA
-========================================================= */
+   GPS
+   ========================================================= */
 
 function locateUser(){
 
-if(!navigator.geolocation){
+if(!window.isSecureContext &&
+location.hostname!=="localhost" &&
+location.hostname!=="127.0.0.1"){
 
-alert(
-"Tu navegador no soporta GPS."
+showNotice(
+"El GPS del iPhone y Android necesita una conexión HTTPS. Sube RIDER a GitHub Pages o utiliza HTTPS."
 );
 
 return;
 
 }
 
+if(!navigator.geolocation){
+
+showNotice(
+"Este navegador no permite utilizar el GPS."
+);
+
+return;
+
+}
+
+
 const status=$("gpsStatus");
 
 status.textContent="● BUSCANDO GPS...";
-status.classList.remove("gps");
+status.classList.remove("gps","navigation");
+
+$("mapText").textContent=
+"Solicitando tu posición GPS...";
+
 
 navigator.geolocation.getCurrentPosition(
 
 pos=>{
 
-updateUserPosition(pos,true);
+setUserPosition(pos);
 
 },
 
@@ -1704,16 +1508,41 @@ console.warn(err);
 
 status.textContent="● ERROR GPS";
 
-alert(
-"No se pudo obtener tu ubicación. Comprueba los permisos de ubicación del navegador."
-);
+$("mapText").textContent=
+"No se pudo obtener tu ubicación.";
+
+let message=
+"No se pudo obtener tu ubicación.";
+
+if(err.code===1){
+
+message=
+"Permiso de ubicación rechazado. Activa la ubicación para Safari/Chrome en los ajustes del móvil.";
+
+}
+
+if(err.code===2){
+
+message=
+"Tu posición no está disponible. Comprueba que tienes el GPS activado.";
+
+}
+
+if(err.code===3){
+
+message=
+"El GPS está tardando demasiado. Inténtalo de nuevo al aire libre.";
+
+}
+
+showNotice(message);
 
 },
 
 {
 enableHighAccuracy:true,
 timeout:20000,
-maximumAge:0
+maximumAge:5000
 }
 
 );
@@ -1721,33 +1550,26 @@ maximumAge:0
 }
 
 
-/* =========================================================
-   ACTUALIZAR POSICIÓN
-========================================================= */
+/* POSICIÓN */
 
-function updateUserPosition(pos,centerMap){
-
-const lat=pos.coords.latitude;
-const lng=pos.coords.longitude;
+function setUserPosition(pos){
 
 userPosition={
-lat:lat,
-lng:lng
+lat:pos.coords.latitude,
+lng:pos.coords.longitude
 };
 
-if(pos.coords.speed!=null &&
-pos.coords.speed>=0){
+if(userMarker){
 
-currentSpeed=
-pos.coords.speed*3.6;
+map.removeLayer(userMarker);
 
 }
 
-if(!userMarker){
-
-userMarker=
-L.circleMarker(
-[lat,lng],
+userMarker=L.circleMarker(
+[
+userPosition.lat,
+userPosition.lng
+],
 {
 radius:8,
 color:"#fff",
@@ -1761,11 +1583,13 @@ userMarker.bindPopup(
 "<strong>📍 TU POSICIÓN</strong>"
 );
 
-}else{
-
-userMarker.setLatLng([lat,lng]);
-
-}
+map.setView(
+[
+userPosition.lat,
+userPosition.lng
+],
+13
+);
 
 $("gpsStatus").textContent="● GPS ACTIVO";
 $("gpsStatus").classList.add("gps");
@@ -1773,133 +1597,223 @@ $("gpsStatus").classList.add("gps");
 $("mapText").textContent=
 "Ubicación detectada. RIDER está listo para diseñar tu ruta.";
 
-if(centerMap || (navigationActive && followGPS)){
-
-map.setView(
-[lat,lng],
-Math.max(map.getZoom(),14),
-{animate:true}
-);
-
 }
 
-if(navigationActive){
 
-updateNavigationPosition();
+/* BOTÓN GPS */
 
-}
-
-}
+$("locateButton")
+.addEventListener("click",locateUser);
 
 
 /* =========================================================
-   GPS CONTINUO
-========================================================= */
+   GEOLOCALIZACIÓN CONTINUA DURANTE NAVEGACIÓN
+   ========================================================= */
 
-function startGPSWatch(){
+function startGpsTracking(){
 
-if(!navigator.geolocation){
+if(!navigator.geolocation)return;
 
-showNavigationMessage(
-"Este dispositivo no permite utilizar la geolocalización."
+if(navigationWatchId!==null){
+
+navigator.geolocation.clearWatch(
+navigationWatchId
 );
 
-return false;
-
 }
 
-if(gpsWatchId!==null){
-
-navigator.geolocation.clearWatch(gpsWatchId);
-
-}
-
-gpsWatchId=
+navigationWatchId=
 navigator.geolocation.watchPosition(
 
-pos=>{
+position=>{
 
-updateUserPosition(
-pos,
-false
-);
+setNavigationPosition(position);
 
 },
 
-err=>{
+error=>{
 
 console.warn(
-"GPS watch:",
-err
+"GPS navigation error:",
+error
 );
-
-$("gpsStatus").textContent=
-"● GPS PERDIDO";
-
-$("gpsStatus").classList.remove("gps");
-
-if(navigationActive){
-
-showNavigationMessage(
-"Se ha perdido temporalmente la señal GPS. Mantén la aplicación abierta y comprueba los permisos de ubicación."
-);
-
-}
 
 },
 
 {
 enableHighAccuracy:true,
-timeout:15000,
-maximumAge:1000
+maximumAge:2000,
+timeout:10000
 }
 
 );
 
-return true;
-
 }
 
 
-/* =========================================================
-   PARAR GPS
-========================================================= */
+function stopGpsTracking(){
 
-function stopGPSWatch(){
-
-if(gpsWatchId!==null){
+if(navigationWatchId!==null){
 
 navigator.geolocation.clearWatch(
-gpsWatchId
+navigationWatchId
 );
 
-gpsWatchId=null;
+navigationWatchId=null;
 
 }
 
 }
 
 
-/* =========================================================
-   LOCALIZAR BOTÓN
-========================================================= */
+/* ACTUALIZAR POSICIÓN NAVEGACIÓN */
 
-$("locateButton")
-.addEventListener(
-"click",
-locateUser
-);
+function setNavigationPosition(position){
+
+const coords={
+lat:position.coords.latitude,
+lng:position.coords.longitude
+};
+
+userPosition=coords;
 
 
-/* =========================================================
-   DESTINO GEOGRÁFICO
-========================================================= */
+/* Actualizar marcador */
 
-function destination(
-origin,
-bearing,
-distanceKm
+if(userMarker){
+
+userMarker.setLatLng([
+coords.lat,
+coords.lng
+]);
+
+}else{
+
+userMarker=L.circleMarker(
+[
+coords.lat,
+coords.lng
+],
+{
+radius:8,
+color:"#fff",
+weight:4,
+fillColor:"#ff3b30",
+fillOpacity:1
+}
+).addTo(map);
+
+}
+
+
+/* velocidad */
+
+let speed=position.coords.speed;
+
+if(
+typeof speed==="number" &&
+isFinite(speed) &&
+speed>=0
 ){
+
+$("navSpeed").textContent=
+Math.round(speed*3.6);
+
+}
+
+
+/* distancia restante */
+
+if(lastRoute){
+
+const nearest=getNearestRoutePoint(
+coords,
+lastRoute.geometry.coordinates
+);
+
+const remaining=calculateRemainingDistance(
+nearest.index,
+lastRoute.geometry.coordinates
+);
+
+$("navDistance").textContent=
+formatDistance(remaining);
+
+}
+
+
+/* mantener posición visible */
+
+if(navigationActive){
+
+const bounds=map.getBounds();
+
+if(!bounds.contains([
+coords.lat,
+coords.lng
+])){
+
+map.panTo([
+coords.lat,
+coords.lng
+]);
+
+}
+
+}
+
+}
+
+
+/* =========================================================
+   GEOMETRÍA
+   ========================================================= */
+
+function haversine(lat1,lon1,lat2,lon2){
+
+const R=6371000;
+
+const p1=lat1*Math.PI/180;
+const p2=lat2*Math.PI/180;
+
+const dLat=
+(lat2-lat1)*Math.PI/180;
+
+const dLon=
+(lon2-lon1)*Math.PI/180;
+
+const a=
+Math.sin(dLat/2)**2+
+Math.cos(p1)*
+Math.cos(p2)*
+Math.sin(dLon/2)**2;
+
+return R*2*Math.atan2(
+Math.sqrt(a),
+Math.sqrt(1-a)
+);
+
+}
+
+
+function formatDistance(meters){
+
+if(meters<1000){
+
+return Math.round(meters)+" m";
+
+}
+
+return (meters/1000).toFixed(1)+" km";
+
+}
+
+
+/* =========================================================
+   PUNTO DESTINO
+   ========================================================= */
+
+function destination(origin,bearing,distanceKm){
 
 const R=6371;
 
@@ -1925,8 +1839,7 @@ const lon2=
 lon1+
 Math.atan2(
 Math.sin(b)*Math.sin(d)*Math.cos(lat1),
-Math.cos(d)-
-Math.sin(lat1)*Math.sin(lat2)
+Math.cos(d)-Math.sin(lat1)*Math.sin(lat2)
 );
 
 return{
@@ -1942,8 +1855,8 @@ lng:
 
 
 /* =========================================================
-   OSRM URL
-========================================================= */
+   OSRM
+   ========================================================= */
 
 function routeUrl(points,exclude){
 
@@ -1952,37 +1865,130 @@ points
 .map(p=>p.lng+","+p.lat)
 .join(";");
 
-let u=
+let url=
 OSRM+
 coords+
-"?overview=full&geometries=geojson&alternatives=false&steps=false";
+"?overview=full"+
+"&geometries=geojson"+
+"&alternatives=false"+
+"&steps=true";
 
 if(exclude.length){
 
-u+="&exclude="+
-exclude.join(",");
+url+="&exclude="+
+encodeURIComponent(
+exclude.join(",")
+);
 
 }
 
-return u;
+return url;
+
+}
+
+
+async function osrm(points,exclude){
+
+const url=
+routeUrl(points,exclude);
+
+const response=
+await fetch(
+url,
+{
+method:"GET",
+headers:{
+"Accept":"application/json"
+}
+}
+);
+
+if(!response.ok){
+
+throw new Error(
+"OSRM HTTP "+response.status
+);
+
+}
+
+const data=
+await response.json();
+
+if(
+data.code!=="Ok" ||
+!data.routes ||
+!data.routes.length
+){
+
+throw new Error(
+data.message||
+"No se encontró ruta"
+);
+
+}
+
+return data.routes[0];
 
 }
 
 
 /* =========================================================
-   ELEVACIÓN ESTIMADA
-========================================================= */
+   NOMINATIM
+   ========================================================= */
 
-function estimateElevation(
-route,
-prefs
-){
+async function geocode(query){
+
+const response=
+await fetch(
+NOMINATIM+
+encodeURIComponent(query),
+{
+headers:{
+"Accept":"application/json"
+}
+}
+);
+
+if(!response.ok){
+
+throw new Error(
+"Error buscando destino"
+);
+
+}
+
+const data=
+await response.json();
+
+if(!data.length){
+
+throw new Error(
+"Destino no encontrado"
+);
+
+}
+
+return{
+
+lat:parseFloat(data[0].lat),
+lng:parseFloat(data[0].lon)
+
+};
+
+}
+
+
+/* =========================================================
+   DATOS DE RUTA
+   ========================================================= */
+
+function estimateElevation(route,prefs){
 
 const totalKm=
 route.distance/1000;
 
 const mountainFactor=
-(prefs.mountain/10)*1.5+0.5;
+(prefs.mountain/10)*1.5+.5;
 
 const numCoords=
 route.geometry.coordinates.length;
@@ -2006,14 +2012,11 @@ sinuosity
 }
 
 
-/* =========================================================
-   SCORE
-========================================================= */
+/*
+   Score algo más variable que la versión anterior.
+*/
 
-function scoreRoute(
-route,
-prefs
-){
+function scoreRoute(route,prefs){
 
 const avg=
 (
@@ -2024,8 +2027,16 @@ prefs.scenery+
 prefs.fun
 )/5;
 
+const distanceFactor=
+Math.min(
+10,
+route.distance/1000/50
+);
+
 let score=
-65+avg*2.8;
+55+
+avg*3.1+
+distanceFactor*.5;
 
 return Math.max(
 50,
@@ -2039,103 +2050,14 @@ Math.round(score)
 
 
 /* =========================================================
-   CONSULTA OSRM
-========================================================= */
-
-async function osrm(
-points,
-exclude
-){
-
-const r=
-await fetch(
-routeUrl(points,exclude)
-);
-
-if(!r.ok){
-
-throw new Error(
-"HTTP "+r.status
-);
-
-}
-
-const d=
-await r.json();
-
-if(
-d.code!=="Ok" ||
-!d.routes ||
-!d.routes.length
-){
-
-throw new Error(
-d.message||"No route found"
-);
-
-}
-
-return d.routes[0];
-
-}
-
-
-/* =========================================================
-   GEOCODIFICAR
-========================================================= */
-
-async function geocode(query){
-
-const r=
-await fetch(
-NOMINATIM+
-encodeURIComponent(query),
-{
-headers:{
-"Accept-Language":"es"
-}
-}
-);
-
-if(!r.ok){
-
-throw new Error(
-"Error de geocodificación"
-);
-
-}
-
-const d=
-await r.json();
-
-if(!d.length){
-
-throw new Error(
-"Destino no encontrado"
-);
-
-}
-
-return{
-
-lat:parseFloat(d[0].lat),
-
-lng:parseFloat(d[0].lon)
-
-};
-
-}
-
-
-/* =========================================================
    GENERAR RUTAS
-========================================================= */
+   ========================================================= */
 
 async function generateRoute(){
 
 if(!userPosition){
 
-alert(
+showNotice(
 "Primero activa el GPS para que RIDER conozca tu punto de partida."
 );
 
@@ -2144,6 +2066,7 @@ locateUser();
 return;
 
 }
+
 
 const button=$("generateButton");
 const loading=$("loading");
@@ -2155,13 +2078,21 @@ loading.style.display="block";
 
 notice.style.display="none";
 
+$("result").style.display="none";
+
 generatedRoutes=[];
+
 
 try{
 
 const p=values();
 
 let exclude=[];
+
+
+/*
+  OSRM acepta motorway y toll.
+*/
 
 if(preferences.highways){
 
@@ -2176,15 +2107,32 @@ exclude.push("toll");
 }
 
 
-/* ---------------- CIRCULAR ---------------- */
+/* =========================
+   RUTA CIRCULAR
+   ========================= */
 
 if(routeMode==="circular"){
 
 const target=
 selectedDistance;
 
+
+/*
+  Calculamos radio aproximado.
+  Cuanto mayor la ruta,
+  mayor será el radio.
+*/
+
 const radii=
-target*0.16;
+Math.max(
+15,
+target*0.16
+);
+
+
+/*
+  Tres configuraciones distintas.
+*/
 
 const angleVariants=[
 
@@ -2203,46 +2151,74 @@ i<angleVariants.length;
 i++
 ){
 
-const points=[
+const angles=
+angleVariants[i];
 
+
+/*
+  Evitamos hacer todos los puntos
+  demasiado juntos.
+*/
+
+const points=[
 userPosition,
 
-...angleVariants[i]
-.map(
-(a,idx)=>
 destination(
 userPosition,
-a,
-radii*
-(idx%2?1.1:.9)
-)
+angles[0],
+radii
+),
+
+destination(
+userPosition,
+angles[1],
+radii*1.15
+),
+
+destination(
+userPosition,
+angles[2],
+radii*0.95
+),
+
+destination(
+userPosition,
+angles[3],
+radii*1.10
 ),
 
 userPosition
-
 ];
+
 
 try{
 
-let r=
+const route=
 await osrm(
 points,
 exclude
 );
 
-r.elevation=
-estimateElevation(r,p);
+route.elevation=
+estimateElevation(
+route,
+p
+);
 
-r.score=
-scoreRoute(r,p);
+route.score=
+scoreRoute(
+route,
+p
+);
 
-generatedRoutes.push(r);
+generatedRoutes.push(route);
 
-}catch(e){
+}catch(error){
 
 console.warn(
-"Ruta circular fallida",
-e
+"Ruta circular "+i+
+" falló:",
+error
 );
 
 }
@@ -2252,7 +2228,9 @@ e
 }
 
 
-/* ---------------- DESTINO ---------------- */
+/* =========================
+   RUTA POR DESTINO
+   ========================= */
 
 else{
 
@@ -2263,53 +2241,82 @@ $("destinationInput")
 
 if(!destText){
 
-alert(
+throw new Error(
 "Introduce un destino válido."
 );
 
-button.disabled=false;
-loading.style.display="none";
-
-return;
-
 }
+
 
 const destCoords=
 await geocode(destText);
 
+
 if(destMarker){
 
-map.removeLayer(
-destMarker
-);
+map.removeLayer(destMarker);
 
 }
 
+
 destMarker=
-L.marker(
-[
+L.marker([
 destCoords.lat,
 destCoords.lng
-]
-)
+])
 .addTo(map)
 .bindPopup(
 "<b>🎯 DESTINO</b>"
 );
 
+
+/*
+  Creamos tres variantes:
+  directa + dos desvíos.
+*/
+
+const bearing=
+getBearing(
+userPosition,
+destCoords
+);
+
+
+const leftBearing=
+(bearing+315)%360;
+
+const rightBearing=
+(bearing+45)%360;
+
+const midDistance=
+Math.min(
+35,
+Math.max(
+10,
+haversine(
+userPosition.lat,
+userPosition.lng,
+destCoords.lat,
+destCoords.lng
+)/1000*.25
+)
+);
+
+
 const mid1=
 destination(
 userPosition,
-30,
-20
+leftBearing,
+midDistance
 );
 
 const mid2=
 destination(
 userPosition,
-330,
-20
+rightBearing,
+midDistance
 );
+
 
 const routeConfigs=[
 
@@ -2332,31 +2339,41 @@ destCoords
 
 ];
 
+
 for(
-let points of routeConfigs
+let i=0;
+i<routeConfigs.length;
+i++
 ){
 
 try{
 
-let r=
+const route=
 await osrm(
-points,
+routeConfigs[i],
 exclude
 );
 
-r.elevation=
-estimateElevation(r,p);
+route.elevation=
+estimateElevation(
+route,
+p
+);
 
-r.score=
-scoreRoute(r,p);
+route.score=
+scoreRoute(
+route,
+p
+);
 
-generatedRoutes.push(r);
+generatedRoutes.push(route);
 
-}catch(e){
+}catch(error){
 
 console.warn(
-"Ruta destino fallida",
-e
+"Ruta destino "+i+
+" falló:",
+error
 );
 
 }
@@ -2366,32 +2383,61 @@ e
 }
 
 
-/* ---------------- RESULTADO ---------------- */
+/* RESULTADO */
 
 if(!generatedRoutes.length){
 
 throw new Error(
-"No se hallaron rutas con esas preferencias."
+"No se hallaron rutas."
 );
 
 }
 
+
+/*
+  Ordenamos de mayor score a menor.
+*/
+
+generatedRoutes.sort(
+(a,b)=>
+(b.score||0)-
+(a.score||0)
+);
+
+
+/*
+  Mostrar botones disponibles.
+*/
+
+for(let i=0;i<3;i++){
+
+$(`btnOpt${i}`).style.display=
+generatedRoutes[i]
+?"block"
+:"none";
+
+}
+
+
 selectOption(0);
 
-$("result")
-.style.display="block";
+$("result").style.display="block";
 
-$("result")
-.scrollIntoView({
-behavior:"smooth"
+$("result").scrollIntoView({
+behavior:"smooth",
+block:"start"
 });
 
-}catch(e){
 
-console.error(e);
+}catch(error){
+
+console.error(error);
 
 notice.innerHTML=
-"No se ha podido obtener rutas para esta zona o destino. Intenta desactivar 'Evitar Autopistas' o cambiar la ubicación.";
+"No se ha podido obtener una ruta. "+
+"Comprueba tu GPS y conexión a Internet. "+
+"Si has activado 'Evitar autopistas' y 'Evitar peajes', "+
+"prueba a desactivar alguna de estas opciones.";
 
 notice.style.display="block";
 
@@ -2407,8 +2453,44 @@ loading.style.display="none";
 
 
 /* =========================================================
-   SELECCIONAR OPCIÓN
-========================================================= */
+   BEARING
+   ========================================================= */
+
+function getBearing(from,to){
+
+const lat1=
+from.lat*Math.PI/180;
+
+const lat2=
+to.lat*Math.PI/180;
+
+const dLon=
+(to.lng-from.lng)*
+Math.PI/180;
+
+const y=
+Math.sin(dLon)*
+Math.cos(lat2);
+
+const x=
+Math.cos(lat1)*
+Math.sin(lat2)-
+Math.sin(lat1)*
+Math.cos(lat2)*
+Math.cos(dLon);
+
+return(
+Math.atan2(y,x)*
+180/Math.PI+
+360
+)%360;
+
+}
+
+
+/* =========================================================
+   SELECT ROUTE
+   ========================================================= */
 
 function selectOption(index){
 
@@ -2417,60 +2499,49 @@ if(!generatedRoutes[index])return;
 lastRoute=
 generatedRoutes[index];
 
-[0,1,2].forEach(i=>{
 
-$(`btnOpt${i}`)
-.classList.toggle(
+for(let i=0;i<3;i++){
+
+$(`btnOpt${i}`).classList.toggle(
 "active",
 i===index
 );
 
-$(`btnOpt${i}`)
-.style.display=
+$(`btnOpt${i}`).style.display=
 generatedRoutes[i]
 ?"block"
 :"none";
 
-});
+}
+
 
 displayRoute(lastRoute);
 
 }
 
 
-/* =========================================================
-   BOTONES A/B/C
-========================================================= */
+/* BOTONES OPCIONES */
 
-[
-"btnOpt0",
-"btnOpt1",
-"btnOpt2"
-]
-.forEach(
-(id,idx)=>{
+["btnOpt0","btnOpt1","btnOpt2"]
+.forEach((id,idx)=>{
 
-$(id)
-.addEventListener(
+$(id).addEventListener(
 "click",
 ()=>selectOption(idx)
 );
 
-}
-);
+});
 
 
 /* =========================================================
    MOSTRAR RUTA
-========================================================= */
+   ========================================================= */
 
 function displayRoute(route){
 
 if(routeLayer){
 
-map.removeLayer(
-routeLayer
-);
+map.removeLayer(routeLayer);
 
 }
 
@@ -2481,17 +2552,24 @@ route.geometry,
 style:{
 color:"#ff3b30",
 weight:6,
-opacity:.9
+opacity:.92
 }
 }
 ).addTo(map);
 
+
+/*
+  Si estamos navegando,
+  no queremos perder el panel.
+*/
+
 map.fitBounds(
 routeLayer.getBounds(),
 {
-padding:[35,35]
+padding:[50,50]
 }
 );
+
 
 const distanceKm=
 route.distance/1000;
@@ -2509,38 +2587,37 @@ Math.round(
 const score=
 route.score;
 
-$("distanceResult")
-.textContent=
+
+$("distanceResult").textContent=
 distanceKm.toFixed(0)+" km";
 
-$("timeResult")
-.textContent=
+$("timeResult").textContent=
 hours+"h "+minutes+"m";
 
-$("elevationResult")
-.textContent=
+$("elevationResult").textContent=
 "+"+route.elevation+"m";
 
-$("scoreResult")
-.textContent=
+$("scoreResult").textContent=
 score+"%";
 
-$("scoreNumber")
-.textContent=
+$("scoreNumber").textContent=
 score+"%";
 
-$("scoreBar")
-.style.width=
+setTimeout(()=>{
+
+$("scoreBar").style.width=
 score+"%";
 
-$("resultName")
-.textContent=
+},50);
+
+
+$("resultName").textContent=
 routeName(
 distanceKm.toFixed(0)
 );
 
-$("resultSubtitle")
-.textContent=
+
+$("resultSubtitle").textContent=
 bikeProfiles[selectedBike].name+
 " · "+
 (
@@ -2549,44 +2626,64 @@ routeMode==="circular"
 :"Ruta por destino optimizada"
 );
 
+
+/*
+  Mostrar/ocultar navegación externa.
+*/
+
+$("externalNavigation")
+.classList.toggle(
+"visible",
+!!lastRoute
+);
+
 }
 
 
 /* =========================================================
    NOMBRE RUTA
-========================================================= */
+   ========================================================= */
 
 function routeName(realKm){
 
 const names={
 
 sport:"CURVES ATTACK",
+
 naked:"RIDER LOOP",
+
 trail:"MOUNTAIN ADVENTURE",
+
 touring:"GRAND TOUR",
+
 custom:"SCENIC CRUISE",
+
 supermoto:"SUPERMOTO ATTACK",
+
 scooter:"URBAN ESCAPE",
+
 customized:"RIDER CUSTOM LOOP"
 
 };
+
 
 const labelKm=
 routeMode==="circular"
 ?selectedDistance
 :realKm;
 
-return names[selectedBike]+
+
+return(
+names[selectedBike]+
 " · "+
 labelKm+
-" KM";
+" KM"
+);
 
 }
 
 
-/* =========================================================
-   GENERAR
-========================================================= */
+/* GENERAR */
 
 $("generateButton")
 .addEventListener(
@@ -2597,16 +2694,14 @@ generateRoute
 
 /* =========================================================
    GUARDAR
-========================================================= */
+   ========================================================= */
 
 $("saveButton")
-.addEventListener(
-"click",
-()=>{
+.addEventListener("click",()=>{
 
 if(!lastRoute){
 
-alert(
+showNotice(
 "Genera primero una ruta."
 );
 
@@ -2614,39 +2709,60 @@ return;
 
 }
 
+
+try{
+
 localStorage.setItem(
 "rider-last-route",
 JSON.stringify(lastRoute)
 );
 
-$("saveButton")
-.textContent="♥ GUARDADA";
+$("saveButton").textContent=
+"♥ GUARDADA";
+
+}catch(e){
+
+showNotice(
+"No se pudo guardar la ruta."
+);
 
 }
-);
+
+});
 
 
 /* =========================================================
    COMPARTIR
-========================================================= */
+   ========================================================= */
 
 $("shareButton")
 .addEventListener(
 "click",
 async()=>{
 
+if(!lastRoute){
+
+showNotice(
+"Genera primero una ruta."
+);
+
+return;
+
+}
+
+
 const data={
 
 title:"RIDER — Motorcycle Route",
 
 text:
-$("resultName")
-.textContent+
+$("resultName").textContent+
 " 🏍️",
 
 url:location.href
 
 };
+
 
 if(navigator.share){
 
@@ -2660,12 +2776,11 @@ await navigator.share(data);
 
 try{
 
-await navigator.clipboard
-.writeText(location.href);
-
-alert(
-"Enlace copiado."
+await navigator.clipboard.writeText(
+location.href
 );
+
+alert("Enlace copiado.");
 
 }catch(e){
 
@@ -2677,13 +2792,12 @@ alert(
 
 }
 
-}
-);
+});
 
 
 /* =========================================================
    GPX
-========================================================= */
+   ========================================================= */
 
 $("gpxButton")
 .addEventListener(
@@ -2692,13 +2806,14 @@ $("gpxButton")
 
 if(!lastRoute){
 
-alert(
+showNotice(
 "Genera primero una ruta."
 );
 
 return;
 
 }
+
 
 const c=
 lastRoute.geometry.coordinates;
@@ -2707,12 +2822,16 @@ const km=
 (lastRoute.distance/1000)
 .toFixed(0);
 
+
 let g=
 '<?xml version="1.0" encoding="UTF-8"?>'+
-'<gpx version="1.1" creator="RIDER 2.2" xmlns="http://www.topografix.com/GPX/1/1">'+
-'<trk><name>'+
-routeName(km)+
-'</name><trkseg>';
+'<gpx version="1.1" creator="RIDER 2.1" xmlns="http://www.topografix.com/GPX/1/1">'+
+'<trk>'+
+'<name>'+
+escapeXml(routeName(km))+
+'</name>'+
+'<trkseg>';
+
 
 c.forEach(x=>{
 
@@ -2725,8 +2844,12 @@ x[0]+
 
 });
 
+
 g+=
-'</trkseg></trk></gpx>';
+'</trkseg>'+
+'</trk>'+
+'</gpx>';
+
 
 const blob=
 new Blob(
@@ -2735,6 +2858,7 @@ new Blob(
 type:"application/gpx+xml"
 }
 );
+
 
 const url=
 URL.createObjectURL(blob);
@@ -2745,7 +2869,7 @@ document.createElement("a");
 a.href=url;
 
 a.download=
-"rider-route.gpx";
+"rider-route-"+Date.now()+".gpx";
 
 document.body.appendChild(a);
 
@@ -2758,251 +2882,37 @@ setTimeout(
 1000
 );
 
-}
-);
+});
 
 
-/* =========================================================
-   DISTANCIA ENTRE COORDENADAS
-========================================================= */
+function escapeXml(value){
 
-function distanceBetween(
-a,
-b
-){
-
-const R=6371;
-
-const dLat=
-(b.lat-a.lat)*
-Math.PI/180;
-
-const dLon=
-(b.lng-a.lng)*
-Math.PI/180;
-
-const lat1=
-a.lat*
-Math.PI/180;
-
-const lat2=
-b.lat*
-Math.PI/180;
-
-const x=
-Math.sin(dLat/2)*
-Math.sin(dLat/2)+
-Math.cos(lat1)*
-Math.cos(lat2)*
-Math.sin(dLon/2)*
-Math.sin(dLon/2);
-
-const c=
-2*Math.atan2(
-Math.sqrt(x),
-Math.sqrt(1-x)
-);
-
-return R*c;
-
-}
-
-
-/* =========================================================
-   PUNTO MÁS CERCANO A LA RUTA
-========================================================= */
-
-function distanceToRoute(){
-
-if(
-!userPosition ||
-!lastRoute ||
-!lastRoute.geometry ||
-!lastRoute.geometry.coordinates
-){
-
-return null;
-
-}
-
-const coords=
-lastRoute.geometry.coordinates;
-
-let best=null;
-let bestDistance=Infinity;
-
-for(
-let i=0;
-i<coords.length;
-i+=Math.max(
-1,
-Math.floor(coords.length/500)
-)
-){
-
-const p={
-
-lat:coords[i][1],
-lng:coords[i][0]
-
-};
-
-const d=
-distanceBetween(
-userPosition,
-p
-);
-
-if(d<bestDistance){
-
-bestDistance=d;
-best=p;
-
-}
-
-}
-
-return bestDistance;
-
-}
-
-
-/* =========================================================
-   ACTUALIZAR NAVEGACIÓN
-========================================================= */
-
-function updateNavigationPosition(){
-
-if(!navigationActive)return;
-
-if(!lastRoute)return;
-
-const remaining=
-distanceToRoute();
-
-if(remaining!==null){
-
-$("navDistance")
-.textContent=
-remaining<1
-?(remaining*1000).toFixed(0)+" m"
-:remaining.toFixed(1)+" km";
-
-}
-
-$("navSpeed")
-.textContent=
-Math.round(
-currentSpeed||0
-);
-
-if(followGPS &&
-userPosition){
-
-map.setView(
-[
-userPosition.lat,
-userPosition.lng
-],
-Math.max(
-map.getZoom(),
-15
-),
-{
-animate:true
-}
-);
-
-}
-
-
-/* Llegada aproximada */
-
-if(
-remaining!==null &&
-remaining<0.08
-){
-
-showNavigationMessage(
-"🏁 Estás muy cerca del final de la ruta."
-);
-
-}
-
-}
-
-
-/* =========================================================
-   CRONÓMETRO
-========================================================= */
-
-function updateElapsed(){
-
-if(
-!navigationActive ||
-navigationPaused ||
-!navigationStartedAt
-){
-
-return;
-
-}
-
-const seconds=
-Math.floor(
-(Date.now()-navigationStartedAt)/1000
-);
-
-const h=
-Math.floor(seconds/3600);
-
-const m=
-Math.floor(
-(seconds%3600)/60
-);
-
-const s=
-seconds%60;
-
-$("navElapsed")
-.textContent=
-(h>0
-?String(h).padStart(2,"0")+":"
-:"")+
-String(m).padStart(2,"0")+
-":"+
-String(s).padStart(2,"0");
-
-}
-
-
-/* =========================================================
-   MENSAJE NAVEGACIÓN
-========================================================= */
-
-function showNavigationMessage(text){
-
-$("navigationMessage")
-.textContent=text;
-
-$("navigationMessage")
-.classList.add("show");
+return String(value)
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&apos;");
 
 }
 
 
 /* =========================================================
    INICIAR RUTA
-========================================================= */
+   ========================================================= */
 
-$("startNavigation")
+$("startRouteButton")
 .addEventListener(
 "click",
-()=>{
+startNavigation
+);
+
+
+function startNavigation(){
 
 if(!lastRoute){
 
-alert(
+showNotice(
 "Genera primero una ruta."
 );
 
@@ -3010,10 +2920,18 @@ return;
 
 }
 
-if(!navigator.geolocation){
 
-alert(
-"Tu navegador no permite utilizar GPS."
+/*
+  Si no tenemos GPS,
+  lo solicitamos.
+*/
+
+if(!userPosition){
+
+locateUser();
+
+showNotice(
+"Activa el GPS para iniciar la ruta."
 );
 
 return;
@@ -3021,274 +2939,499 @@ return;
 }
 
 
-/* Pedimos ubicación inmediatamente */
-
-navigator.geolocation.getCurrentPosition(
-
-pos=>{
-
-updateUserPosition(
-pos,
-true
-);
-
 navigationActive=true;
 
-navigationPaused=false;
-
-navigationStartedAt=
+navigationStartTime=
 Date.now();
 
-$("navigationHud")
+
+/*
+  Cambiar estado visual.
+*/
+
+$("startRouteButton").textContent=
+"■ RUTA ACTIVA";
+
+$("startRouteButton")
 .classList.add("active");
 
-$("navigationControls")
-.classList.add("active");
-
-$("startNavigation")
-.style.display="none";
-
-$("navState")
-.textContent=
+$("gpsStatus").textContent=
 "● RUTA ACTIVA";
 
-$("pauseNavigation")
-.textContent=
-"Ⅱ  PAUSAR";
-
-$("mapText")
-.textContent=
-"RIDER está siguiendo tu posición GPS.";
+$("gpsStatus")
+.classList.add("navigation");
 
 $("gpsStatus")
-.textContent=
-"● NAVEGACIÓN ACTIVA";
+.classList.remove("gps");
 
-$("gpsStatus")
-.classList.add("gps");
 
-showNavigationMessage(
-"🏍️ Ruta iniciada. Mantén RIDER abierto para que el GPS siga registrando tu posición."
-);
+$("navigationPanel")
+.classList.add("active");
 
-startGPSWatch();
 
-if(navigationElapsedTimer){
+$("navMain").textContent=
+$("resultName").textContent;
 
-clearInterval(
-navigationElapsedTimer
+
+/*
+  Crear copia visual de la ruta
+  para navegación.
+*/
+
+if(navigationLayer){
+
+map.removeLayer(
+navigationLayer
 );
 
 }
 
-navigationElapsedTimer=
-setInterval(
-updateElapsed,
-1000
-);
-
-},
-
-err=>{
-
-console.warn(err);
-
-alert(
-"No se pudo iniciar la navegación. En iPhone debes permitir la ubicación para este sitio y utilizar HTTPS."
-);
-
-},
-
+navigationLayer=
+L.geoJSON(
+lastRoute.geometry,
 {
-enableHighAccuracy:true,
-timeout:20000,
-maximumAge:0
+style:{
+color:"#ff5a36",
+weight:9,
+opacity:.35,
+dashArray:"14 10"
 }
-
-);
-
 }
+).addTo(map);
+
+
+/*
+  Seguimiento GPS.
+*/
+
+startGpsTracking();
+
+
+/*
+  Calcular datos iniciales.
+*/
+
+const nearest=
+getNearestRoutePoint(
+userPosition,
+lastRoute.geometry.coordinates
+);
+
+const remaining=
+calculateRemainingDistance(
+nearest.index,
+lastRoute.geometry.coordinates
+);
+
+$("navDistance").textContent=
+formatDistance(remaining);
+
+
+const remainingSeconds=
+Math.max(
+0,
+lastRoute.duration*
+(
+remaining/
+lastRoute.distance
+)
 );
 
 
-/* =========================================================
-   PAUSAR / REANUDAR
-========================================================= */
-
-$("pauseNavigation")
-.addEventListener(
-"click",
-()=>{
-
-if(!navigationActive)return;
-
-if(!navigationPaused){
-
-navigationPaused=true;
-
-$("pauseNavigation")
-.textContent=
-"▶  REANUDAR";
-
-$("navState")
-.textContent=
-"Ⅱ RUTA PAUSADA";
-
-showNavigationMessage(
-"Ruta pausada. Pulsa REANUDAR para continuar."
-);
-
-}else{
-
-navigationPaused=false;
-
-$("pauseNavigation")
-.textContent=
-"Ⅱ  PAUSAR";
-
-$("navState")
-.textContent=
-"● RUTA ACTIVA";
-
-showNavigationMessage(
-"🏍️ Navegación reanudada."
-);
-
-}
-
-}
+$("navTime").textContent=
+formatDuration(
+remainingSeconds
 );
 
 
-/* =========================================================
-   SEGUIR GPS
-========================================================= */
-
-$("followButton")
-.addEventListener(
-"click",
-()=>{
-
-followGPS=!followGPS;
-
-$("followButton")
-.classList.toggle(
-"active",
-followGPS
-);
-
-$("followButton")
-.textContent=
-followGPS
-?"SEGUIR GPS"
-:"GPS LIBRE";
-
-if(followGPS && userPosition){
+/*
+  En móvil, ponemos el mapa
+  siguiendo al usuario.
+*/
 
 map.setView(
 [
 userPosition.lat,
 userPosition.lng
 ],
-15,
-{
-animate:true
-}
+15
 );
 
-}
+
+$("mapText").textContent=
+"RIDER está siguiendo tu posición GPS. ¡Buen viaje!";
 
 }
-);
 
 
 /* =========================================================
-   FINALIZAR RUTA
-========================================================= */
+   DETENER RUTA
+   ========================================================= */
 
-$("finishNavigation")
+$("stopNavigation")
 .addEventListener(
 "click",
-()=>{
+stopNavigation
+);
 
-if(!navigationActive)return;
 
-const elapsed=
-$("navElapsed")
-.textContent;
+function stopNavigation(){
 
 navigationActive=false;
 
-navigationPaused=false;
+stopGpsTracking();
 
-stopGPSWatch();
 
-if(navigationElapsedTimer){
+if(navigationLayer){
 
-clearInterval(
-navigationElapsedTimer
+map.removeLayer(
+navigationLayer
 );
 
-navigationElapsedTimer=null;
+navigationLayer=null;
 
 }
 
-$("navigationHud")
+
+$("navigationPanel")
 .classList.remove("active");
 
-$("navigationControls")
+
+$("startRouteButton").textContent=
+"▶ INICIAR RUTA";
+
+$("startRouteButton")
 .classList.remove("active");
 
-$("startNavigation")
-.style.display="block";
 
-$("navState")
-.textContent=
-"● RUTA FINALIZADA";
-
-$("mapText").textContent=
-"Ruta finalizada. RIDER está listo para tu próxima salida.";
-
-showNavigationMessage(
-"🏁 Ruta finalizada · Tiempo de navegación: "+
-elapsed+
-"."
-);
-
-$("gpsStatus")
-.textContent=
+$("gpsStatus").textContent=
 userPosition
 ?"● GPS ACTIVO"
 :"● GPS NO ACTIVO";
 
-}
+
+$("gpsStatus")
+.classList.toggle(
+"gps",
+!!userPosition
 );
+
+$("gpsStatus")
+.classList.remove("navigation");
+
+
+$("mapText").textContent=
+userPosition
+?"GPS activo. RIDER está listo."
+:"Activa el GPS y deja que RIDER encuentre carreteras que merezcan ser conducidas.";
+
+}
+
+
+/* =========================================================
+   PUNTO MÁS CERCANO A LA RUTA
+   ========================================================= */
+
+function getNearestRoutePoint(
+position,
+coordinates
+){
+
+let min=Infinity;
+let index=0;
+
+for(
+let i=0;
+i<coordinates.length;
+i++
+){
+
+const c=coordinates[i];
+
+const d=
+haversine(
+position.lat,
+position.lng,
+c[1],
+c[0]
+);
+
+if(d<min){
+
+min=d;
+index=i;
+
+}
+
+}
+
+return{
+distance:min,
+index:index
+};
+
+}
+
+
+/* =========================================================
+   DISTANCIA RESTANTE
+   ========================================================= */
+
+function calculateRemainingDistance(
+startIndex,
+coordinates
+){
+
+let total=0;
+
+for(
+let i=startIndex;
+i<coordinates.length-1;
+i++
+){
+
+const a=coordinates[i];
+const b=coordinates[i+1];
+
+total+=
+haversine(
+a[1],
+a[0],
+b[1],
+b[0]
+);
+
+}
+
+return total;
+
+}
+
+
+/* =========================================================
+   DURACIÓN
+   ========================================================= */
+
+function formatDuration(seconds){
+
+seconds=Math.max(
+0,
+Math.round(seconds)
+);
+
+const hours=
+Math.floor(seconds/3600);
+
+const minutes=
+Math.floor(
+(seconds%3600)/60
+);
+
+if(hours>0){
+
+return(
+hours+
+"h "+
+minutes+
+"m"
+);
+
+}
+
+return minutes+"m";
+
+}
+
+
+/* =========================================================
+   GOOGLE MAPS
+   ========================================================= */
+
+$("googleMapsButton")
+.addEventListener(
+"click",
+()=>{
+
+openGoogleMaps();
+
+});
+
+
+function openGoogleMaps(){
+
+if(!lastRoute){
+
+showNotice(
+"Genera primero una ruta."
+);
+
+return;
+
+}
+
+
+/*
+  Para Android y para iPhone con Google Maps
+  utilizamos la URL universal de Google Maps.
+
+  Para una ruta circular usamos el último
+  punto de la geometría como referencia.
+  Para destino utilizamos el destino real.
+*/
+
+let destinationPoint=null;
+
+
+/*
+  Último punto de la ruta.
+*/
+
+const coords=
+lastRoute.geometry.coordinates;
+
+if(routeMode==="destination"){
+
+if(destMarker){
+
+const p=
+destMarker.getLatLng();
+
+destinationPoint={
+lat:p.lat,
+lng:p.lng
+};
+
+}
+
+}
+
+
+/*
+  En circular volvemos al origen.
+*/
+
+if(!destinationPoint){
+
+destinationPoint=userPosition;
+
+}
+
+
+const url=
+"https://www.google.com/maps/dir/?api=1"+
+"&destination="+
+encodeURIComponent(
+destinationPoint.lat+
+","+
+destinationPoint.lng
+)+
+"&travelmode=driving";
+
+
+window.location.href=url;
+
+}
+
+
+/* =========================================================
+   APPLE MAPS
+   ========================================================= */
+
+$("appleMapsButton")
+.addEventListener(
+"click",
+()=>{
+
+openAppleMaps();
+
+});
+
+
+function openAppleMaps(){
+
+if(!lastRoute){
+
+showNotice(
+"Genera primero una ruta."
+);
+
+return;
+
+}
+
+
+let destinationPoint=null;
+
+if(
+routeMode==="destination" &&
+destMarker
+){
+
+const p=
+destMarker.getLatLng();
+
+destinationPoint={
+lat:p.lat,
+lng:p.lng
+};
+
+}
+
+
+if(!destinationPoint){
+
+destinationPoint=userPosition;
+
+}
+
+
+const url=
+"https://maps.apple.com/?"+
+"daddr="+
+encodeURIComponent(
+destinationPoint.lat+
+","+
+destinationPoint.lng
+)+
+"&dirflg=d";
+
+
+window.location.href=url;
+
+}
+
+
+/* =========================================================
+   AVISO
+   ========================================================= */
+
+function showNotice(message){
+
+const notice=$("notice");
+
+notice.textContent=message;
+
+notice.style.display="block";
+
+notice.scrollIntoView({
+behavior:"smooth",
+block:"nearest"
+});
+
+}
 
 
 /* =========================================================
    RESET
-========================================================= */
+   ========================================================= */
 
 $("resetButton")
 .addEventListener(
 "click",
 ()=>{
 
-navigationActive=false;
+stopNavigation();
 
-navigationPaused=false;
-
-stopGPSWatch();
-
-if(navigationElapsedTimer){
-
-clearInterval(
-navigationElapsedTimer
-);
-
-navigationElapsedTimer=null;
-
-}
 
 if(routeLayer){
 
@@ -3300,6 +3443,7 @@ routeLayer=null;
 
 }
 
+
 if(userMarker){
 
 map.removeLayer(
@@ -3309,6 +3453,7 @@ userMarker
 userMarker=null;
 
 }
+
 
 if(destMarker){
 
@@ -3320,84 +3465,100 @@ destMarker=null;
 
 }
 
-userPosition=null;
 
 lastRoute=null;
 
 generatedRoutes=[];
 
-$("gpsStatus")
-.textContent=
+userPosition=null;
+
+
+$("gpsStatus").textContent=
 "● GPS NO ACTIVO";
 
 $("gpsStatus")
-.classList.remove("gps");
+.classList.remove(
+"gps",
+"navigation"
+);
 
-$("result")
-.style.display="none";
 
-$("notice")
-.style.display="none";
+$("result").style.display=
+"none";
 
-$("navigationHud")
-.classList.remove("active");
+$("notice").style.display=
+"none";
 
-$("navigationControls")
-.classList.remove("active");
+$("externalNavigation")
+.classList.remove("visible");
 
-$("startNavigation")
-.style.display="block";
 
-$("navigationMessage")
-.classList.remove("show");
+$("saveButton").textContent=
+"♡ GUARDAR";
+
+
+$("scoreBar").style.width=
+"0%";
+
 
 $("mapText").textContent=
 "Activa el GPS y deja que RIDER encuentre carreteras que merezcan ser conducidas.";
+
 
 map.setView(
 [41.3851,2.1734],
 10
 );
 
-}
-);
+});
 
 
 /* =========================================================
-   INICIALIZACIÓN
-========================================================= */
-
-loadSettings();
-
-
-/* =========================================================
-   FIX PARA MAPA EN MÓVIL
-   Leaflet necesita recalcular el tamaño después de cargar.
-========================================================= */
-
-setTimeout(
-()=>map.invalidateSize(),
-300
-);
+   RESIZE MAP
+   ========================================================= */
 
 window.addEventListener(
 "resize",
 ()=>{
-map.invalidateSize();
-}
-);
 
-window.addEventListener(
-"orientationchange",
-()=>{
 setTimeout(
 ()=>map.invalidateSize(),
-300
-);
-}
+250
 );
 
-</script>
+});
 
-</body>
+
+/*
+  Muy importante en móviles:
+  recalcular el tamaño después de cargar.
+*/
+
+setTimeout(
+()=>map.invalidateSize(),
+500
+);
+
+
+/* =========================================================
+   SEGURIDAD / ERRORES
+   ========================================================= */
+
+window.addEventListener(
+"unhandledrejection",
+event=>{
+
+console.error(
+"RIDER error:",
+event.reason
+);
+
+});
+
+
+/* =========================================================
+   FIN RIDER 2.1
+   ========================================================= */
+
+</script></body>
 </html>
