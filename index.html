@@ -7,69 +7,44 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
-      --bg: #0f1115;
-      --panel: #16191f;
-      --panel2: #212631;
-      --line: #2d3442;
+      --bg: #0b0f17;
+      --panel: #121824;
+      --panel2: #1b2333;
+      --line: #283347;
       --red: #ff3b30;
-      --text: #f0f2f5;
-      --muted: #8a93a0;
+      --text: #f0f4f8;
+      --muted: #8292a6;
     }
 
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
     header { height: 60px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; }
     .logo { font-weight: 900; font-size: 18px; letter-spacing: 2px; color: #fff; }
     .logo span { color: var(--red); }
     .header-actions { display: flex; gap: 10px; align-items: center; }
-    .icon-btn { background: var(--panel2); border: 1px solid var(--line); color: #fff; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 14px; font-weight: bold; }
+    .icon-btn { background: var(--panel2); border: 1px solid var(--line); color: #fff; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 14px; }
 
     .main-container { display: flex; flex: 1; position: relative; overflow: hidden; }
     .sidebar { width: 380px; background: var(--panel); border-right: 1px solid var(--line); padding: 20px; display: flex; flex-direction: column; gap: 20px; z-index: 500; overflow-y: auto; }
-    .section-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
+    .section-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px; margin-bottom: 8px; }
 
-    /* CUADROS GRANDES DE MOTO CON ICONOS */
-    .bike-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .bike-card { 
-      background: var(--panel2); 
-      border: 2px solid var(--line); 
-      border-radius: 12px; 
-      padding: 16px 10px; 
-      text-align: center; 
-      cursor: pointer; 
-      transition: all 0.2s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-    .bike-card svg { width: 32px; height: 32px; fill: var(--muted); transition: all 0.2s; }
-    .bike-card span { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: 0.5px; }
-    
-    .bike-card:hover { border-color: #505a6e; }
-    .bike-card.active { border-color: var(--red); background: rgba(255, 59, 48, 0.12); }
-    .bike-card.active svg { fill: var(--red); }
-    .bike-card.active span { color: #fff; }
+    .bike-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .bike-card { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; font-size: 11px; font-weight: bold; }
+    .bike-card.active { border-color: var(--red); background: rgba(255, 59, 48, 0.15); color: #fff; }
 
-    .input-box { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; width: 100%; color: #fff; font-size: 13px; outline: none; }
-    .input-box:focus { border-color: var(--red); }
-
-    .btn-main { background: var(--red); color: #fff; border: 0; padding: 15px; border-radius: 10px; font-weight: 800; width: 100%; cursor: pointer; font-size: 14px; letter-spacing: 0.5px; }
+    .input-box { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px; width: 100%; color: #fff; font-size: 13px; }
+    .btn-main { background: var(--red); color: #fff; border: 0; padding: 14px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; font-size: 14px; }
     .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* MAPA EN MODO CLARO NORMAL DE OPENSTREETMAP */
-    #map { flex: 1; height: 100%; background: #e5e3df; }
+    #map { flex: 1; height: 100%; background: #000; }
 
-    .notice { background: rgba(255,59,48,0.15); border: 1px solid var(--red); color: #fff; padding: 10px; border-radius: 8px; font-size: 12px; }
-    .result-panel { background: var(--panel2); border-radius: 12px; padding: 15px; border: 1px solid var(--line); }
+    .notice { background: rgba(255,59,48,0.1); border: 1px solid var(--red); color: #fff; padding: 10px; border-radius: 8px; font-size: 12px; display: none; }
+    .result-panel { background: var(--panel2); border-radius: 12px; padding: 15px; border: 1px solid var(--line); display: none; }
     .metrics { display: flex; justify-content: space-around; margin-top: 10px; }
     .metric { text-align: center; }
-    .metric-val { font-size: 18px; font-weight: 900; color: var(--red); }
-    .metric-lbl { font-size: 10px; color: var(--muted); font-weight: bold; }
-
-    .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; place-items: center; padding: 20px; }
-    .modal-box { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; max-width: 380px; width: 100%; }
+    .metric-val { font-size: 18px; font-weight: bold; color: var(--red); }
+    .metric-lbl { font-size: 10px; color: var(--muted); }
 
     @media (max-width: 768px) {
       .main-container { flex-direction: column-reverse; }
@@ -92,56 +67,37 @@
       <div>
         <div class="section-title">CONFIGURACIÓN DE RUTA</div>
         <input type="text" id="destInput" class="input-box" placeholder="Buscar destino...">
-        <div style="margin-top:10px; display:flex; align-items:center; gap:8px; font-size:12px; background:var(--panel2); padding:10px; border-radius:8px; border:1px solid var(--line);">
-          <input type="checkbox" id="circularCheck" style="accent-color:var(--red); transform:scale(1.2);"> 
-          <label for="circularCheck" style="cursor:pointer;"><strong>🔄 Ruta Circular</strong> (Salida y Llegada aquí)</label>
+        <div style="margin-top:10px; display:flex; align-items:center; gap:8px; font-size:12px;">
+          <input type="checkbox" id="circularCheck" style="accent-color:var(--red);"> 
+          <label for="circularCheck"><strong>🔄 Ruta Circular</strong> (Origen/Llegada)</label>
         </div>
       </div>
 
       <div>
         <div class="section-title">TIPO DE MOTO</div>
-        <div class="bike-grid">
-          <div class="bike-card active" data-bike="sport">
-            <svg viewBox="0 0 24 24"><path d="M19.44 9.03L15.42 5.5a1 1 0 0 0-1.32.07l-2.4 2.43H8a1 1 0 0 0-1 1v1.5a1 1 0 0 0 1 1h1.17l-1.9 2.85A4 4 0 1 0 5 18a4 4 0 0 0 3.87-3h6.26A4 4 0 1 0 19 18a3.96 3.96 0 0 0-.25-1.38l.69-1.03a1 1 0 0 0 .16-.54V10a1 1 0 0 0-.16-.97zM5 19a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm14 0a2 2 0 1 1 2-2 2 2 0 0 1-2 2z"/></svg>
-            <span>SPORT</span>
-          </div>
-          <div class="bike-card" data-bike="naked">
-            <svg viewBox="0 0 24 24"><path d="M19 13a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zM5 13a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm8-10h-2V5h2zm5.6 2.6L17.2 10H15V8h3a1 1 0 0 0 .6-.2zM6.8 11.6L5.4 10H3V8h3a1 1 0 0 1 .8.4z"/></svg>
-            <span>NAKED</span>
-          </div>
-          <div class="bike-card" data-bike="trail">
-            <svg viewBox="0 0 24 24"><path d="M18.5 3L13 8.5V11h-2V7L5.5 3H3v2.5L7 11v2H5a4 4 0 1 0 4 4h6a4 4 0 1 0 4-4v-3.5l2-2V3zM5 19a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm14 0a2 2 0 1 1 2-2 2 2 0 0 1-2 2z"/></svg>
-            <span>TRAIL</span>
-          </div>
-          <div class="bike-card" data-bike="touring">
-            <svg viewBox="0 0 24 24"><path d="M19 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm-14-6a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm12-7h-3v-2h3zm-8 0H6v-2h3z"/></svg>
-            <span>TOURING</span>
-          </div>
-          <div class="bike-card" data-bike="custom">
-            <svg viewBox="0 0 24 24"><path d="M19 11a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm-14-6a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm11-4h-4V7h2V5h-4v8h6z"/></svg>
-            <span>CUSTOM</span>
-          </div>
-          <div class="bike-card" data-bike="supermoto">
-            <svg viewBox="0 0 24 24"><path d="M21 9l-4-4h-3l2 3h-4l-2-3H7L3 9v2h2a4 4 0 1 0 4 4h6a4 4 0 1 0 4-4h2zm-16 8a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm14 0a2 2 0 1 1 2-2 2 2 0 0 1-2 2z"/></svg>
-            <span>SUPERMOTO</span>
-          </div>
+        <div class="bike-selector">
+          <div class="bike-card active" data-bike="sport">SPORT</div>
+          <div class="bike-card" data-bike="naked">NAKED</div>
+          <div class="bike-card" data-bike="trail">TRAIL</div>
+          <div class="bike-card" data-bike="touring">TOURING</div>
+          <div class="bike-card" data-bike="custom">CUSTOM</div>
+          <div class="bike-card" data-bike="supermoto">SUPERMOTO</div>
         </div>
       </div>
 
       <div>
         <div class="section-title">DISTANCIA MÁXIMA (KM)</div>
         <input type="range" id="distRange" min="50" max="500" value="250" style="width:100%; accent-color:var(--red);">
-        <div style="text-align:right; font-size:12px; color:var(--muted); font-weight:bold; margin-top:4px;" id="distVal">250 km</div>
+        <div style="text-align:right; font-size:12px; color:var(--muted);" id="distVal">250 km</div>
       </div>
 
       <button class="btn-main" id="generateButton">GENERAR RUTA</button>
 
-      <div id="notice" class="notice" style="display:none;"></div>
+      <div id="notice" class="notice"></div>
       <div id="loading" style="display:none; font-size:12px; text-align:center; color:var(--muted);">Calculando mejores rutas...</div>
 
-      <div id="result" class="result-panel" style="display:none;">
-        <div class="section-title">OPCIONES DISPONIBLES</div>
-        <div id="routeSelectorContainer"></div>
+      <div id="result" class="result-panel">
+        <div class="result-head" style="font-size:12px; font-weight:bold; margin-bottom:10px;">OPCIONES:</div>
         <div class="metrics">
           <div class="metric"><div class="metric-val" id="distanceResult">0 km</div><div class="metric-lbl">DISTANCIA</div></div>
           <div class="metric"><div class="metric-val" id="timeResult">0h 0m</div><div class="metric-lbl">TIEMPO ESTIMADO</div></div>
@@ -152,8 +108,8 @@
     <div id="map"></div>
   </div>
 
-  <div id="userModal" class="modal-backdrop">
-    <div class="modal-box">
+  <div id="userModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:2000; place-items:center; padding:20px;">
+    <div style="background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px; max-width:380px; width:100%;">
       <h3 id="modalTitle" style="margin-top:0; font-size:18px;">👤 Tu Garaje</h3>
       <div id="authForm">
         <input type="email" id="userEmail" placeholder="Tu Email" class="input-box" style="margin-bottom:10px;">
@@ -186,9 +142,7 @@
 
   <script>
   const OSRM = "https://router.project-osrm.org";
-  
-  // MAPA ESTÁNDAR CLARO (OPENSTREETMAP ORIGINAL)
-  const map = L.map("map", { zoomControl:true }).setView([41.3851, 2.1734], 10);
+  const map = L.map("map", { zoomControl:true }).setView([41.3851,2.1734], 10);
 
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -375,7 +329,7 @@
   }
 
   function renderMultiRouteUI() {
-    let selectorHTML = `<div style="display:flex; gap:8px; margin-bottom:12px;">`;
+    let selectorHTML = `<div style="display:flex; gap:8px; margin-bottom:12px;" id="routeOptionsContainer">`;
     generatedRoutes.forEach((r, idx) => {
       selectorHTML += `
         <button onclick="selectRouteOption(${idx})" id="routeBtn_${idx}" 
@@ -386,7 +340,11 @@
     });
     selectorHTML += `</div>`;
 
-    $("routeSelectorContainer").innerHTML = selectorHTML;
+    const resultContainer = $("result");
+    const existingSelector = $("routeOptionsContainer");
+    if(existingSelector) existingSelector.remove();
+    
+    resultContainer.querySelector(".result-head").insertAdjacentHTML("afterend", selectorHTML);
   }
 
   window.selectRouteOption = function(index) {
@@ -396,9 +354,9 @@
       const isSelected = idx === index;
       const layer = L.geoJSON(rData.route.geometry, {
         style: {
-          color: isSelected ? "#ff3b30" : "#0066cc",
+          color: isSelected ? "#ff3b30" : "#747b83",
           weight: isSelected ? 6 : 3,
-          opacity: isSelected ? 0.9 : 0.5
+          opacity: isSelected ? 0.9 : 0.4
         }
       }).addTo(map);
 
