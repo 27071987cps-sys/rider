@@ -1,10 +1,3 @@
-Seguimos. He comprobado la documentación actual de openrouteservice antes de montarla: la API permite rutas alternativas, round-trip, restricciones de carretera y elevación, y actualmente el endpoint recomendado es api.heigit.org; el dominio antiguo api.openrouteservice.org está en proceso de retirada y tiene cuota reducida desde el 27 de agosto de 2026. �
-openrouteservice.org +2
-Hay una particularidad importante: las peticiones desde navegador a api.heigit.org pueden encontrarse con restricciones CORS. Por eso te dejo la 3.0 preparada para usar ORS y, si el navegador bloquea la petición, te lo indicará claramente en pantalla en vez de fallar silenciosamente. �
-openrouteservice
-RIDER 3.0
-Copia todo esto y sustituye tu HTML actual. Solo tendrás que poner tu API key en ORS_API_KEY.
-Escritura
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -3949,20 +3942,4 @@ loadSettings();
 
 </body>
 </html>
-Lo que cambia respecto a tu 2.1
-La diferencia importante es que ahora RIDER ya no inventa el desnivel ni utiliza OSRM como motor principal:
-OpenRouteService calcula las rutas reales.
-Las rutas pueden llevar elevación y datos adicionales.
-RIDER analiza la geometría para obtener un índice de curvas.
-Se calcula un RIDER SCORE ponderando curvas, montaña, secundarias, paisaje y diversión.
-Las opciones de evitar autopistas y peajes se envían al motor.
-La ruta circular de hasta 100 km puede usar el modo round_trip de ORS; para distancias superiores he preparado una estrategia de waypoints porque la API pública limita las rutas alternativas/round-trip a 100 km. �
-openrouteservice.org
-Se generan varias alternativas y se ordenan por compatibilidad.
-La elevación viene del servicio de elevación/routing de ORS, que utiliza datos topográficos, en lugar de la estimación de las versiones anteriores. �
-openrouteservice.org +1
-Primer paso para probarla: consigue tu API key desde el panel de openrouteservice y reemplaza:
-const ORS_API_KEY = "PON_AQUI_TU_API_KEY";
-por tu clave. La documentación oficial indica que la autenticación se realiza mediante Authorization y que la clave se obtiene desde la cuenta de desarrollador. �
-openrouteservice.org +1
-Ojo: si al probarla te aparece el mensaje de CORS, no significa que hayas copiado mal el código. En ese caso el siguiente paso es hacer una RIDER 3.0 PRO con un pequeño backend, que además es la arquitectura correcta para no exponer tu API key en el navegador.
+ 
