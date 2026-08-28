@@ -3,14 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-
 <title>RIDER 2.1 — Motorcycle Routes</title>
-
 <meta name="theme-color" content="#07090c">
 <meta name="description" content="RIDER 2.1 — rutas inteligentes para motoristas">
 
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
 :root{
@@ -28,7 +25,7 @@ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 *{
   box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent
+  -webkit-tap-highlight-color:transparent;
 }
 
 html,body{
@@ -36,25 +33,24 @@ html,body{
   padding:0;
   background:var(--bg);
   color:var(--text);
-  font-family:Arial,Helvetica,sans-serif
+  font-family:Arial,Helvetica,sans-serif;
 }
 
 body{
-  min-height:100vh
+  min-height:100vh;
 }
 
-button,
-input{
-  font-family:inherit
+button,input{
+  font-family:inherit;
 }
 
 button{
-  cursor:pointer
+  cursor:pointer;
 }
 
 .app{
   max-width:1200px;
-  margin:auto
+  margin:auto;
 }
 
 /* HEADER */
@@ -70,25 +66,25 @@ header{
   left:0;
   right:0;
   z-index:1000;
-  background:rgba(7,9,12,.86);
+  background:rgba(7,9,12,.88);
   backdrop-filter:blur(18px);
-  border-bottom:1px solid var(--line)
+  border-bottom:1px solid var(--line);
 }
 
 .logo{
   font-size:26px;
   font-weight:1000;
   font-style:italic;
-  letter-spacing:5px
+  letter-spacing:5px;
 }
 
 .logo span{
-  color:var(--red)
+  color:var(--red);
 }
 
 .header-actions{
   display:flex;
-  gap:8px
+  gap:8px;
 }
 
 .icon{
@@ -100,7 +96,7 @@ header{
   color:white;
   display:grid;
   place-items:center;
-  font-size:18px
+  font-size:18px;
 }
 
 /* MAP */
@@ -109,20 +105,20 @@ header{
   position:relative;
   height:62vh;
   min-height:430px;
-  margin-top:68px
+  margin-top:68px;
 }
 
 #map{
   width:100%;
   height:100%;
-  background:#101418
+  background:#101418;
 }
 
 .map-top{
   position:absolute;
   top:18px;
   left:18px;
-  z-index:500
+  z-index:500;
 }
 
 .status{
@@ -132,15 +128,15 @@ header{
   border-radius:30px;
   font-size:10px;
   font-weight:900;
-  letter-spacing:1px
+  letter-spacing:1px;
 }
 
 .status.gps{
-  color:var(--green)
+  color:var(--green);
 }
 
-.status.test{
-  color:var(--yellow)
+.status.error{
+  color:var(--red);
 }
 
 .map-bottom{
@@ -153,56 +149,56 @@ header{
   border:1px solid var(--line);
   border-radius:20px;
   background:rgba(8,10,13,.92);
-  backdrop-filter:blur(18px)
+  backdrop-filter:blur(18px);
 }
 
 .map-bottom small{
   color:var(--red);
   font-size:9px;
   font-weight:900;
-  letter-spacing:2px
+  letter-spacing:2px;
 }
 
 .map-bottom h1{
   margin:6px 0 3px;
   font-size:27px;
-  font-style:italic
+  font-style:italic;
 }
 
 .map-bottom p{
   margin:0;
   color:var(--muted);
-  font-size:12px
+  font-size:12px;
 }
 
 /* MAIN */
 
 main{
-  padding:25px 18px 60px
+  padding:25px 18px 60px;
 }
 
 .section{
-  margin-bottom:30px
+  margin-bottom:30px;
 }
 
 .eyebrow{
   color:var(--red);
   font-size:9px;
   font-weight:900;
-  letter-spacing:2px
+  letter-spacing:2px;
 }
 
 h2{
   margin:6px 0;
   font-size:24px;
-  font-style:italic
+  font-style:italic;
 }
 
 .description{
   margin:0;
   color:var(--muted);
   font-size:13px;
-  line-height:1.5
+  line-height:1.5;
 }
 
 /* BIKES */
@@ -211,7 +207,7 @@ h2{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:10px;
-  margin-top:17px
+  margin-top:17px;
 }
 
 .bike{
@@ -222,40 +218,40 @@ h2{
   background:var(--panel);
   border:1px solid var(--line);
   border-radius:17px;
-  transition:.2s
+  transition:.2s;
 }
 
 .bike:hover{
-  transform:translateY(-2px)
+  transform:translateY(-2px);
 }
 
 .bike.active{
   border-color:var(--red);
   background:
-  linear-gradient(
-    145deg,
-    rgba(255,59,48,.17),
-    rgba(255,59,48,.03)
-  ),
-  var(--panel)
+    linear-gradient(
+      145deg,
+      rgba(255,59,48,.17),
+      rgba(255,59,48,.03)
+    ),
+    var(--panel);
 }
 
 .bike-icon{
   font-size:27px;
   display:block;
-  margin-bottom:12px
+  margin-bottom:12px;
 }
 
 .bike strong{
   display:block;
-  font-size:11px
+  font-size:11px;
 }
 
 .bike small{
   display:block;
   margin-top:4px;
   color:var(--muted);
-  font-size:9px
+  font-size:9px;
 }
 
 /* CONTROLS */
@@ -263,36 +259,575 @@ h2{
 .controls{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px
+  gap:10px;
 }
 
 .control{
   padding:16px;
   background:var(--panel);
   border:1px solid var(--line);
-  border-radius:17px
+  border-radius:17px;
 }
 
 .control-header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:14px
+  margin-bottom:14px;
 }
 
 .control-title{
   font-size:11px;
-  font-weight:900
+  font-weight:900;
 }
 
 .value{
   color:var(--red);
   font-size:12px;
-  font-weight:900
+  font-weight:900;
 }
 
 input[type=range]{
   width:100%;
   height:4px;
   appearance:none;
-  backgroun
+  background:#2a2f36;
+  border-radius:20px;
+}
+
+input[type=range]::-webkit-slider-thumb{
+  appearance:none;
+  width:19px;
+  height:19px;
+  border-radius:50%;
+  background:#fff;
+  border:4px solid var(--red);
+}
+
+input[type=range]::-moz-range-thumb{
+  width:13px;
+  height:13px;
+  border-radius:50%;
+  background:#fff;
+  border:4px solid var(--red);
+}
+
+/* MODE */
+
+.mode-selector{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:15px;
+}
+
+.mode-btn{
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--panel2);
+  color:#aeb5bd;
+  font-size:12px;
+  font-weight:900;
+}
+
+.mode-btn.active{
+  color:#fff;
+  background:var(--red);
+  border-color:var(--red);
+}
+
+.dest-input{
+  width:100%;
+  margin-top:10px;
+  padding:14px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:var(--panel2);
+  color:#fff;
+  font-size:13px;
+  display:none;
+  outline:none;
+}
+
+.dest-input:focus{
+  border-color:var(--red);
+}
+
+/* DISTANCE */
+
+.distance{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+  margin-top:15px;
+}
+
+.distance button{
+  padding:13px 4px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--panel2);
+  color:#aeb5bd;
+  font-size:11px;
+  font-weight:900;
+}
+
+.distance button.active{
+  color:#fff;
+  background:var(--red);
+  border-color:var(--red);
+}
+
+/* OPTIONS */
+
+.options{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:15px;
+}
+
+.option{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:15px;
+}
+
+.option-title{
+  font-size:11px;
+  font-weight:900;
+}
+
+.option-description{
+  margin-top:4px;
+  color:var(--muted);
+  font-size:9px;
+}
+
+.switch{
+  width:43px;
+  height:24px;
+  border-radius:20px;
+  background:#292e35;
+  position:relative;
+  flex:none;
+}
+
+.switch::after{
+  content:"";
+  position:absolute;
+  width:18px;
+  height:18px;
+  top:3px;
+  left:3px;
+  border-radius:50%;
+  background:#747b83;
+  transition:.2s;
+}
+
+.switch.active{
+  background:var(--red);
+}
+
+.switch.active::after{
+  left:22px;
+  background:white;
+}
+
+/* GENERATE */
+
+.generate{
+  width:100%;
+  margin-top:22px;
+  padding:18px;
+  border:0;
+  border-radius:16px;
+  color:#fff;
+  background:linear-gradient(135deg,var(--red),var(--red2));
+  font-size:14px;
+  font-weight:1000;
+  letter-spacing:.7px;
+  box-shadow:0 14px 35px rgba(255,59,48,.2);
+}
+
+.generate:disabled{
+  opacity:.55;
+  cursor:wait;
+}
+
+/* NOTICE */
+
+.notice{
+  display:none;
+  margin-top:12px;
+  padding:13px;
+  border-radius:12px;
+  background:#1b1413;
+  border:1px solid rgba(255,59,48,.25);
+  color:#ffb0aa;
+  font-size:11px;
+  line-height:1.5;
+}
+
+/* LOADING */
+
+.loading{
+  display:none;
+  text-align:center;
+  padding:22px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+/* RESULT */
+
+.result{
+  display:none;
+  margin-top:18px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.result-head{
+  padding:20px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,59,48,.17),
+      transparent
+    ),
+    var(--panel2);
+}
+
+.result-label{
+  color:var(--red);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:2px;
+}
+
+.result-name{
+  margin:6px 0;
+  font-size:25px;
+  font-style:italic;
+}
+
+.result-subtitle{
+  color:var(--muted);
+  font-size:11px;
+}
+
+.route-selector{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  padding:15px 20px 0;
+  background:var(--panel);
+}
+
+.route-opt{
+  padding:10px 5px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--panel2);
+  color:#aeb5bd;
+  font-size:11px;
+  font-weight:900;
+}
+
+.route-opt.active{
+  color:#fff;
+  background:var(--red);
+  border-color:var(--red);
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  margin-top:15px;
+}
+
+.stat{
+  padding:16px 5px;
+  text-align:center;
+  border-right:1px solid var(--line);
+}
+
+.stat:last-child{
+  border:0;
+}
+
+.stat strong{
+  display:block;
+  font-size:16px;
+}
+
+.stat span{
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  font-size:8px;
+  text-transform:uppercase;
+}
+
+.result-body{
+  padding:18px;
+}
+
+.score{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.score-title{
+  font-size:10px;
+  font-weight:900;
+}
+
+.score-number{
+  color:var(--red);
+  font-size:24px;
+  font-weight:1000;
+}
+
+.bar{
+  height:5px;
+  margin-top:9px;
+  background:#292e35;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.bar div{
+  height:100%;
+  width:0;
+  background:var(--red);
+  transition:1s;
+}
+
+.result-buttons{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:9px;
+  margin-top:18px;
+}
+
+.result-buttons button{
+  padding:13px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--panel2);
+  color:white;
+  font-size:11px;
+  font-weight:900;
+}
+
+/* FOOTER */
+
+footer{
+  padding:0 20px 35px;
+  text-align:center;
+  color:#505761;
+  font-size:9px;
+  letter-spacing:1.5px;
+}
+
+/* LEAFLET */
+
+.leaflet-control-zoom a{
+  background:#11151a!important;
+  color:white!important;
+  border-color:#292e35!important;
+}
+
+.leaflet-control-attribution{
+  background:rgba(7,9,12,.75)!important;
+  color:#9ba2aa!important;
+}
+
+.leaflet-control-attribution a{
+  color:#c4cad0!important;
+}
+
+/* MOBILE */
+
+@media(max-width:700px){
+
+  .map-wrap{
+    height:55vh;
+    min-height:400px;
+  }
+
+  .bikes{
+    display:flex;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+
+  .bikes::-webkit-scrollbar{
+    display:none;
+  }
+
+  .bike{
+    min-width:125px;
+  }
+
+  .controls,
+  .options{
+    grid-template-columns:1fr;
+  }
+
+  .stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .stat:nth-child(1),
+  .stat:nth-child(2){
+    border-bottom:1px solid var(--line);
+  }
+
+  .stat:nth-child(2){
+    border-right:0;
+  }
+
+  .result-buttons{
+    grid-template-columns:1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <div class="logo">RIDER<span>.</span></div>
+
+  <div class="header-actions">
+    <button class="icon" id="locateButton" title="Mi ubicación">📍</button>
+    <button class="icon" id="resetButton" title="Reiniciar">↻</button>
+  </div>
+</header>
+
+<section class="map-wrap">
+
+  <div id="map"></div>
+
+  <div class="map-top">
+    <div class="status" id="gpsStatus">
+      ● GPS NO ACTIVO
+    </div>
+  </div>
+
+  <div class="map-bottom">
+    <small>RIDE DIFFERENT</small>
+
+    <h1>
+      ENCUENTRA TU<br>
+      PRÓXIMA RUTA.
+    </h1>
+
+    <p id="mapText">
+      Activa el GPS y deja que RIDER encuentre carreteras que merezcan ser conducidas.
+    </p>
+  </div>
+
+</section>
+
+<main>
+
+<!-- PERFIL -->
+
+<section class="section">
+
+  <div class="eyebrow">01 — PERFIL</div>
+
+  <h2>¿CON QUÉ VAS A RODAR?</h2>
+
+  <p class="description">
+    RIDER adapta el estilo de ruta al comportamiento de tu moto.
+  </p>
+
+  <div class="bikes">
+
+    <button class="bike active" data-bike="sport">
+      <span class="bike-icon">🏁</span>
+      <strong>SPORT</strong>
+      <small>Curvas / técnica</small>
+    </button>
+
+    <button class="bike" data-bike="naked">
+      <span class="bike-icon">🏍️</span>
+      <strong>NAKED</strong>
+      <small>Equilibrada</small>
+    </button>
+
+    <button class="bike" data-bike="trail">
+      <span class="bike-icon">🧭</span>
+      <strong>TRAIL</strong>
+      <small>Aventura</small>
+    </button>
+
+    <button class="bike" data-bike="touring">
+      <span class="bike-icon">🛣️</span>
+      <strong>TOURING</strong>
+      <small>Distancia</small>
+    </button>
+
+    <button class="bike" data-bike="custom">
+      <span class="bike-icon">😎</span>
+      <strong>CUSTOM</strong>
+      <small>Paisaje</small>
+    </button>
+
+    <button class="bike" data-bike="supermoto">
+      <span class="bike-icon">⚡</span>
+      <strong>SUPERMOTO</strong>
+      <small>Diversión</small>
+    </button>
+
+    <button class="bike" data-bike="scooter">
+      <span class="bike-icon">🛵</span>
+      <strong>SCOOTER</strong>
+      <small>Versátil</small>
+    </button>
+
+    <button class="bike" data-bike="customized">
+      <span class="bike-icon">⚙️</span>
+      <strong>A MEDIDA</strong>
+      <small>Tú decides</small>
+    </button>
+
+  </div>
+
+</section>
+
+
+<!-- ESTILO -->
+
+<section class="section">
+
+  <div class="eyebrow">02 — ESTILO DE RUTA</div>
+
+  <h2>¿QUÉ TE APETECE HOY?</h2>
+
+  <p class="description">
+    Cuanto más alto, más peso tendrá ese factor en el cálculo.
+  </p>
+
+  <div class="controls">
+
+    <div class="control">
+      <div class="control-header">
+        <span class="control-title">🔥
