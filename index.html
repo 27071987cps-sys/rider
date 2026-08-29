@@ -4,12 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>RIDER - Motorbike GPS & Community</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- PWA Manifest Inline -->
+  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlJJREVSIiwKICAic2hvcnRfbmFtZSI6ICJSSURFUiIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGYxNzJhIiwKICAidGhlbWVfY29sb3IiOiAiIzBmMTcyYSIKfQ==">
+  <meta name="theme-color" content="#0f172a">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
   <style>
     :root {
       --bg: #0f172a;
       --card: #1e293b;
       --accent: #f59e0b;
+      --accent-hover: #d97706;
       --accent-danger: #ef4444;
       --accent-success: #10b981;
       --text: #f8fafc;
@@ -19,7 +27,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; width: 100vw; }
 
-    /* --- PANTALLAS MODALES / OVERLAYS --- */
+    /* --- OVERLAYS & PANTALLAS --- */
     .screen-overlay {
       position: fixed; inset: 0; z-index: 9999;
       background: var(--bg); display: flex; flex-direction: column;
@@ -45,12 +53,8 @@
       border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 1rem;
     }
     .auth-form input:focus { outline: none; border-color: var(--accent); }
-    .btn-primary {
-      width: 100%; padding: 16px; background: var(--accent); color: #000; border: none;
-      border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 10px;
-    }
 
-    /* 2. MODO MANILLAR Y GPS */
+    /* 2. MODO MANILLAR GPS */
     #cockpitOverlay { padding: 16px; background: #000; justify-content: space-between; }
     .cockpit-header { display: flex; justify-content: space-between; align-items: center; }
     .speed-badge { background: #111; border: 2px solid var(--accent); border-radius: 16px; padding: 10px 20px; text-align: center; }
@@ -64,10 +68,10 @@
     /* 3. COMUNIDAD E INTERCOMUNICADOR */
     #communityOverlay { padding: 20px; overflow-y: auto; }
     .overlay-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .close-btn { background: var(--card); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; }
+    .close-btn { background: var(--card); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
     .intercom-box { background: var(--card); border-radius: 20px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
     .channel-selector { display: flex; gap: 10px; justify-content: center; margin: 15px 0; }
-    .channel-btn { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); padding: 10px 16px; border-radius: 10px; color: var(--text-dim); }
+    .channel-btn { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); padding: 10px 16px; border-radius: 10px; color: var(--text-dim); cursor: pointer; }
     .channel-btn.active { border-color: var(--accent); color: var(--accent); font-weight: bold; }
     .ptt-btn {
       width: 100px; height: 100px; border-radius: 50%; background: var(--accent-danger); border: 4px solid rgba(255,255,255,0.2);
@@ -80,20 +84,34 @@
     .chat-msg { background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; }
     .chat-msg span { font-weight: bold; color: var(--accent); }
 
-    /* APP INTERFAZ PRINCIPAL */
+    /* ALERTA SOS OVERLAY */
+    #sosModal {
+      position: fixed; inset: 0; background: rgba(239, 68, 68, 0.95); z-index: 20000;
+      display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
+    }
+    #sosModal.active { display: flex; }
+    .sos-timer { font-size: 5rem; font-weight: 900; margin: 20px 0; }
+
+    /* LAYOUT PRINCIPAL */
     #app { display: flex; flex-direction: column; height: 100vh; }
-    .top-bar { height: 60px; background: var(--card); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; z-index: 500; }
+    .top-bar { height: 60px; background: var(--card); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; z-index: 500; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .user-info { display: flex; align-items: center; gap: 10px; }
     .user-avatar { width: 36px; height: 36px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; }
     
     .map-wrap { flex: 1; position: relative; }
     #map { height: 100%; width: 100%; z-index: 100; }
 
-    .bottom-panel { background: var(--card); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 20px; z-index: 500; }
+    .bottom-panel { background: var(--card); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 20px; z-index: 500; max-height: 45vh; overflow-y: auto; }
     .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
     .btn { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 14px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .btn-accent { background: var(--accent); color: #000; border: none; }
+    .btn-accent:hover { background: var(--accent-hover); }
     .btn-full { grid-column: span 2; }
+    
+    .sos-config { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; margin-top: 10px; display: flex; gap: 8px; align-items: center; }
+    .sos-config input { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: #fff; }
+
+    #log { font-size: 0.75rem; color: var(--text-dim); max-height: 60px; overflow-y: auto; margin-top: 8px; font-family: monospace; }
   </style>
 </head>
 <body>
@@ -106,7 +124,7 @@
       <form class="auth-form" id="authForm">
         <input type="text" id="authName" placeholder="Tu Nombre / Alias" required>
         <input type="text" id="authBike" placeholder="Modelo de tu Moto (ej. MT-07)" required>
-        <button type="submit" class="btn-primary">ENTRAR A LA RUTA</button>
+        <button type="submit" class="btn btn-accent btn-full">ENTRAR A LA RUTA</button>
       </form>
     </div>
   </div>
@@ -158,6 +176,14 @@
     </div>
   </div>
 
+  <!-- OVERLAY ALERTA DETECCIÓN DE CAÍDA SOS -->
+  <div id="sosModal">
+    <h2>🚨 CAÍDA DETECTADA 🚨</h2>
+    <p>Enviando alerta SMS con tu ubicación en:</p>
+    <div class="sos-timer" id="sosCountdown">15</div>
+    <button class="btn btn-full" id="cancelSosBtn" style="background:#fff; color:#000;">CANCELAR FALSO POSITIVO</button>
+  </div>
+
   <!-- APLICACIÓN PRINCIPAL -->
   <div id="app">
     <div class="top-bar">
@@ -179,19 +205,31 @@
       <div class="controls">
         <button class="btn btn-accent btn-full" id="genRouteBtn">🔄 Generar Ruta Curvilínea</button>
         <button class="btn btn-full" id="startCockpitBtn" style="background:#2563eb; color:#fff;">🏍️ INICIAR MODO GPS MANILLAR</button>
+        <button class="btn" id="gmapsBtn">🗺️ Abrir Maps</button>
+        <button class="btn" id="gpxBtn">📥 Exportar GPX</button>
       </div>
+
+      <div class="sos-config">
+        <span style="font-size:0.8rem;">🚨 Contacto SOS:</span>
+        <input type="tel" id="sosPhone" placeholder="+34600000000">
+      </div>
+
+      <div id="log">Estado: Esperando acción...</div>
     </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
   <script>
+    // Configuración OSRM Pública (Demo)
     const OSRM = "https://router.project-osrm.org/route/v1/driving/";
     const $ = id => document.getElementById(id);
+    const log = msg => { $("log").textContent = `[${new Date().toLocaleTimeString()}] ${msg}`; };
 
     let map, userPos = null, lastRoute = null, watchId = null;
     let currentStepIdx = 0, routeSteps = [];
 
-    // Sintetizador de Voz
+    // Sintetizador de Voz para Navegación
     const voice = {
       speak(text) {
         if (!('speechSynthesis' in window)) return;
@@ -202,7 +240,14 @@
       }
     };
 
-    // --- 1. GESTIÓN DE AUTENTICACIÓN ---
+    // DB Offline (IndexedDB)
+    const dbPromise = indexedDB.open("RiderDB", 1);
+    dbPromise.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains("routes")) db.createObjectStore("routes", { keyPath: "id", autoIncrement: true });
+    };
+
+    // --- 1. GESTIÓN DE AUTENTICACIÓN / PERFIL ---
     window.addEventListener('load', () => {
       const savedUser = JSON.parse(localStorage.getItem('rider_user'));
       if (savedUser) {
@@ -210,6 +255,7 @@
         $("authOverlay").classList.remove("active");
       }
       initMap();
+      initFallDetection();
     });
 
     $("authForm").addEventListener('submit', (e) => {
@@ -229,56 +275,89 @@
       $("avatarLetter").textContent = user.name.charAt(0).toUpperCase();
     }
 
-    // --- 2. MAPA E INICIALIZACIÓN ---
+    // --- 2. INICIALIZACIÓN DEL MAPA Y GEOLOCALIZACIÓN ---
     function initMap() {
       map = L.map('map', { zoomControl: false }).setView([40.4167, -3.7037], 12);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(map);
 
-      navigator.geolocation.getCurrentPosition(pos => {
-        userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        map.setView([userPos.lat, userPos.lng], 14);
-        L.circleMarker([userPos.lat, userPos.lng], { radius: 8, color: '#2563eb', fillColor: '#3b82f6', fillOpacity: 1 }).addTo(map);
-      });
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          map.setView([userPos.lat, userPos.lng], 14);
+          L.circleMarker([userPos.lat, userPos.lng], { radius: 8, color: '#2563eb', fillColor: '#3b82f6', fillOpacity: 1 }).addTo(map);
+          log("Ubicación GPS obtenida.");
+        }, () => log("Error leyendo GPS. Usa SSL/HTTPS."));
+      }
     }
 
-    // --- 3. GENERACIÓN DE RUTAS ---
+    // --- 3. MOTOR DE RUTAS OSRM ---
+    function distanceBetween(p1, p2) {
+      const R = 6371;
+      const dLat = (p2.lat - p1.lat) * Math.PI / 180;
+      const dLng = (p2.lng - p1.lng) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function generateCurvyWaypoints(start, radiusKm = 15, count = 3) {
+      const points = [];
+      const angleStep = (Math.PI * 2) / count;
+      const randomOffset = Math.random() * Math.PI;
+
+      for (let i = 0; i < count; i++) {
+        const angle = i * angleStep + randomOffset;
+        const d = radiusKm * (0.6 + Math.random() * 0.5);
+        const lat = start.lat + (d / 111) * Math.cos(angle);
+        const lng = start.lng + (d / (111 * Math.cos(start.lat * Math.PI / 180))) * Math.sin(angle);
+        points.push({ lat, lng });
+      }
+      return points;
+    }
+
     $("genRouteBtn").addEventListener("click", async () => {
-      if (!userPos) return alert("Esperando ubicación GPS...");
-      
-      // Waypoint aleatorio para simular tramo de curvas
-      const waypoint = {
-        lat: userPos.lat + (Math.random() - 0.5) * 0.1,
-        lng: userPos.lng + (Math.random() - 0.5) * 0.1
+      if (!userPos) return alert("Esperando conexión GPS...");
+      log("Calculando ruta con giros...");
+
+      const waypoints = generateCurvyWaypoints(userPos, 12, 3);
+      // Añadir waypoint intermedio cercano para evitar cierre prematuro
+      const firstLegWay = {
+        lat: userPos.lat + (waypoints[0].lat - userPos.lat) * 0.2,
+        lng: userPos.lng + (waypoints[0].lng - userPos.lng) * 0.2
       };
 
+      const routePoints = [userPos, firstLegWay, ...waypoints, userPos];
+      
       try {
-        const coords = `${userPos.lng},${userPos.lat};${waypoint.lng},${waypoint.lat};${userPos.lng},${userPos.lat}`;
-        const res = await fetch(`${OSRM}${coords}?overview=full&geometries=geojson&steps=true`);
+        const coordsStr = routePoints.map(p => `${p.lng},${p.lat}`).join(";");
+        const res = await fetch(`${OSRM}${coordsStr}?overview=full&geometries=geojson&steps=true`);
         const data = await res.json();
-        
-        if (data.code !== "Ok") throw new Error();
-        lastRoute = data.routes[0];
 
-        // Dibujar ruta en mapa
-        L.geoJSON(lastRoute.geometry, { style: { color: '#f59e0b', weight: 6 } }).addTo(map);
-        alert("¡Ruta de curvas calculada correctamente!");
+        if (data.code !== "Ok" || !data.routes.length) throw new Error("No route");
+        
+        lastRoute = data.routes[0];
+        
+        // Dibujar en el mapa
+        L.geoJSON(lastRoute.geometry, { style: { color: '#f59e0b', weight: 6, opacity: 0.8 } }).addTo(map);
+        log(`Ruta lista: ${(lastRoute.distance/1000).toFixed(1)} km`);
 
       } catch (err) {
-        alert("Error al calcular la ruta.");
+        log("Error conectando con OSRM.");
       }
     });
 
-    // --- 4. NAVEGACIÓN GPS MANILLAR (DENTRO DE LA APP) ---
+    // --- 4. NAVEGACIÓN GPS MANILLAR (EN APP) ---
     $("startCockpitBtn").addEventListener("click", () => {
       if (!lastRoute) return alert("Genera una ruta primero.");
 
       routeSteps = lastRoute.legs.flatMap(leg => leg.steps);
       $("cockpitOverlay").classList.add("active");
       
-      // Mover el mapa dentro del contenedor del modo manillar
       const mapEl = $("map");
-      const mapContainer = $("cockpitMapContainer");
-      mapContainer.appendChild(mapEl);
+      $("cockpitMapContainer").appendChild(mapEl);
       mapEl.style.height = "250px";
       mapEl.style.borderRadius = "16px";
       setTimeout(() => map.invalidateSize(), 300);
@@ -305,6 +384,7 @@
       const mod = step.maneuver.modifier;
       if (mod?.includes("left")) icon = "↖";
       if (mod?.includes("right")) icon = "↗";
+      if (step.maneuver.type?.includes("roundabout")) icon = "🔄";
       $("cockpitIcon").textContent = icon;
 
       voice.speak(`${$("cockpitDist").textContent}, ${text}`);
@@ -316,13 +396,21 @@
         const { latitude: lat, longitude: lng, speed } = pos.coords;
         $("cockpitSpeed").textContent = speed ? Math.round(speed * 3.6) : 0;
         map.panTo([lat, lng]);
+
+        if (routeSteps[currentStepIdx]) {
+          const stepLoc = routeSteps[currentStepIdx].maneuver.location;
+          const distToStep = distanceBetween({ lat, lng }, { lat: stepLoc[1], lng: stepLoc[0] }) * 1000;
+          if (distToStep < 30 && currentStepIdx < routeSteps.length - 1) {
+            currentStepIdx++;
+            updateCockpitStep();
+          }
+        }
       }, null, { enableHighAccuracy: true });
     }
 
     $("cockpitExitBtn").addEventListener("click", () => {
       if (watchId) navigator.geolocation.clearWatch(watchId);
       
-      // Devolver mapa a su posición original
       const mapEl = $("map");
       document.querySelector(".map-wrap").appendChild(mapEl);
       mapEl.style.height = "100%";
@@ -332,15 +420,89 @@
       setTimeout(() => map.invalidateSize(), 300);
     });
 
-    // --- 5. PANTALLA DE COMUNIDAD E INTERCOMUNICADOR ---
+    // --- 5. EXPORTACIONES (GOOGLE MAPS Y GPX) ---
+    $("gmapsBtn").addEventListener("click", () => {
+      if (!lastRoute) return alert("Genera una ruta primero.");
+      const coords = lastRoute.geometry.coordinates;
+      const origin = `${coords[0][1]},${coords[0][0]}`;
+      const destination = `${coords[coords.length-1][1]},${coords[coords.length-1][0]}`;
+      const waypoints = coords.filter((_, i) => i % Math.floor(coords.length / 5) === 0)
+                              .slice(1, -1)
+                              .map(c => `${c[1]},${c[0]}`)
+                              .join('|');
+
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
+      window.open(url, '_blank');
+    });
+
+    $("gpxBtn").addEventListener("click", () => {
+      if (!lastRoute) return alert("Genera una ruta primero.");
+      const coords = lastRoute.geometry.coordinates;
+      let gpx = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1"><trk><trkseg>`;
+      coords.forEach(c => { gpx += `<trkpt lat="${c[1]}" lon="${c[0]}"></trkpt>`; });
+      gpx += `</trkseg></trk></gpx>`;
+
+      const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `ruta_rider_${Date.now()}.gpx`;
+      a.click();
+    });
+
+    // --- 6. DETECCIÓN DE CAÍDAS (SOS ACCELEROMETER) ---
+    let sosTimer = null;
+    let sosCountdownVal = 15;
+
+    function initFallDetection() {
+      if (window.DeviceMotionEvent) {
+        window.addEventListener('devicemotion', e => {
+          const acc = e.accelerationIncludingGravity;
+          if (!acc) return;
+          const totalAcc = Math.sqrt(acc.x*acc.x + acc.y*acc.y + acc.z*acc.z);
+          // Impacto fuerte (> 4G)
+          if (totalAcc > 40) triggerSosAlert();
+        });
+      }
+    }
+
+    function triggerSosAlert() {
+      if ($("sosModal").classList.contains("active")) return;
+      $("sosModal").classList.add("active");
+      sosCountdownVal = 15;
+      $("sosCountdown").textContent = sosCountdownVal;
+
+      sosTimer = setInterval(() => {
+        sosCountdownVal--;
+        $("sosCountdown").textContent = sosCountdownVal;
+        if (sosCountdownVal <= 0) {
+          clearInterval(sosTimer);
+          sendSosSms();
+        }
+      }, 1000);
+    }
+
+    function sendSosSms() {
+      const phone = $("sosPhone").value.trim();
+      const locStr = userPos ? `https://maps.google.com/?q=${userPos.lat},${userPos.lng}` : "Ubicación desconocida";
+      const body = encodeURIComponent(`¡ALERTA RIDER! He sufrido una caída en moto. Mi posición: ${locStr}`);
+      window.location.href = `sms:${phone}?body=${body}`;
+      $("sosModal").classList.remove("active");
+    }
+
+    $("cancelSosBtn").addEventListener("click", () => {
+      if (sosTimer) clearInterval(sosTimer);
+      $("sosModal").classList.remove("active");
+    });
+
+    // --- 7. COMUNIDAD E INTERCOMUNICADOR PTT ---
     $("openCommunityBtn").addEventListener("click", () => $("communityOverlay").classList.add("active"));
     $("closeCommunityBtn").addEventListener("click", () => $("communityOverlay").classList.remove("active"));
 
-    // Simulación PTT
     const pttBtn = $("pttBtn");
-    pttBtn.addEventListener("touchstart", () => {
+    pttBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
       pttBtn.style.background = "#10b981";
-      pttBtn.textContent = "HABLANDO";
+      pttBtn.textContent = "TRANSMITIENDO";
     });
     pttBtn.addEventListener("touchend", () => {
       pttBtn.style.background = "#ef4444";
