@@ -400,7 +400,7 @@
       top: calc(100% + 6px);
       left: 0;
       right: 0;
-      z-index: 1800;
+      z-index: 4000;
       display: none;
       max-height: 260px;
       overflow: auto;
@@ -421,6 +421,17 @@
 
     .suggestion:hover {
       background: #1b2027;
+    }
+
+    .suggestion strong {
+      display: block;
+      color: #ffffff;
+    }
+
+    .suggestion small {
+      display: block;
+      color: var(--muted);
+      margin-top: 2px;
     }
 
     /* DISTANCE SELECTOR */
@@ -1595,30 +1606,34 @@
 
     if (totalPoints < 2) return;
 
-    // 1. Origen y Destino
     const origin = `${coords[0][1]},${coords[0][0]}`;
-    const destination = `${coords[totalPoints - 1][1]},${coords[totalPoints - 1][0]}`;
+    
+    // Si la ruta es circular, tomar el punto al 85% como destino para que Google Maps habilite el botón 'Iniciar'
+    let destinationIndex = totalPoints - 1;
+    if (routeMode === "circular") {
+      destinationIndex = Math.floor(totalPoints * 0.85);
+    }
 
-    // 2. Extraer hasta 4 waypoints distribuidos equitativamente a lo largo de la ruta
+    const destination = `${coords[destinationIndex][1]},${coords[destinationIndex][0]}`;
+
+    // Extraer paradas intermedias
     const waypointsCount = 4;
     const waypoints = [];
-    const step = Math.floor(totalPoints / (waypointsCount + 1));
+    const step = Math.floor(destinationIndex / (waypointsCount + 1));
 
     for (let i = 1; i <= waypointsCount; i++) {
       const idx = step * i;
-      if (idx < totalPoints - 1) {
+      if (idx < destinationIndex) {
         waypoints.push(`${coords[idx][1]},${coords[idx][0]}`);
       }
     }
 
-    // 3. Crear URL oficial de Google Maps Directions
     let googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
 
     if (waypoints.length > 0) {
       googleMapsUrl += `&waypoints=${encodeURIComponent(waypoints.join('|'))}`;
     }
 
-    // 4. Abrir en la app de Google Maps
     window.open(googleMapsUrl, '_blank');
   });
 
@@ -1641,7 +1656,7 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
-  /* INTERCOM TALK BUTTON (POINTER EVENTS & VIBRATE) */
+  /* INTERCOM TALK BUTTON */
   const talkBtn = $("talkButton");
 
   function handleTalkStart(e) {
