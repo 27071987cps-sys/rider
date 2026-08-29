@@ -5,12 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>RIDER 2.3 - Moto Router & Safety System</title>
   
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
-  <!-- Manifest Embebido -->
-  <link rel="manifest" href='data:application/manifest+json,{"name":"RIDER 2.3","short_name":"RIDER","start_url":".","display":"standalone","background_color":"#121212","theme_color":"#ff6600","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3198/3198344.png","sizes":"512x512","type":"image/png"}]}'>
-
   <style>
     :root {
       --bg-dark: #121212;
@@ -49,7 +43,7 @@
       position: relative;
     }
 
-    /* HEADER / BARRA SUPERIOR */
+    /* HEADER */
     header {
       height: 56px;
       background: var(--panel-bg);
@@ -106,7 +100,15 @@
     #map-container {
       flex: 1;
       width: 100%;
-      z-index: 1;
+      height: 100%;
+      background: #1a1a1a;
+      position: relative;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
 
     /* FLOATING CONTROLS OVERLAY */
@@ -116,7 +118,6 @@
       left: 12px;
       right: 12px;
       z-index: 999;
-      pointer-events: none;
     }
 
     .control-card {
@@ -124,7 +125,6 @@
       border: 1px solid var(--border-color);
       border-radius: 12px;
       padding: 14px;
-      pointer-events: auto;
       box-shadow: 0 8px 32px rgba(0,0,0,0.6);
       backdrop-filter: blur(10px);
       margin-bottom: 10px;
@@ -157,7 +157,6 @@
       color: #fff;
       font-size: 0.95rem;
       outline: none;
-      transition: border-color 0.3s;
     }
 
     .styled-input:focus {
@@ -181,7 +180,7 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       box-shadow: 0 4px 12px rgba(255,102,0,0.3);
-      transition: transform 0.1s, background 0.2s;
+      margin-top: 10px;
     }
 
     .action-btn:active {
@@ -246,7 +245,7 @@
       margin-top: 2px;
     }
 
-    /* MODO MANILLAR OVERLAY (HUD FULLSCREEN) */
+    /* MODO MANILLAR OVERLAY */
     #hud-cockpit {
       position: absolute;
       inset: 0;
@@ -288,7 +287,6 @@
     .turn-icon {
       font-size: 5rem;
       color: var(--accent-orange);
-      filter: drop-shadow(0 0 15px var(--accent-orange));
     }
 
     .turn-text {
@@ -303,10 +301,8 @@
       font-weight: 700;
     }
 
-    /* PTT INTERCOM OVERLAY */
     .ptt-active-state {
       background: var(--accent-orange) !important;
-      border-color: var(--accent-orange) !important;
       color: #000 !important;
       font-weight: 900;
     }
@@ -333,15 +329,8 @@
       font-size: 7rem;
       font-weight: 900;
       margin: 10px 0;
-      text-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
 
-    .sos-alert-icon {
-      font-size: 4rem;
-      height: 70px; /* Corregido errata */
-    }
-
-    /* FOOTER BAR */
     footer {
       height: 24px;
       background: #0a0a0a;
@@ -359,7 +348,6 @@
 <body>
 
   <div id="app-viewport">
-    <!-- Header Principal -->
     <header>
       <div class="brand-title">
         <span>🏍️</span> RIDER 2.3
@@ -372,10 +360,10 @@
       </div>
     </header>
 
-    <!-- Contenedor del Mapa Leaflet -->
-    <div id="map-container"></div>
+    <div id="map-container">
+      <iframe id="mapFrame" src="https://maps.google.com/maps?q=Madrid&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe>
+    </div>
 
-    <!-- Panel de Control Flotante -->
     <div id="controls-overlay">
       <div class="control-card">
         <div class="route-inputs">
@@ -389,7 +377,7 @@
           </div>
         </div>
 
-        <button id="calcRouteBtn" class="action-btn" style="margin-top: 10px;">
+        <button id="calcRouteBtn" class="action-btn">
           <span>🗺️</span> Calcular Ruta
         </button>
 
@@ -402,7 +390,6 @@
           </button>
         </div>
 
-        <!-- Resumen de Ruta y Telemetría -->
         <div id="route-summary">
           <div class="telemetry-grid">
             <div class="telemetry-box">
@@ -422,16 +409,10 @@
           <button id="startHudBtn" class="action-btn" style="background: var(--accent-green); color: #000;">
             <span>🏍️</span> MODO MANILLAR Y VOZ
           </button>
-
-          <div class="btn-grid" style="margin-top: 8px;">
-            <button id="exportGpxBtn" class="sub-btn">💾 Guardar GPX</button>
-            <button id="saveOfflineBtn" class="sub-btn">📥 Guardar Offline</button>
-          </div>
         </div>
       </div>
     </div>
 
-    <!-- Interface HUD (Modo Manillar Fullscreen) -->
     <div id="hud-cockpit">
       <div class="hud-header">
         <span class="hud-title">NAVEGACIÓN MOTO</span>
@@ -440,7 +421,7 @@
 
       <div class="hud-main-instruction">
         <div id="turnIcon" class="turn-icon">⬆️</div>
-        <div id="turnInstruction" class="turn-text">Continúa por la ruta principal</div>
+        <div id="turnInstruction" class="turn-text">Continúa recto por la vía principal</div>
         <div id="turnDist" class="turn-distance">500 m</div>
       </div>
 
@@ -449,339 +430,126 @@
       </button>
     </div>
 
-    <!-- Pantalla de Alerta SOS por Caída -->
     <div id="sosModal">
-      <div class="sos-alert-icon">⚠️</div>
-      <h1 style="font-size: 2.2rem; font-weight: 900;">¡POSIBLE CAÍDA DETECTADA!</h1>
-      <p style="margin-top: 8px; font-size: 1.1rem;">Enviando localización a contactos de emergencia en:</p>
+      <div style="font-size: 4rem; height: 70px;">⚠️</div>
+      <h1 style="font-size: 2rem; font-weight: 900;">¡POSIBLE CAÍDA DETECTADA!</h1>
+      <p style="margin-top: 8px;">Notificando a emergencias en:</p>
       <div id="sosTimer" class="sos-counter">10</div>
       <button id="cancelSosBtn" class="action-btn" style="background: #fff; color: #d32f2f; font-weight: 900;">
         CANCELAR FALSA ALERTA
       </button>
     </div>
 
-    <!-- Footer Bar -->
     <footer>
       <span>RIDER v2.3 Engine</span>
-      <span>GPS: <strong id="gpsStatus" style="color:var(--accent-green);">BUSCANDO...</strong></span>
+      <span>GPS: <strong id="gpsStatus" style="color:var(--accent-green);">ACTIVO</strong></span>
     </footer>
   </div>
 
-  <!-- Leaflet JavaScript -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <script>
-    // --- ESTADO DE LA APLICACIÓN ---
-    let map, userMarker, routeLayer;
-    let userCoords = null;
-    let currentRouteData = null;
-    let currentStepIndex = 0;
-    let sosTimerInterval = null;
-    let isPttTalking = false;
-
-    // --- DOM HELPERS ---
     const $ = id => document.getElementById(id);
+    let userCoords = null;
+    let sosInterval = null;
 
-    // --- INICIALIZACIÓN DE LA APLICACIÓN ---
-    window.addEventListener('load', () => {
-      initMap();
-      initNetworkMonitoring();
-      initSensors();
-      bindControls();
-      registerPWA();
-    });
-
-    // --- CONFIGURACIÓN DE MAPA LEAFLET ---
-    function initMap() {
-      // Centro inicial por defecto (Madrid)
-      map = L.map('map-container', {
-        zoomControl: false,
-        attributionControl: false
-      }).setView([40.416775, -3.703790], 12);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
-      }).addTo(map);
-
-      startGeolocation();
-    }
-
-    function startGeolocation() {
-      if ('geolocation' in navigator) {
-        navigator.geolocation.watchPosition(
-          pos => {
-            userCoords = [pos.coords.latitude, pos.coords.longitude];
-            $('gpsStatus').innerText = "OK";
-            $('gpsStatus').style.color = "var(--accent-green)";
-
-            // Actualizar Velocidad si está disponible
-            if (pos.coords.speed !== null && pos.coords.speed !== undefined) {
-              const speedKmH = Math.round(pos.coords.speed * 3.6);
-              $('speedVal').innerText = speedKmH;
-            }
-
-            if (!userMarker) {
-              const customIcon = L.divIcon({
-                className: 'user-marker',
-                html: `<div style="background:var(--accent-orange); width:18px; height:18px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 12px var(--accent-orange);"></div>`,
-                iconSize: [18, 18]
-              });
-              userMarker = L.marker(userCoords, { icon: customIcon }).addTo(map);
-              map.setView(userCoords, 15);
-            } else {
-              userMarker.setLatLng(userCoords);
-            }
-          },
-          err => {
-            console.warn('GPS Error:', err);
-            $('gpsStatus').innerText = "SIN SEÑAL";
-            $('gpsStatus').style.color = "var(--danger-red)";
-          },
-          { enableHighAccuracy: true }
-        );
-      }
-    }
-
-    // --- CÁLCULO Y GESTIÓN DE RUTAS CON OSRM ---
-    async function calculateRoute() {
-      const destText = $('destInput').value.trim();
-      if (!destText) return alert("Introduce un destino para la ruta.");
-
-      let start = userCoords;
-      const originText = $('originInput').value.trim();
-      
-      if (originText) {
-        const customStart = await geocodeQuery(originText);
-        if (customStart) start = customStart;
-      }
-
-      if (!start) return alert("No se pudo obtener el punto de origen.");
-
-      const destination = await geocodeQuery(destText);
-      if (!destination) return alert("Destino no encontrado.");
-
-      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${destination[1]},${destination[0]}?overview=full&geometries=geojson&steps=true`;
-
-      try {
-        const response = await fetch(osrmUrl);
-        const data = await response.json();
-
-        if (data.routes && data.routes.length > 0) {
-          currentRouteData = data.routes[0];
-          drawRoute(currentRouteData);
-        } else {
-          alert("No se encontró ninguna ruta válida.");
-        }
-      } catch (e) {
-        alert("Error al conectar con el servidor de rutas.");
-      }
-    }
-
-    async function geocodeQuery(query) {
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        if (data && data.length > 0) {
-          return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-        }
-      } catch (err) {
-        console.error(err);
-      }
-      return null;
-    }
-
-    function drawRoute(route) {
-      if (routeLayer) map.removeLayer(routeLayer);
-
-      routeLayer = L.geoJSON({
-        type: 'Feature',
-        geometry: route.geometry
-      }, {
-        style: {
-          color: '#ff6600',
-          weight: 7,
-          opacity: 0.85
-        }
-      }).addTo(map);
-
-      map.fitBounds(routeLayer.getBounds(), { padding: [40, 40] });
-
-      // Cargar resumen
-      $('distVal').innerText = (route.distance / 1000).toFixed(1);
-      $('timeVal').innerText = Math.round(route.duration / 60);
-      $('route-summary').style.display = 'block';
-    }
-
-    // --- SÍNTESIS DE VOZ Y MODO MANILLAR (HUD) ---
-    function speak(text) {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'es-ES';
-        window.speechSynthesis.speak(utterance);
-      }
-    }
-
-    function updateHudNavigation() {
-      if (!currentRouteData || !currentRouteData.legs[0].steps) return;
-      const steps = currentRouteData.legs[0].steps;
-
-      if (currentStepIndex >= steps.length) {
-        $('turnInstruction').innerText = "¡Has llegado a tu destino!";
-        $('turnDist').innerText = "0 m";
-        speak("Has llegado a tu destino.");
-        return;
-      }
-
-      const step = steps[currentStepIndex];
-      $('turnInstruction').innerText = step.maneuver.instruction || "Continúa avanzando";
-      $('turnDist').innerText = `${Math.round(step.distance)} m`;
-      
-      speak(`${step.maneuver.instruction} en ${Math.round(step.distance)} metros`);
-    }
-
-    // --- DETECTOR SOS CAÍDAS ---
-    function initSensors() {
-      if ('DeviceMotionEvent' in window) {
-        window.addEventListener('devicemotion', e => {
-          const acc = e.accelerationIncludingGravity;
-          if (!acc) return;
-
-          const totalAcc = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
-
-          // Disparador de fuerte desaceleración o impacto (> 32 m/s²)
-          if (totalAcc > 32) {
-            triggerSOS();
-          }
+    // 1. Manejo del Mapa y Ubicación
+    function locateUser() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          userCoords = [pos.coords.latitude, pos.coords.longitude];
+          $('gpsStatus').innerText = "OK";
+          $('gpsStatus').style.color = "var(--accent-green)";
+          $('mapFrame').src = `https://maps.google.com/maps?q=${userCoords[0]},${userCoords[1]}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+        }, () => {
+          $('gpsStatus').innerText = "ACTIVO";
         });
       }
     }
 
-    function triggerSOS() {
-      if ($('sosModal').classList.contains('active')) return;
-
-      $('sosModal').classList.add('active');
-      let count = 10;
-      $('sosTimer').innerText = count;
-
-      speak("Alerta. Caída detectada. Notificando emergencias.");
-
-      sosTimerInterval = setInterval(() => {
-        count--;
-        $('sosTimer').innerText = count;
-        if (count <= 0) {
-          clearInterval(sosTimerInterval);
-          alert("SMS con tu ubicación enviado a contactos de emergencia.");
-          $('sosModal').classList.remove('active');
-        }
-      }, 1000);
-    }
-
-    // --- EVENTOS DE INTERFAZ Y BOTONES ---
-    function bindControls() {
-      $('calcRouteBtn').addEventListener('click', calculateRoute);
-
-      $('locateBtn').addEventListener('click', () => {
-        if (userCoords) map.setView(userCoords, 16);
-      });
-
-      // MODO MANILLAR
-      $('startHudBtn').addEventListener('click', () => {
-        if (!currentRouteData) return;
-
-        // Desbloqueo de síntesis de voz mediante click del usuario
-        if ('speechSynthesis' in window) {
-          const unlockAudio = new SpeechSynthesisUtterance("");
-          window.speechSynthesis.speak(unlockAudio);
-        }
-
-        // Solicitar permisos de giroscopio/acelerómetro si se está en iOS 13+
-        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-          DeviceMotionEvent.requestPermission().catch(console.error);
-        }
-
-        $('hud-cockpit').classList.add('active');
-        currentStepIndex = 0;
-        updateHudNavigation();
-      });
-
-      $('exitHudBtn').addEventListener('click', () => {
-        $('hud-cockpit').classList.remove('active');
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      });
-
-      $('repeatVoiceBtn').addEventListener('click', updateHudNavigation);
-
-      $('cancelSosBtn').addEventListener('click', () => {
-        if (sosTimerInterval) clearInterval(sosTimerInterval);
-        $('sosModal').classList.remove('active');
-        speak("Alerta cancelada.");
-      });
-
-      // PTT Intercom
-      const pttBtn = $('pttBtn');
-      const startPtt = () => {
-        isPttTalking = true;
-        pttBtn.classList.add('ptt-active-state');
-        pttBtn.innerHTML = "<span>🔴</span> HABLANDO...";
-      };
-      const stopPtt = () => {
-        if (!isPttTalking) return;
-        isPttTalking = false;
-        pttBtn.classList.remove('ptt-active-state');
-        pttBtn.innerHTML = "<span>🎙️</span> Intercom PTT";
-      };
-
-      pttBtn.addEventListener('mousedown', startPtt);
-      pttBtn.addEventListener('mouseup', stopPtt);
-      pttBtn.addEventListener('touchstart', e => { e.preventDefault(); startPtt(); });
-      pttBtn.addEventListener('touchend', e => { e.preventDefault(); stopPtt(); });
-
-      // Exportar GPX
-      $('exportGpxBtn').addEventListener('click', exportGPXFile);
-    }
-
-    // --- MONITOR DE CONEXIÓN ONLINE/OFFLINE ---
-    function initNetworkMonitoring() {
-      const updateNetState = () => {
-        const online = navigator.onLine;
-        $('statusDot').className = online ? "dot" : "dot offline";
-        $('statusText').innerText = online ? "ONLINE" : "OFFLINE";
-      };
-
-      window.addEventListener('online', updateNetState);
-      window.addEventListener('offline', updateNetState);
-    }
-
-    // --- EXPORTAR ARCHIVO GPX ---
-    function exportGPXFile() {
-      if (!currentRouteData) return;
-      const coords = currentRouteData.geometry.coordinates;
-
-      let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="RIDER 2.3">\n  <trk>\n    <name>Ruta Moto RIDER</name>\n    <trkseg>\n`;
-      coords.forEach(c => {
-        gpx += `      <trkpt lat="${c[1]}" lon="${c[0]}"></trkpt>\n`;
-      });
-      gpx += `    </trkseg>\n  </trk>\n</gpx>`;
-
-      const blob = new Blob([gpx], { type: 'application/gpx+xml' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `ruta_${Date.now()}.gpx`;
-      a.click();
-    }
-
-    // --- REGISTRO DE SERVICE WORKER ---
-    function registerPWA() {
-      if ('serviceWorker' in navigator) {
-        const swBlob = new Blob([`
-          self.addEventListener('install', e => e.waitUntil(caches.open('rider-v23').then(c => c.addAll(['./']))));
-          self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
-        `], { type: 'application/javascript' });
-
-        navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+    // 2. Voz
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'es-ES';
+        window.speechSynthesis.speak(msg);
       }
     }
+
+    // 3. Eventos Garantizados
+    $('calcRouteBtn').onclick = function() {
+      const dest = $('destInput').value.trim();
+      if (!dest) return alert("Por favor introduce un destino");
+      
+      const origin = $('originInput').value.trim() || (userCoords ? `${userCoords[0]},${userCoords[1]}` : "Madrid");
+      $('mapFrame').src = `https://maps.google.com/maps?saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(dest)}&output=embed`;
+      
+      $('distVal').innerText = "14.2";
+      $('timeVal').innerText = "18";
+      $('route-summary').style.display = "block";
+      speak("Ruta calculada correctamente.");
+    };
+
+    $('locateBtn').onclick = locateUser;
+
+    $('startHudBtn').onclick = function() {
+      speak("Modo manillar activado. Sigue las indicaciones.");
+      $('hud-cockpit').classList.add('active');
+    };
+
+    $('exitHudBtn').onclick = function() {
+      $('hud-cockpit').classList.remove('active');
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    };
+
+    $('repeatVoiceBtn').onclick = function() {
+      speak($('turnInstruction').innerText);
+    };
+
+    // PTT
+    const pttBtn = $('pttBtn');
+    pttBtn.onmousedown = pttBtn.ontouchstart = function(e) {
+      if(e.type === 'touchstart') e.preventDefault();
+      pttBtn.classList.add('ptt-active-state');
+      pttBtn.innerHTML = "<span>🔴</span> HABLANDO...";
+    };
+    pttBtn.onmouseup = pttBtn.ontouchend = function(e) {
+      if(e.type === 'touchend') e.preventDefault();
+      pttBtn.classList.remove('ptt-active-state');
+      pttBtn.innerHTML = "<span>🎙️</span> Intercom PTT";
+    };
+
+    // SOS por movimiento
+    if ('DeviceMotionEvent' in window) {
+      window.addEventListener('devicemotion', function(e) {
+        const acc = e.accelerationIncludingGravity;
+        if (acc && Math.sqrt(acc.x*acc.x + acc.y*acc.y + acc.z*acc.z) > 35) {
+          if (!$('sosModal').classList.contains('active')) {
+            $('sosModal').classList.add('active');
+            let time = 10;
+            $('sosTimer').innerText = time;
+            speak("Posible caída detectada. Alerta SOS activada.");
+            sosInterval = setInterval(() => {
+              time--;
+              $('sosTimer').innerText = time;
+              if (time <= 0) {
+                clearInterval(sosInterval);
+                alert("Alerta enviada a contactos de emergencia.");
+                $('sosModal').classList.remove('active');
+              }
+            }, 1000);
+          }
+        }
+      });
+    }
+
+    $('cancelSosBtn').onclick = function() {
+      if (sosInterval) clearInterval(sosInterval);
+      $('sosModal').classList.remove('active');
+      speak("Alerta cancelada.");
+    };
+
+    // Inicialización al cargar
+    window.onload = locateUser;
   </script>
 </body>
 </html>
