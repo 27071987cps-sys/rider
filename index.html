@@ -164,7 +164,7 @@
     #map {
       width: 100%;
       height: 100%;
-      background: #171b21;
+      background: #f2efe9;
     }
 
     .map-top {
@@ -713,21 +713,128 @@
       font-size: 12px;
     }
 
-    /* COMMUNITY & INTERCOM */
-    .community-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 16px;
-    }
-
-    .community-card {
-      padding: 18px;
+    /* COMMUNITY */
+    .post-creator {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 18px;
+      padding: 18px;
+      margin-top: 16px;
     }
 
+    .post-input {
+      width: 100%;
+      height: 80px;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      color: white;
+      resize: none;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .post-input:focus {
+      border-color: rgba(255, 59, 48, 0.5);
+    }
+
+    .post-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .file-label {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .post-btn {
+      background: var(--red);
+      color: white;
+      border: 0;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .posts-feed {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .post-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 10px;
+    }
+
+    .post-user {
+      font-weight: 900;
+      color: var(--red);
+    }
+
+    .post-date {
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .post-content {
+      font-size: 12px;
+      line-height: 1.4;
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+    }
+
+    .post-img {
+      width: 100%;
+      max-height: 320px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+
+    .post-footer {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .like-btn {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .like-btn.liked {
+      color: var(--red);
+    }
+
+    /* INTERCOM */
     .talk {
       width: 145px;
       height: 145px;
@@ -768,7 +875,7 @@
       .bikes { display: flex; overflow-x: auto; scrollbar-width: none; }
       .bikes::-webkit-scrollbar { display: none; }
       .bike { min-width: 125px; flex: 0 0 auto; }
-      .controls, .options, .community-grid { grid-template-columns: 1fr; }
+      .controls, .options { grid-template-columns: 1fr; }
       .stats { grid-template-columns: repeat(2, 1fr); }
       .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--line); }
       .stat:nth-child(2) { border-right: 0; }
@@ -1015,16 +1122,19 @@
       <h2>RIDER COMMUNITY</h2>
       <p class="description">Comparte tus rutas, fotos, experiencias y descubre dónde están rodando otros riders.</p>
 
-      <div class="community-grid">
-        <div class="community-card">
-          <h3>📸 Comparte tu ruta</h3>
-          <p>Publica una experiencia, una ruta o un comentario para la comunidad.</p>
-        </div>
-        <div class="community-card">
-          <h3>🔥 Rutas populares</h3>
-          <p>En esta versión los contenidos se almacenan localmente en este dispositivo.</p>
+      <div class="post-creator">
+        <textarea id="postInput" class="post-input" placeholder="¡Comparte una foto o tu experiencia de hoy!"></textarea>
+        <div class="post-actions">
+          <label class="file-label">
+            📷 Añadir foto
+            <input type="file" id="postImage" accept="image/*" style="display:none;">
+          </label>
+          <span id="fileName" style="font-size: 10px; color: var(--muted); display: none;"></span>
+          <button class="post-btn" id="publishBtn">PUBLICAR</button>
         </div>
       </div>
+
+      <div class="posts-feed" id="postsFeed"></div>
     </section>
 
     <!-- INTERCOM -->
@@ -1138,13 +1248,13 @@
 
   let currentLanguage = localStorage.getItem("rider-language") || "es";
 
-  /* INICIALIZACIÓN MAPA DARK MATTER (CARTO) */
+  /* MAPA CLARO (CartoDB Positron) */
   const map = L.map("map", {
     zoomControl: true,
     preferCanvas: true
   }).setView([41.3851, 2.1734], 10);
 
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
     maxZoom: 19,
     subdomains: ["a", "b", "c", "d"],
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
@@ -1345,7 +1455,7 @@
 
         userMarker = L.circleMarker([userPosition.lat, userPosition.lng], {
           radius: 9,
-          color: "#ffffff",
+          color: "#000000",
           weight: 3,
           fillColor: "#ff3b30",
           fillOpacity: 1
@@ -1576,8 +1686,9 @@
   function displayRoute(route) {
     if (routeLayer) map.removeLayer(routeLayer);
 
+    // Color azul con gran visibilidad sobre fondo claro
     routeLayer = L.geoJSON(route.geometry, {
-      style: { color: "#ff3b30", weight: 6, opacity: 0.95 }
+      style: { color: "#0066ff", weight: 6, opacity: 0.95 }
     }).addTo(map);
 
     map.fitBounds(routeLayer.getBounds(), { padding: [35, 35], maxZoom: 13 });
@@ -1594,21 +1705,20 @@
     $("resultName").textContent = `${bikeProfiles[selectedBike].name} ATTACK · ${km} KM`;
   }
 
-  /* NAVEGACIÓN A GOOGLE MAPS CON WAYPOINTS DE CONSIGNA */
+  /* NAVEGACIÓN GOOGLE MAPS */
   $("navigateButton").addEventListener("click", () => {
     if (!lastRoute || !lastRoute.geometry || !lastRoute.geometry.coordinates) {
       alert("Genera una ruta antes de iniciar la navegación.");
       return;
     }
 
-    const coords = lastRoute.geometry.coordinates; // Array de [lng, lat]
+    const coords = lastRoute.geometry.coordinates;
     const totalPoints = coords.length;
 
     if (totalPoints < 2) return;
 
     const origin = `${coords[0][1]},${coords[0][0]}`;
     
-    // Si la ruta es circular, tomar el punto al 85% como destino para que Google Maps habilite el botón 'Iniciar'
     let destinationIndex = totalPoints - 1;
     if (routeMode === "circular") {
       destinationIndex = Math.floor(totalPoints * 0.85);
@@ -1616,7 +1726,6 @@
 
     const destination = `${coords[destinationIndex][1]},${coords[destinationIndex][0]}`;
 
-    // Extraer paradas intermedias
     const waypointsCount = 4;
     const waypoints = [];
     const step = Math.floor(destinationIndex / (waypointsCount + 1));
@@ -1656,6 +1765,100 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
+  /* MÓDULO COMUNIDAD FUNCIONAL */
+  let posts = JSON.parse(localStorage.getItem("rider-posts")) || [
+    {
+      id: 1,
+      user: "Rider_Pro",
+      content: "¡Ruta increíble por la sierra este fin de semana! Asfalto perfecto y cero tráfico.",
+      image: null,
+      likes: 8,
+      liked: false,
+      date: "Hace 2 horas"
+    }
+  ];
+
+  let currentImageData = null;
+
+  $("postImage").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        currentImageData = evt.target.result;
+        $("fileName").textContent = file.name;
+        $("fileName").style.display = "inline";
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  $("publishBtn").addEventListener("click", () => {
+    const text = $("postInput").value.trim();
+    if (!text && !currentImageData) {
+      alert("Escribe algo o adjunta una imagen.");
+      return;
+    }
+
+    const newPost = {
+      id: Date.now(),
+      user: "Rider_User",
+      content: text,
+      image: currentImageData,
+      likes: 0,
+      liked: false,
+      date: "Ahora mismo"
+    };
+
+    posts.unshift(newPost);
+    localStorage.setItem("rider-posts", JSON.stringify(posts));
+    
+    $("postInput").value = "";
+    $("postImage").value = "";
+    $("fileName").style.display = "none";
+    currentImageData = null;
+
+    renderPosts();
+  });
+
+  function toggleLike(id) {
+    posts = posts.map(p => {
+      if (p.id === id) {
+        p.liked = !p.liked;
+        p.likes += p.liked ? 1 : -1;
+      }
+      return p;
+    });
+    localStorage.setItem("rider-posts", JSON.stringify(posts));
+    renderPosts();
+  }
+
+  function renderPosts() {
+    const container = $("postsFeed");
+    container.innerHTML = "";
+    posts.forEach(post => {
+      const card = document.createElement("div");
+      card.className = "post-card";
+      
+      let imgHtml = post.image ? `<img src="${post.image}" class="post-img" alt="Post Image">` : "";
+      
+      card.innerHTML = `
+        <div class="post-header">
+          <span class="post-user">@${escapeHtml(post.user)}</span>
+          <span class="post-date">${escapeHtml(post.date)}</span>
+        </div>
+        ${post.content ? `<div class="post-content">${escapeHtml(post.content)}</div>` : ""}
+        ${imgHtml}
+        <div class="post-footer">
+          <button class="like-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
+            ${post.liked ? '❤️' : '🤍'} ${post.likes} Me gusta
+          </button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
   /* INTERCOM TALK BUTTON */
   const talkBtn = $("talkButton");
 
@@ -1679,6 +1882,7 @@
   /* INICIALIZAR */
   loadSettings();
   applyLanguage();
+  renderPosts();
   setTimeout(() => map.invalidateSize(), 500);
 </script>
 </body>
