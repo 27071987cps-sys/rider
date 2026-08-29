@@ -2,479 +2,288 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>RIDER - Motorbike GPS & Community</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>RIDER 2.3 - Route & Telemetry</title>
+
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
   <style>
     :root {
-      --bg: #0d1014;
-      --panel: #171b21;
-      --panel2: #21262d;
-      --line: #30363d;
-      --red: #ff3b30;
-      --muted: #8b949e;
-      --text: #f0f6fc;
-      --accent-success: #3fb950;
+      --bg: #07090c;
+      --card-bg: #12161f;
+      --accent: #ff4500;
+      --text: #f0f4f8;
+      --text-muted: #8a99ad;
+      --border: #202938;
+      --success: #00e676;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg); color: var(--text); overflow-x: hidden; min-height: 100vh; }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
 
-    /* HEADER Y MENÚ DE NAVEGACIÓN ORIGINAL */
-    .top-bar {
-      position: fixed; top: 0; left: 0; right: 0; height: 68px;
-      background: rgba(13, 16, 20, 0.95); backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--line); z-index: 3000;
-      display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
-    }
-    .brand { font-size: 20px; font-weight: 900; letter-spacing: 2px; color: white; display: flex; align-items: center; gap: 8px; }
-    .brand span { color: var(--red); }
-    .user-pill { font-size: 11px; font-weight: 800; background: var(--panel2); border: 1px solid var(--line); padding: 6px 12px; border-radius: 20px; color: var(--muted); }
+    /* Layout Principal */
+    #app { display: flex; flex-direction: column; height: 100vh; }
+    #map { flex: 1; width: 100%; z-index: 1; }
 
-    .nav-menu {
-      position: fixed; top: 76px; right: 12px; z-index: 2900; display: none;
-      width: 210px; padding: 10px; border: 1px solid var(--line); border-radius: 18px;
-      background: rgba(13, 16, 20, 0.98); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
-    }
-    .nav-menu.open { display: block; }
-    .nav-menu button {
-      width: 100%; padding: 13px; margin: 2px 0; border: 0; border-radius: 11px;
-      background: transparent; color: white; text-align: left; font-size: 11px; font-weight: 900; cursor: pointer;
-    }
-    .nav-menu button:hover { background: var(--panel2); }
+    /* Barra Superior */
+    .header { position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1000; display: flex; gap: 8px; }
+    .search-bar { flex: 1; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; color: var(--text); font-size: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
 
-    /* PANTALLAS MODALES / OVERLAYS */
-    .screen-overlay {
-      position: fixed; inset: 0; z-index: 9999; background: var(--bg);
-      display: flex; flex-direction: column; transition: transform 0.3s ease, opacity 0.3s ease;
-      opacity: 0; pointer-events: none; transform: translateY(100%);
-    }
-    .screen-overlay.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+    /* Controles Flotantes */
+    .fab-group { position: absolute; right: 16px; bottom: 90px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+    .fab { width: 52px; height: 52px; border-radius: 50%; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.4); cursor: pointer; }
+    .fab.active { background: var(--accent); color: #fff; }
 
-    /* 1. REGISTRO / LOGIN (SPLASH) */
-    #authOverlay {
-      z-index: 10000; justify-content: center; align-items: center; padding: 20px;
-      background: radial-gradient(circle at center, #171b21 0%, #0d1014 100%);
-    }
-    .auth-card {
-      background: var(--panel); border: 1px solid var(--line); border-radius: 24px;
-      padding: 30px 24px; width: 100%; max-width: 400px; text-align: center;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-    }
-    .auth-card h1 { font-size: 2.2rem; color: var(--red); margin-bottom: 8px; letter-spacing: 2px; }
-    .auth-card p { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
-    .auth-form input {
-      width: 100%; padding: 14px 16px; margin-bottom: 12px; background: var(--panel2);
-      border: 1px solid var(--line); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;
-    }
-    .auth-form input:focus { border-color: var(--red); }
+    /* Navegación Inferior */
+    .nav-bar { height: 70px; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 11px; gap: 4px; cursor: pointer; }
+    .nav-item.active { color: var(--accent); }
 
-    /* 2. COMUNIDAD E INTERCOMUNICADOR */
-    #communityOverlay { padding: 85px 16px 30px 16px; overflow-y: auto; }
-    .overlay-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .close-btn { background: var(--panel2); border: 1px solid var(--line); color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
+    /* Panel Modo Manillar (Cockpit HUD) */
+    #cockpitOverlay { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; flex-direction: column; justify-content: space-between; padding: 24px; }
+    .hud-top { display: flex; justify-content: space-between; align-items: center; }
+    .hud-speed { font-size: 84px; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; margin: auto 0; }
+    .hud-speed span { font-size: 20px; color: var(--text-muted); display: block; }
+    .hud-instruction { background: var(--card-bg); padding: 20px; border-radius: 16px; border-left: 6px solid var(--accent); font-size: 24px; font-weight: bold; }
+    .btn-exit-cockpit { background: #ff1744; border: none; padding: 16px; color: white; font-weight: bold; border-radius: 12px; font-size: 18px; text-transform: uppercase; }
 
-    /* MAPA ORIGINAL */
-    .map-wrap { position: relative; height: 55vh; min-height: 400px; margin-top: 68px; overflow: hidden; }
-    #map { width: 100%; height: 100%; background: #171b21; }
+    /* Modales */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1500; padding: 20px; overflow-y: auto; }
+    .modal-content { background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid var(--border); max-width: 500px; margin: 40px auto 0; }
+    .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 16px; color: var(--accent); }
+    .close-btn { float: right; color: var(--text-muted); font-size: 20px; cursor: pointer; }
 
-    /* PANELES DE CONTROL */
-    .main-container { padding: 16px; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
-    .panel-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
-
-    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .btn {
-      background: var(--panel2); border: 1px solid var(--line); color: #fff; padding: 14px;
-      border-radius: 12px; font-size: 11px; font-weight: 900; cursor: pointer; display: flex;
-      align-items: center; justify-content: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px;
-    }
-    .btn-red { background: var(--red); color: white; border: 0; }
-    .btn-full { grid-column: span 2; }
-
-    /* SECCIÓN OPINIONES DE MOTOS (NAKED, TRAIL, ADVENTURE) */
-    .categories-pills { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin: 12px 0; }
-    .pill { background: var(--panel2); border: 1px solid var(--line); padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; white-space: nowrap; cursor: pointer; color: var(--muted); }
-    .pill.active { background: var(--red); color: white; border-color: var(--red); }
-
-    .reviews-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-    .review-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
-    .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .bike-tag { font-size: 11px; background: rgba(255, 59, 48, 0.15); color: var(--red); padding: 3px 8px; border-radius: 6px; font-weight: 900; }
-    .stars { color: var(--red); font-size: 12px; }
-
-    /* FEED SOCIAL DE COMUNIDAD */
-    .post-creator { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; margin-bottom: 16px; }
-    .post-input { width: 100%; height: 80px; background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; color: white; resize: none; font-size: 12px; outline: none; }
-    .post-input:focus { border-color: rgba(255, 59, 48, 0.5); }
-    .post-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
-    .file-label { background: var(--panel2); border: 1px solid var(--line); padding: 9px 14px; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; }
-    .post-btn { background: var(--red); color: white; border: 0; padding: 9px 18px; border-radius: 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
-    
-    .posts-feed { display: flex; flex-direction: column; gap: 16px; }
-    .post-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
-    .post-header { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 10px; }
-    .post-user { font-weight: 900; color: var(--red); }
-    .post-date { color: var(--muted); font-size: 9px; }
-    .post-content { font-size: 12px; line-height: 1.4; margin-bottom: 12px; white-space: pre-wrap; }
-    .post-img { width: 100%; max-height: 320px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; }
-    .post-footer { display: flex; align-items: center; gap: 15px; }
-    .like-btn { background: transparent; border: 0; color: var(--muted); font-size: 12px; font-weight: 800; padding: 0; display: flex; align-items: center; gap: 5px; cursor: pointer; }
-    .like-btn.liked { color: var(--red); }
-
-    /* INTERCOM PTT */
-    .intercom-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 20px; text-align: center; margin-bottom: 20px; }
-    .talk { width: 130px; height: 130px; border-radius: 50%; background: var(--red); border: 4px solid rgba(255,255,255,0.2); color: white; font-weight: 900; font-size: 18px; margin: 15px auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(255, 59, 48, 0.4); cursor: pointer; user-select: none; }
-    .talk:active { transform: scale(0.95); background: #e02d24; }
+    /* Formularios y Botones */
+    .input-field { width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); margin-bottom: 12px; }
+    .btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <!-- HEADER ORIGINAL CON BRANDING -->
-  <div class="top-bar">
-    <div class="brand">RIDER <span>COMMUNITY</span></div>
-    <div class="user-pill" id="userPill">@Piloto</div>
-    <button class="btn" id="menuToggle" style="width: auto; padding: 8px 12px;">☰ MENÚ</button>
+<div id="app">
+  <div class="header">
+    <input type="text" id="searchInput" class="search-bar" placeholder="Buscar destino o ruta (Nominatim)...">
   </div>
 
-  <!-- MENÚ DESPLEGABLE FLOTANTE -->
-  <div class="nav-menu" id="navMenu">
-    <button id="openCommunityMenuBtn">📻 COMUNIDAD Y PTT</button>
-    <button id="resetProfileBtn">👤 CAMBIAR PERFIL</button>
+  <div id="map"></div>
+
+  <div class="fab-group">
+    <button class="fab" id="btnRecenter" onclick="recenterMap()">🎯</button>
+    <button class="fab" id="btnCockpit" onclick="toggleCockpit(true)">🏍️</button>
   </div>
 
-  <!-- 1. PANTALLA DE REGISTRO / LOGIN (SPLASH) -->
-  <div id="authOverlay" class="screen-overlay active">
-    <div class="auth-card">
-      <h1>RIDER</h1>
-      <p>Configura tu perfil para unirte a la ruta</p>
-      <form class="auth-form" id="authForm">
-        <input type="text" id="authName" placeholder="Tu Alias / Usuario" required>
-        <input type="text" id="authBike" placeholder="Modelo de tu Moto (ej. MT-07, GS1250)" required>
-        <button type="submit" class="btn btn-red btn-full" style="padding:16px;">ENTRAR A LA RUTA</button>
-      </form>
-    </div>
+  <div class="nav-bar">
+    <div class="nav-item active" onclick="switchTab('map')"><span>🗺️</span>Mapa</div>
+    <div class="nav-item" onclick="openModal('groupModal')"><span>👥</span>Grupo</div>
+    <div class="nav-item" onclick="openModal('communityModal')"><span>🌐</span>Comunidad</div>
+    <div class="nav-item" onclick="openModal('storageModal')"><span>💾</span>Rutas</div>
   </div>
+</div>
 
-  <!-- 2. PANTALLA COMUNIDAD E INTERCOMUNICADOR -->
-  <div id="communityOverlay" class="screen-overlay">
-    <div class="top-bar">
-      <div class="brand">RIDER <span>HUB</span></div>
-      <button class="close-btn" id="closeCommunityBtn">✕</button>
-    </div>
-
-    <div id="communityOverlayContent" style="padding: 85px 16px 30px 16px;">
-      <!-- INTERCOM PTT -->
-      <div class="intercom-card">
-        <h3>📻 INTERCOMUNICADOR DE GRUPO</h3>
-        <p style="font-size: 11px; color: var(--muted); margin-top: 4px;">Canal de voz sobre datos en tiempo real</p>
-        <div class="talk" id="talkButton">PTT</div>
-        <span style="font-size: 10px; color: var(--muted);">MANTÉN PULSADO PARA HABLAR</span>
-      </div>
-
-      <!-- VALORACIONES Y REVIEWS DE MOTOS -->
-      <h3 style="font-size: 14px; font-weight: 900; color: white;">⭐ REVIEWS DE MOTOS</h3>
-      <div class="categories-pills">
-        <div class="pill active" data-cat="all">TODAS</div>
-        <div class="pill" data-cat="naked">NAKED</div>
-        <div class="pill" data-cat="trail">TRAIL</div>
-        <div class="pill" data-cat="adventure">ADVENTURE</div>
-      </div>
-      <div class="reviews-list" id="reviewsContainer"></div>
-
-      <!-- CREADOR DE POSTS Y FEED SOCIAL -->
-      <h3 style="font-size: 14px; font-weight: 900; color: white; margin-bottom: 12px;">📸 RIDER FEED</h3>
-      <div class="post-creator">
-        <textarea id="postInput" class="post-input" placeholder="¡Comparte una foto o tu experiencia de hoy!"></textarea>
-        <div class="post-actions">
-          <label class="file-label">
-            📷 Añadir foto
-            <input type="file" id="postImage" accept="image/*" style="display:none;">
-          </label>
-          <span id="fileName" style="font-size: 10px; color: var(--muted); display: none;"></span>
-          <button class="post-btn" id="publishBtn">PUBLICAR</button>
-        </div>
-      </div>
-
-      <div class="posts-feed" id="postsFeed"></div>
-    </div>
+<!-- Modal Modo Manillar / Cockpit -->
+<div id="cockpitOverlay">
+  <div class="hud-top">
+    <div>GPS FIX: <span id="gpsStatus" style="color:var(--success)">OK</span></div>
+    <div id="hudTime">00:00</div>
   </div>
-
-  <!-- NAVEGACIÓN PRINCIPAL CON MAPA ORIGINAL -->
-  <div id="app">
-    <div class="map-wrap">
-      <div id="map"></div>
-    </div>
-
-    <div class="main-container">
-      <div class="panel-card">
-        <div class="controls">
-          <button class="btn btn-red btn-full" id="genRouteBtn">🔄 GENERAR RUTA CURVILÍNEA</button>
-          <button class="btn" id="gmapsBtn">🗺️ ABRIR GOOGLE MAPS</button>
-          <button class="btn" id="gpxBtn">📥 EXPORTAR GPX</button>
-        </div>
-      </div>
-    </div>
+  <div class="hud-speed">
+    <span id="speedVal">0</span>
+    <span>KM/H</span>
   </div>
+  <div class="hud-instruction" id="voiceInstruction">Siga la ruta trazada</div>
+  <button class="btn-exit-cockpit" onclick="toggleCockpit(false)">Salir de Modo Manillar</button>
+</div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    const OSRM = "https://router.project-osrm.org/route/v1/driving/";
-    const $ = id => document.getElementById(id);
+<!-- Modal Grupo -->
+<div id="groupModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeModal('groupModal')">&times;</span>
+    <div class="modal-title">Seguimiento en Grupo (Live)</div>
+    <input type="text" id="roomCode" class="input-field" placeholder="Código de sala (ej. RIDER-99)">
+    <button class="btn" onclick="connectGroup()">Unirse al Grupo</button>
+    <div id="groupStatus" style="margin-top:15px; font-size: 13px; color: var(--text-muted);"></div>
+  </div>
+</div>
 
-    let map, userPos = null, lastRoute = null, routeLayer = null;
-    let currentImageData = null;
+<!-- Modal Comunidad -->
+<div id="communityModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeModal('communityModal')">&times;</span>
+    <div class="modal-title">Publicar en Comunidad</div>
+    <input type="file" id="imgInput" accept="image/*" class="input-field">
+    <input type="text" id="postText" class="input-field" placeholder="Comentario de la ruta...">
+    <button class="btn" onclick="publishPost()">Compartir Foto</button>
+  </div>
+</div>
 
-    // BASE DE DATOS DE REVIEWS POR ESTILO
-    const bikeReviews = [
-      { bike: "Yamaha MT-07", category: "naked", stars: "★★★★★", comment: "Agilidad increíble para curvas ratoneras. El motor CP2 empuja de maravilla." },
-      { bike: "BMW R1250GS", category: "adventure", stars: "★★★★★", comment: "La reina de las rutas largas. El motor bóxer da una estabilidad envidiable." },
-      { bike: "Honda CB500X", category: "trail", stars: "★★★★☆", comment: "Ligera, económica y perfecta para tramos mixtos de asfalto y pista." },
-      { bike: "Kawasaki Z900", category: "naked", stars: "★★★★☆", comment: "Potencia tetra-cilíndrica pura. Fiel en curvas rápidas." },
-      { bike: "KTM 890 Adventure", category: "adventure", stars: "★★★★★", comment: "Capacidad off-road brutal sin perder prestaciones en tramos revirados." }
-    ];
+<!-- Modal Almacenamiento -->
+<div id="storageModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeModal('storageModal')">&times;</span>
+    <div class="modal-title">Rutas Guardadas (IndexedDB)</div>
+    <button class="btn" style="margin-bottom:12px;" onclick="saveCurrentRoute()">Guardar Ruta Actual</button>
+    <div id="savedRoutesList" style="font-size:13px; color:var(--text-muted);">Sin rutas offline guardadas.</div>
+  </div>
+</div>
 
-    // POSTS DE COMUNIDAD CON PERSISTENCIA
-    let posts = JSON.parse(localStorage.getItem("rider-posts")) || [
-      {
-        id: 1,
-        user: "Rider_Pro",
-        content: "¡Ruta increíble por la sierra este fin de semana! Asfalto perfecto y cero tráfico.",
-        image: null,
-        likes: 8,
-        liked: false,
-        date: "Hace 2 horas"
-      }
-    ];
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    // --- 1. INICIALIZACIÓN DE USUARIO ---
-    window.addEventListener('load', () => {
-      const savedUser = JSON.parse(localStorage.getItem('rider_user'));
-      if (savedUser) {
-        loadUserProfile(savedUser);
-        $("authOverlay").classList.remove("active");
-      }
-      initMap();
-      renderPosts();
-      renderReviews('all');
-    });
+<script>
+  let map, userMarker, routeLayer;
+  let currentPos = [40.4167, -3.7037]; // Coordenadas iniciales (Madrid)
+  let ws = null;
+  let db = null;
 
-    $("authForm").addEventListener('submit', (e) => {
-      e.preventDefault();
-      const user = {
-        name: $("authName").value.trim(),
-        bike: $("authBike").value.trim()
-      };
-      localStorage.setItem('rider_user', JSON.stringify(user));
-      loadUserProfile(user);
-      $("authOverlay").classList.remove("active");
-    });
+  // 1. Inicialización del Mapa e IndexedDB
+  window.onload = () => {
+    initMap();
+    initSpeech();
+    initIndexedDB();
+    setupGPS();
+  };
 
-    function loadUserProfile(user) {
-      $("userPill").textContent = `@${user.name} (${user.bike})`;
+  function initMap() {
+    map = L.map('map', { zoomControl: false }).setView(currentPos, 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd'
+    }).addTo(map);
+
+    userMarker = L.marker(currentPos).addTo(map).bindPopup("Tu ubicación");
+  }
+
+  // 2. GPS en tiempo real
+  function setupGPS() {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.watchPosition(pos => {
+        currentPos = [pos.coords.latitude, pos.coords.longitude];
+        userMarker.setLatLng(currentPos);
+        
+        // Actualizar velocímetro en Cockpit (m/s a km/h)
+        const speed = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0;
+        document.getElementById('speedVal').innerText = speed;
+
+        // Emitir posición si está en grupo
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'pos', lat: currentPos[0], lng: currentPos[1], speed }));
+        }
+      }, err => console.warn('GPS Error:', err), { enableHighAccuracy: true });
     }
+  }
 
-    $("resetProfileBtn").addEventListener("click", () => {
-      localStorage.removeItem('rider_user');
-      location.reload();
-    });
+  function recenterMap() {
+    map.panTo(currentPos);
+  }
 
-    // MENÚ NAVEGACIÓN FLOTANTE
-    $("menuToggle").addEventListener("click", () => $("navMenu").classList.toggle("open"));
-
-    // --- 2. MAPA CARTO POSITRON / DARK MATTER ---
-    function initMap() {
-      map = L.map("map", { zoomControl: true, preferCanvas: true }).setView([41.3851, 2.1734], 10);
-
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        maxZoom: 19,
-        subdomains: ["a", "b", "c", "d"],
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
-      }).addTo(map);
-
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          map.setView([userPos.lat, userPos.lng], 13);
-
-          L.circleMarker([userPos.lat, userPos.lng], {
-            radius: 9, color: "#000000", weight: 3, fillColor: "#ff3b30", fillOpacity: 1
-          }).addTo(map);
-        });
-      }
-    }
-
-    // --- 3. RUTAS OSRM ---
-    $("genRouteBtn").addEventListener("click", async () => {
-      if (!userPos) return alert("Obteniendo ubicación GPS...");
+  // 3. Motor de Rutas (OSRM Integration)
+  async function calculateRoute(destinationLat, destinationLng) {
+    const url = `https://router.project-osrm.org/route/v1/driving/${currentPos[1]},${currentPos[0]};${destinationLng},${destinationLat}?overview=full&geometries=geojson&steps=true`;
+    
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
       
-      const waypoint = {
-        lat: userPos.lat + (Math.random() - 0.5) * 0.1,
-        lng: userPos.lng + (Math.random() - 0.5) * 0.1
-      };
-
-      const coordsStr = `${userPos.lng},${userPos.lat};${waypoint.lng},${waypoint.lat};${userPos.lng},${userPos.lat}`;
-      
-      try {
-        const res = await fetch(`${OSRM}${coordsStr}?overview=full&geometries=geojson`);
-        const data = await res.json();
-        if (data.code !== "Ok") throw new Error();
-
-        lastRoute = data.routes[0];
-
+      if (data.routes && data.routes.length > 0) {
+        const route = data.routes[0];
         if (routeLayer) map.removeLayer(routeLayer);
-        routeLayer = L.geoJSON(lastRoute.geometry, {
-          style: { color: "#0066ff", weight: 6, opacity: 0.95 }
+
+        routeLayer = L.geoJSON(route.geometry, {
+          style: { color: '#ff4500', weight: 6, opacity: 0.8 }
         }).addTo(map);
 
-        map.fitBounds(routeLayer.getBounds(), { padding: [35, 35] });
+        map.fitBounds(routeLayer.getBounds());
 
-      } catch (e) {
-        alert("Error generando la ruta.");
-      }
-    });
-
-    // --- 4. EXPORTACIÓN GOOGLE MAPS & GPX ---
-    $("gmapsBtn").addEventListener("click", () => {
-      if (!lastRoute) return alert("Genera una ruta primero.");
-      const coords = lastRoute.geometry.coordinates;
-      const origin = `${coords[0][1]},${coords[0][0]}`;
-      const destination = `${coords[coords.length-1][1]},${coords[coords.length-1][0]}`;
-      window.open(`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`, '_blank');
-    });
-
-    $("gpxBtn").addEventListener("click", () => {
-      if (!lastRoute) return alert("Genera una ruta primero.");
-      const coords = lastRoute.geometry.coordinates;
-      let gpx = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1"><trk><trkseg>`;
-      coords.forEach(c => { gpx += `<trkpt lat="${c[1]}" lon="${c[0]}"></trkpt>`; });
-      gpx += `</trkseg></trk></gpx>`;
-
-      const blob = new Blob([gpx], { type: 'application/gpx+xml' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `rider_route_${Date.now()}.gpx`;
-      a.click();
-    });
-
-    // --- 5. REVIEWS DE MOTOS Y COMUNIDAD ---
-    function renderReviews(cat) {
-      const container = $("reviewsContainer");
-      container.innerHTML = "";
-      const filtered = cat === 'all' ? bikeReviews : bikeReviews.filter(r => r.category === cat);
-      filtered.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "review-card";
-        card.innerHTML = `
-          <div class="review-header">
-            <span class="bike-tag">${r.bike}</span>
-            <span class="stars">${r.stars}</span>
-          </div>
-          <p style="font-size:12px; line-height:1.4;">${r.comment}</p>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    document.querySelectorAll(".pill").forEach(pill => {
-      pill.addEventListener("click", (e) => {
-        document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
-        e.target.classList.add("active");
-        renderReviews(e.target.dataset.cat);
-      });
-    });
-
-    // FEED DE PUBLICACIONES
-    $("postImage").addEventListener("change", e => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = evt => {
-          currentImageData = evt.target.result;
-          $("fileName").textContent = file.name;
-          $("fileName").style.display = "inline";
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-
-    $("publishBtn").addEventListener("click", () => {
-      const text = $("postInput").value.trim();
-      const savedUser = JSON.parse(localStorage.getItem('rider_user')) || { name: 'Rider' };
-      if (!text && !currentImageData) return alert("Escribe algo o sube una imagen.");
-
-      const newPost = {
-        id: Date.now(),
-        user: savedUser.name,
-        content: text,
-        image: currentImageData,
-        likes: 0,
-        liked: false,
-        date: "Ahora mismo"
-      };
-
-      posts.unshift(newPost);
-      localStorage.setItem("rider-posts", JSON.stringify(posts));
-      $("postInput").value = "";
-      $("postImage").value = "";
-      $("fileName").style.display = "none";
-      currentImageData = null;
-      renderPosts();
-    });
-
-    function toggleLike(id) {
-      posts = posts.map(p => {
-        if (p.id === id) {
-          p.liked = !p.liked;
-          p.likes += p.liked ? 1 : -1;
+        // Manejar voz de primera instrucción
+        if (route.legs[0].steps.length > 0) {
+          const stepText = route.legs[0].steps[0].maneuver.instruction || "Continúa por la ruta";
+          speak(stepText);
+          document.getElementById('voiceInstruction').innerText = stepText;
         }
-        return p;
-      });
-      localStorage.setItem("rider-posts", JSON.stringify(posts));
-      renderPosts();
+      }
+    } catch (e) {
+      alert("Error al obtener la ruta.");
     }
+  }
 
-    function renderPosts() {
-      const container = $("postsFeed");
-      container.innerHTML = "";
-      posts.forEach(post => {
-        const card = document.createElement("div");
-        card.className = "post-card";
-        let imgHtml = post.image ? `<img src="${post.image}" class="post-img">` : "";
-        card.innerHTML = `
-          <div class="post-header">
-            <span class="post-user">@${post.user}</span>
-            <span class="post-date">${post.date}</span>
-          </div>
-          ${post.content ? `<div class="post-content">${post.content}</div>` : ""}
-          ${imgHtml}
-          <div class="post-footer">
-            <button class="like-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
-              ${post.liked ? '❤️' : '🤍'} ${post.likes} Me gusta
-            </button>
-          </div>
-        `;
-        container.appendChild(card);
-      });
+  // 4. Navegación por Voz
+  function initSpeech() {
+    if ('speechSynthesis' in window) {
+      window.synth = window.speechSynthesis;
     }
+  }
 
-    // CONTROL DE PANTALLA DE COMUNIDAD / PTT
-    $("openCommunityMenuBtn").addEventListener("click", () => {
-      $("navMenu").classList.remove("open");
-      $("communityOverlay").classList.add("active");
-    });
-    $("closeCommunityBtn").addEventListener("click", () => $("communityOverlay").classList.remove("active"));
+  function speak(text) {
+    if (window.synth) {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'es-ES';
+      window.synth.speak(utter);
+    }
+  }
 
-    // BOTÓN INTERCOM PTT
-    const talkBtn = $("talkButton");
-    talkBtn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      talkBtn.style.background = "#3fb950";
-      talkBtn.textContent = "HABLANDO";
-    });
-    talkBtn.addEventListener("touchend", () => {
-      talkBtn.style.background = "#ff3b30";
-      talkBtn.textContent = "PTT";
-    });
-  </script>
+  // 5. Modo Manillar (Cockpit HUD)
+  function toggleCockpit(show) {
+    const el = document.getElementById('cockpitOverlay');
+    el.style.display = show ? 'flex' : 'none';
+    if (show) {
+      setInterval(() => {
+        const d = new Date();
+        document.getElementById('hudTime').innerText = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }, 1000);
+    }
+  }
+
+  // 6. Live Group Tracking (WebSockets Stub)
+  function connectGroup() {
+    const code = document.getElementById('roomCode').value;
+    if (!code) return alert("Introduce un código de sala.");
+
+    // Endpoint de prueba echo WebSocket
+    ws = new WebSocket('wss://echo.websocket.org');
+
+    ws.onopen = () => {
+      document.getElementById('groupStatus').innerText = `Conectado a la sala ${code}`;
+      document.getElementById('groupStatus').style.color = 'var(--success)';
+    };
+
+    ws.onmessage = (e) => {
+      // Recibir datos de compañeros en tiempo real
+      try {
+        const data = JSON.parse(e.data);
+        if(data.type === 'pos') {
+          // Renderizar o actualizar marcador de compañero
+          L.marker([data.lat, data.lng]).addTo(map).bindPopup(`Compañero (${data.speed} km/h)`).openPopup();
+        }
+      } catch(err){}
+    };
+  }
+
+  // 7. Almacenamiento Offline (IndexedDB)
+  function initIndexedDB() {
+    const req = indexedDB.open('RiderRoutesDB', 1);
+    req.onupgradeneeded = (e) => {
+      db = e.target.result;
+      db.createObjectStore('routes', { keyPath: 'id', autoIncrement: true });
+    };
+    req.onsuccess = (e) => db = e.target.result;
+  }
+
+  function saveCurrentRoute() {
+    if (!routeLayer) return alert("No hay ninguna ruta activa cargada para guardar.");
+    const tx = db.transaction('routes', 'readwrite');
+    const store = tx.objectStore('routes');
+    store.add({ date: new Date().toISOString(), geojson: routeLayer.toGeoJSON() });
+    alert("Ruta guardada correctamente para uso offline.");
+  }
+
+  // Modales UI Control
+  function openModal(id) { document.getElementById(id).style.display = 'block'; }
+  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+  function switchTab(tab) {
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+</script>
 </body>
 </html>
