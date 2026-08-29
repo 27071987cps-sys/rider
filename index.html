@@ -993,7 +993,7 @@
           <button id="saveButton">♡ GUARDAR</button>
           <button id="shareButton">↗ COMPARTIR</button>
           <button id="gpxButton">⇩ GPX</button>
-          <button id="navigateButton">🧭 INICIAR NAVEGACIÓN</button>
+          <button id="navigateButton">🧭 ABRIR EN GOOGLE MAPS</button>
         </div>
       </div>
     </section>
@@ -1063,7 +1063,7 @@
       gpsOff: "● GPS NO ACTIVO",
       gpsSearching: "● BUSCANDO GPS...",
       gpsActive: "● GPS ACTIVO",
-      navigate: "🧭 INICIAR NAVEGACIÓN",
+      navigate: "🧭 ABRIR EN GOOGLE MAPS",
       profileLabel: "PERFIL",
       bikeTitle: "¿CON QUÉ VAS A RODAR?",
       bikeDescription: "RIDER adapta el estilo de ruta al comportamiento de tu moto.",
@@ -1085,7 +1085,7 @@
       gpsOff: "● GPS NO ACTIU",
       gpsSearching: "● CERCANT GPS...",
       gpsActive: "● GPS ACTIU",
-      navigate: "🧭 INICIAR NAVEGACIÓ",
+      navigate: "🧭 OBRI EN GOOGLE MAPS",
       profileLabel: "PERFIL",
       bikeTitle: "AMB QUÈ SORTIRÀS A RODAR?",
       bikeDescription: "RIDER adapta l'estil de la ruta al comportament de la teva moto.",
@@ -1107,7 +1107,7 @@
       gpsOff: "● GPS INACTIVE",
       gpsSearching: "● SEARCHING GPS...",
       gpsActive: "● GPS ACTIVE",
-      navigate: "🧭 START NAVIGATION",
+      navigate: "🧭 OPEN IN GOOGLE MAPS",
       profileLabel: "PROFILE",
       bikeTitle: "WHAT ARE YOU RIDING TODAY?",
       bikeDescription: "RIDER adapts the route style to the behaviour of your motorcycle.",
@@ -1582,6 +1582,45 @@
 
     $("resultName").textContent = `${bikeProfiles[selectedBike].name} ATTACK · ${km} KM`;
   }
+
+  /* NAVEGACIÓN A GOOGLE MAPS CON WAYPOINTS DE CONSIGNA */
+  $("navigateButton").addEventListener("click", () => {
+    if (!lastRoute || !lastRoute.geometry || !lastRoute.geometry.coordinates) {
+      alert("Genera una ruta antes de iniciar la navegación.");
+      return;
+    }
+
+    const coords = lastRoute.geometry.coordinates; // Array de [lng, lat]
+    const totalPoints = coords.length;
+
+    if (totalPoints < 2) return;
+
+    // 1. Origen y Destino
+    const origin = `${coords[0][1]},${coords[0][0]}`;
+    const destination = `${coords[totalPoints - 1][1]},${coords[totalPoints - 1][0]}`;
+
+    // 2. Extraer hasta 4 waypoints distribuidos equitativamente a lo largo de la ruta
+    const waypointsCount = 4;
+    const waypoints = [];
+    const step = Math.floor(totalPoints / (waypointsCount + 1));
+
+    for (let i = 1; i <= waypointsCount; i++) {
+      const idx = step * i;
+      if (idx < totalPoints - 1) {
+        waypoints.push(`${coords[idx][1]},${coords[idx][0]}`);
+      }
+    }
+
+    // 3. Crear URL oficial de Google Maps Directions
+    let googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
+
+    if (waypoints.length > 0) {
+      googleMapsUrl += `&waypoints=${encodeURIComponent(waypoints.join('|'))}`;
+    }
+
+    // 4. Abrir en la app de Google Maps
+    window.open(googleMapsUrl, '_blank');
+  });
 
   /* GPX EXPORT */
   $("gpxButton").addEventListener("click", () => {
