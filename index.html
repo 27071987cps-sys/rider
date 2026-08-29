@@ -2,2219 +2,350 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#07090c">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>RIDER 2.3 — Motorcycle Routes</title>
-  
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>RIDER - Motorbike GPS & Community</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
-      --bg: #07090c;
-      --panel: #101318;
-      --panel2: #171b21;
-      --line: rgba(255, 255, 255, 0.08);
-      --text: #f6f7f8;
-      --muted: #858d98;
-      --red: #ff3b30;
-      --red2: #ff5a36;
-      --green: #57e389;
-      --blue: #3d9cff;
-    }
-
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    body {
-      overflow-x: hidden;
-    }
-
-    button, input, select, textarea {
-      font-family: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    .app {
-      width: 100%;
-      max-width: 1200px;
-      margin: auto;
-    }
-
-    /* HEADER */
-    header {
-      height: 68px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 3000;
-      background: rgba(7, 9, 12, 0.96);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .logo {
-      font-size: 25px;
-      font-weight: 900;
-      font-style: italic;
-      letter-spacing: 5px;
-    }
-
-    .logo span {
-      color: var(--red);
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      border: 1px solid var(--line);
-      background: var(--panel2);
-      color: #fff;
-      display: grid;
-      place-items: center;
-      font-size: 17px;
-    }
-
-    .language-select {
-      height: 42px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: var(--panel2);
-      color: white;
-      padding: 0 8px;
-      font-size: 11px;
-      font-weight: 900;
-    }
-
-    /* NAV MENU */
-    .nav-menu {
-      position: fixed;
-      top: 76px;
-      right: 12px;
-      z-index: 2900;
-      display: none;
-      width: 210px;
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(13, 16, 20, 0.98);
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
-    }
-
-    .nav-menu.open {
-      display: block;
-    }
-
-    .nav-menu button {
-      width: 100%;
-      padding: 13px;
-      margin: 2px 0;
-      border: 0;
-      border-radius: 11px;
-      background: transparent;
-      color: white;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 900;
-    }
-
-    .nav-menu button:hover {
-      background: var(--panel2);
-    }
-
-    /* MAP */
-    .map-wrap {
-      position: relative;
-      height: 62vh;
-      min-height: 430px;
-      margin-top: 68px;
-      overflow: hidden;
-    }
-
-    #map {
-      width: 100%;
-      height: 100%;
-      background: #f2efe9;
-    }
-
-    .map-top {
-      position: absolute;
-      top: 18px;
-      left: 16px;
-      z-index: 600;
-    }
-
-    .status {
-      padding: 9px 13px;
-      background: rgba(7, 9, 12, 0.92);
-      border: 1px solid var(--line);
-      border-radius: 30px;
-      font-size: 10px;
-      font-weight: 900;
-      letter-spacing: 1px;
-    }
-
-    .status.gps {
-      color: var(--green);
-    }
-
-    .map-bottom {
-      position: absolute;
-      left: 15px;
-      right: 15px;
-      bottom: 15px;
-      z-index: 600;
-      padding: 18px;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      background: rgba(8, 10, 13, 0.94);
-      backdrop-filter: blur(18px);
-    }
-
-    .map-bottom small {
-      color: var(--red);
-      font-size: 9px;
-      font-weight: 900;
-      letter-spacing: 2px;
-    }
-
-    .map-bottom h1 {
-      margin: 6px 0 4px;
-      font-size: 26px;
-      line-height: 1;
-      font-style: italic;
-    }
-
-    .map-bottom p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.4;
-    }
-
-    /* SECTIONS */
-    main {
-      padding: 28px 18px 90px;
-    }
-
-    .section {
-      margin-bottom: 34px;
-      scroll-margin-top: 90px;
-    }
-
-    .eyebrow {
-      color: var(--red);
-      font-size: 9px;
-      font-weight: 900;
-      letter-spacing: 2px;
-    }
-
-    h2 {
-      margin: 6px 0;
-      font-size: 24px;
-      font-style: italic;
-    }
-
-    .description {
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    /* BIKES GRID */
-    .bikes {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-top: 17px;
-    }
-
-    .bike {
-      min-height: 105px;
-      padding: 14px;
-      text-align: left;
-      color: white;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 17px;
-      transition: transform 0.15s ease, border-color 0.2s ease;
-    }
-
-    .bike:active {
-      transform: scale(0.97);
-    }
-
-    .bike.active {
-      border-color: var(--red);
-      background: linear-gradient(145deg, rgba(255, 59, 48, 0.18), rgba(255, 59, 48, 0.03)), var(--panel);
-    }
-
-    .bike-icon {
-      font-size: 27px;
-      display: block;
-      margin-bottom: 12px;
-    }
-
-    .bike strong {
-      display: block;
-      font-size: 11px;
-    }
-
-    .bike small {
-      display: block;
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 9px;
-    }
-
-    /* CONTROLS */
-    .controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 16px;
-    }
-
-    .control {
-      padding: 16px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 17px;
-    }
-
-    .control-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-    }
-
-    .control-title {
-      font-size: 11px;
-      font-weight: 900;
-    }
-
-    .value {
-      color: var(--red);
-      font-size: 12px;
-      font-weight: 900;
-    }
-
-    input[type=range] {
-      width: 100%;
-      appearance: none;
-      height: 4px;
-      border-radius: 20px;
-      background: #2a2f36;
-    }
-
-    input[type=range]::-webkit-slider-thumb {
-      appearance: none;
-      width: 19px;
-      height: 19px;
-      border-radius: 50%;
-      background: white;
-      border: 4px solid var(--red);
-    }
-
-    /* MODES */
-    .mode-selector {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .mode-btn {
-      padding: 14px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: var(--panel2);
-      color: #aeb5bd;
-      font-size: 11px;
-      font-weight: 900;
-    }
-
-    .mode-btn.active {
-      background: var(--red);
-      color: white;
-      border-color: var(--red);
-    }
-
-    /* AUTOCOMPLETE */
-    .destination-wrap {
-      position: relative;
-      margin-top: 12px;
-    }
-
-    .dest-input {
-      width: 100%;
-      display: none;
-      margin: 0;
-      padding: 16px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: var(--panel2);
-      color: white;
-      outline: none;
-      font-size: 13px;
-    }
-
-    .dest-input:focus {
-      border-color: rgba(255, 59, 48, 0.7);
-    }
-
-    .suggestions {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0;
-      right: 0;
-      z-index: 4000;
-      display: none;
-      max-height: 260px;
-      overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #11151a;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.45);
-    }
-
-    .suggestion {
-      padding: 13px;
-      border-bottom: 1px solid var(--line);
-      color: white;
-      font-size: 11px;
-      line-height: 1.35;
-      cursor: pointer;
-    }
-
-    .suggestion:hover {
-      background: #1b2027;
-    }
-
-    .suggestion strong {
-      display: block;
-      color: #ffffff;
-    }
-
-    .suggestion small {
-      display: block;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    /* DISTANCE SELECTOR */
-    .distance {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin-top: 15px;
-    }
-
-    .distance button {
-      padding: 13px 4px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: var(--panel2);
-      color: #aeb5bd;
-      font-size: 10px;
-      font-weight: 900;
-    }
-
-    .distance button.active {
-      background: var(--red);
-      color: white;
-      border-color: var(--red);
-    }
-
-    /* OPTIONS SWITCH */
-    .options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .option {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 15px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 15px;
-      cursor: pointer;
-    }
-
-    .option-title {
-      font-size: 11px;
-      font-weight: 900;
-    }
-
-    .option-description {
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 9px;
-    }
-
-    .switch {
-      width: 43px;
-      height: 24px;
-      border-radius: 20px;
-      background: #292e35;
-      position: relative;
-      transition: background 0.2s;
-    }
-
-    .switch:after {
-      content: "";
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      top: 3px;
-      left: 3px;
-      border-radius: 50%;
-      background: #747b83;
-      transition: left 0.2s, background 0.2s;
-    }
-
-    .switch.active {
-      background: var(--red);
-    }
-
-    .switch.active:after {
-      left: 22px;
-      background: white;
-    }
-
-    /* GENERATE BUTTON */
-    .generate {
-      width: 100%;
-      margin-top: 15px;
-      margin-bottom: 15px;
-      padding: 19px;
-      border: 0;
-      border-radius: 16px;
-      color: white;
-      background: linear-gradient(135deg, var(--red), var(--red2));
-      font-size: 14px;
-      font-weight: 900;
-      letter-spacing: 0.5px;
-      box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3);
-      transition: transform 0.1s ease;
-    }
-
-    .generate:active {
-      transform: scale(0.98);
-    }
-
-    .generate:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    /* NOTICES */
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 24px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .notice {
-      display: none;
-      margin-top: 15px;
-      padding: 14px;
-      border-radius: 14px;
-      background: #1b1413;
-      border: 1px solid rgba(255, 59, 48, 0.3);
-      color: #ffb0aa;
-      font-size: 11px;
-      line-height: 1.5;
-    }
-
-    /* RESULTS */
-    .result {
-      display: none;
-      margin-top: 20px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      overflow: hidden;
-      scroll-margin-top: 90px;
-    }
-
-    .result-head {
-      padding: 20px;
-      background: linear-gradient(135deg, rgba(255, 59, 48, 0.17), transparent), var(--panel2);
-    }
-
-    .result-label {
-      color: var(--red);
-      font-size: 9px;
-      font-weight: 900;
-      letter-spacing: 2px;
-    }
-
-    .result-name {
-      margin: 6px 0;
-      font-size: 24px;
-      font-style: italic;
-    }
-
-    .result-subtitle {
-      color: var(--muted);
-      font-size: 11px;
-    }
-
-    .route-selector {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      padding: 15px 20px 0;
-    }
-
-    .route-opt {
-      padding: 11px 5px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: var(--panel2);
-      color: #aeb5bd;
-      font-size: 10px;
-      font-weight: 900;
-    }
-
-    .route-opt.active {
-      background: var(--red);
-      border-color: var(--red);
-      color: white;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      border-top: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
-      margin-top: 15px;
-    }
-
-    .stat {
-      padding: 16px 5px;
-      text-align: center;
-      border-right: 1px solid var(--line);
-    }
-
-    .stat:last-child {
-      border-right: 0;
-    }
-
-    .stat strong {
-      display: block;
-      font-size: 15px;
-    }
-
-    .stat span {
-      display: block;
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 8px;
-      text-transform: uppercase;
-    }
-
-    .result-body {
-      padding: 18px;
-    }
-
-    .score {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .score-title {
-      font-size: 10px;
-      font-weight: 900;
-    }
-
-    .score-number {
-      color: var(--red);
-      font-size: 24px;
-      font-weight: 900;
-    }
-
-    .bar {
-      height: 5px;
-      margin-top: 9px;
-      background: #292e35;
-      border-radius: 20px;
-      overflow: hidden;
-    }
-
-    .bar div {
-      height: 100%;
-      width: 0;
-      background: var(--red);
-      transition: width 1s ease;
-    }
-
-    .result-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 9px;
-      margin-top: 18px;
-    }
-
-    .result-buttons button {
-      padding: 14px 8px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: var(--panel2);
-      color: white;
-      font-size: 10px;
-      font-weight: 900;
-    }
-
-    #startCockpitBtn {
-      grid-column: 1 / -1;
-      background: linear-gradient(135deg, #10b981, #059669);
-      border: 0;
-      font-size: 13px;
-    }
-
-    #navigateButton {
-      grid-column: 1 / -1;
-      background: linear-gradient(135deg, var(--red), var(--red2));
-      border: 0;
-      font-size: 12px;
-    }
-
-    /* COMMUNITY */
-    .post-creator {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 18px;
-      margin-top: 16px;
-    }
-
-    .post-input {
-      width: 100%;
-      height: 80px;
-      background: var(--panel2);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      color: white;
-      resize: none;
-      font-size: 12px;
-      outline: none;
-    }
-
-    .post-input:focus {
-      border-color: rgba(255, 59, 48, 0.5);
-    }
-
-    .post-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 12px;
-    }
-
-    .file-label {
-      background: var(--panel2);
-      border: 1px solid var(--line);
-      padding: 9px 14px;
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .post-btn {
-      background: var(--red);
-      color: white;
-      border: 0;
-      padding: 9px 18px;
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 900;
-    }
-
-    .posts-feed {
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .post-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 18px;
-    }
-
-    .post-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      margin-bottom: 10px;
-    }
-
-    .post-user {
-      font-weight: 900;
-      color: var(--red);
-    }
-
-    .post-date {
-      color: var(--muted);
-      font-size: 9px;
-    }
-
-    .post-content {
-      font-size: 12px;
-      line-height: 1.4;
-      margin-bottom: 12px;
-      white-space: pre-wrap;
-    }
-
-    .post-img {
-      width: 100%;
-      max-height: 320px;
-      object-fit: cover;
-      border-radius: 12px;
-      margin-bottom: 12px;
-    }
-
-    .post-footer {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .like-btn {
-      background: transparent;
-      border: 0;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .like-btn.liked {
-      color: var(--red);
-    }
-
-    /* INTERCOM */
-    .talk {
-      width: 145px;
-      height: 145px;
-      margin: 22px auto 12px;
-      border-radius: 50%;
-      border: 7px solid rgba(255, 59, 48, 0.22);
-      background: linear-gradient(145deg, var(--red), var(--red2));
-      color: white;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      font-size: 12px;
-      font-weight: 900;
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-touch-callout: none;
-      touch-action: none;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-
-    .talk.active {
-      transform: scale(1.06);
-      box-shadow: 0 0 0 16px rgba(255, 59, 48, 0.15);
-    }
-
-    /* ==========================================
-       ESTILOS DEL MODO MANILLAR, SOS Y GRUPO
-    ========================================== */
-    .cockpit-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: #020617;
-      padding: 24px;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .cockpit-overlay.active {
-      display: flex;
-    }
-
-    .cockpit-card {
-      background: #0f172a;
-      border: 3px solid #10b981;
-      border-radius: 24px;
-      padding: 24px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-    }
-
-    .cockpit-icon {
-      width: 64px;
-      height: 64px;
-      background: #10b981;
-      color: #020617;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      font-weight: 900;
-      flex-shrink: 0;
-    }
-
-    .cockpit-speedometer {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin: auto 0;
-    }
-
-    .speed-number {
-      font-size: 110px;
-      font-weight: 900;
-      font-family: monospace;
-      line-height: 1;
-      color: #ffffff;
-    }
-
-    .speed-unit {
-      color: #94a3b8;
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: 4px;
-      margin-top: 8px;
-    }
-
-    .cockpit-controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    .cockpit-btn {
-      padding: 22px;
-      border-radius: 20px;
-      font-weight: 900;
-      font-size: 16px;
-      border: 2px solid #334155;
-      background: #0f172a;
-      color: white;
-    }
-
-    .cockpit-btn.danger {
-      background: #dc2626;
-      border-color: #ef4444;
-    }
-
-    .sos-modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 10000;
-      background: rgba(69, 10, 10, 0.96);
-      backdrop-filter: blur(12px);
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      text-align: center;
-    }
-
-    .sos-modal.active {
-      display: flex;
-    }
-
-    .sos-timer {
-      font-size: 80px;
-      font-weight: 900;
-      font-family: monospace;
-      color: #f87171;
-      margin: 20px 0;
-    }
-
-    footer {
-      text-align: center;
-      padding: 20px;
-      color: var(--muted);
-      font-size: 10px;
-      border-top: 1px solid var(--line);
-    }
-
-    /* RESPONSIVE DESIGN */
-    @media (max-width: 700px) {
-      header { height: 64px; padding: 0 10px; }
-      .logo { font-size: 21px; letter-spacing: 3px; }
-      .map-wrap { margin-top: 64px; height: 53vh; min-height: 390px; }
-      main { padding: 25px 14px 90px; }
-      .bikes { display: flex; overflow-x: auto; scrollbar-width: none; }
-      .bikes::-webkit-scrollbar { display: none; }
-      .bike { min-width: 125px; flex: 0 0 auto; }
-      .controls, .options { grid-template-columns: 1fr; }
-      .stats { grid-template-columns: repeat(2, 1fr); }
-      .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--line); }
-      .stat:nth-child(2) { border-right: 0; }
-    }
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #f59e0b;
+      --accent-danger: #ef4444;
+      --accent-success: #10b981;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; width: 100vw; }
+
+    /* --- PANTALLAS MODALES / OVERLAYS --- */
+    .screen-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg); display: flex; flex-direction: column;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0; pointer-events: none; transform: translateY(100%);
+    }
+    .screen-overlay.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+    /* 1. REGISTRO / LOGIN */
+    #authOverlay {
+      z-index: 10000; justify-content: center; align-items: center; padding: 20px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    }
+    .auth-card {
+      background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;
+      padding: 30px 24px; width: 100%; max-width: 400px; text-align: center;
+    }
+    .auth-card h1 { font-size: 2.2rem; color: var(--accent); margin-bottom: 8px; letter-spacing: 2px; }
+    .auth-card p { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 24px; }
+    .auth-form input {
+      width: 100%; padding: 14px 16px; margin-bottom: 12px; background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 1rem;
+    }
+    .auth-form input:focus { outline: none; border-color: var(--accent); }
+    .btn-primary {
+      width: 100%; padding: 16px; background: var(--accent); color: #000; border: none;
+      border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 10px;
+    }
+
+    /* 2. MODO MANILLAR Y GPS */
+    #cockpitOverlay { padding: 16px; background: #000; justify-content: space-between; }
+    .cockpit-header { display: flex; justify-content: space-between; align-items: center; }
+    .speed-badge { background: #111; border: 2px solid var(--accent); border-radius: 16px; padding: 10px 20px; text-align: center; }
+    .speed-val { font-size: 2.5rem; font-weight: 900; color: var(--accent); line-height: 1; }
+    .speed-unit { font-size: 0.7rem; color: var(--text-dim); }
+    .cockpit-card { background: #111; border-radius: 20px; padding: 20px; border: 1px solid #222; text-align: center; }
+    .cockpit-icon { font-size: 4rem; color: var(--accent); margin-bottom: 8px; }
+    .cockpit-instruction { font-size: 1.5rem; font-weight: bold; line-height: 1.2; }
+    .cockpit-dist { font-size: 1.2rem; color: var(--accent); font-weight: bold; margin-top: 6px; }
+
+    /* 3. COMUNIDAD E INTERCOMUNICADOR */
+    #communityOverlay { padding: 20px; overflow-y: auto; }
+    .overlay-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .close-btn { background: var(--card); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; }
+    .intercom-box { background: var(--card); border-radius: 20px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
+    .channel-selector { display: flex; gap: 10px; justify-content: center; margin: 15px 0; }
+    .channel-btn { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); padding: 10px 16px; border-radius: 10px; color: var(--text-dim); }
+    .channel-btn.active { border-color: var(--accent); color: var(--accent); font-weight: bold; }
+    .ptt-btn {
+      width: 100px; height: 100px; border-radius: 50%; background: var(--accent-danger); border: 4px solid rgba(255,255,255,0.2);
+      color: #fff; font-weight: bold; font-size: 1.2rem; margin: 10px auto; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); cursor: pointer; user-select: none;
+    }
+    .ptt-btn:active { transform: scale(0.95); background: #dc2626; }
+    .chat-box { background: var(--card); border-radius: 20px; padding: 15px; height: 200px; display: flex; flex-direction: column; }
+    .chat-messages { flex: 1; overflow-y: auto; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px; }
+    .chat-msg { background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; }
+    .chat-msg span { font-weight: bold; color: var(--accent); }
+
+    /* APP INTERFAZ PRINCIPAL */
+    #app { display: flex; flex-direction: column; height: 100vh; }
+    .top-bar { height: 60px; background: var(--card); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; z-index: 500; }
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .user-avatar { width: 36px; height: 36px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; }
+    
+    .map-wrap { flex: 1; position: relative; }
+    #map { height: 100%; width: 100%; z-index: 100; }
+
+    .bottom-panel { background: var(--card); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 20px; z-index: 500; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+    .btn { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 14px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-accent { background: var(--accent); color: #000; border: none; }
+    .btn-full { grid-column: span 2; }
   </style>
 </head>
 <body>
 
-<div class="app">
-
-  <header>
-    <div class="logo">RIDER<span>.</span></div>
-    <div class="header-actions">
-      <select id="languageSelect" class="language-select">
-        <option value="es">🇪🇸 ES</option>
-        <option value="ca">🏴 CA</option>
-        <option value="en">🇬🇧 EN</option>
-      </select>
-      <button class="icon" id="locateButton" title="GPS">📍</button>
-      <button class="icon" id="menuButton" title="Menú">☰</button>
+  <!-- 1. OVERLAY AUTENTICACIÓN / REGISTRO -->
+  <div id="authOverlay" class="screen-overlay active">
+    <div class="auth-card">
+      <h1>🏍️ RIDER</h1>
+      <p>Crea tu perfil de piloto para empezar</p>
+      <form class="auth-form" id="authForm">
+        <input type="text" id="authName" placeholder="Tu Nombre / Alias" required>
+        <input type="text" id="authBike" placeholder="Modelo de tu Moto (ej. MT-07)" required>
+        <button type="submit" class="btn-primary">ENTRAR A LA RUTA</button>
+      </form>
     </div>
-  </header>
+  </div>
 
-  <nav class="nav-menu" id="navMenu">
-    <button data-scroll="routeSection">🏍️ Crear ruta</button>
-    <button data-scroll="communitySection">👥 Comunidad</button>
-    <button data-scroll="intercomSection">🎙️ Intercom</button>
-    <button data-scroll="profileInfoSection">⚙️ Mi perfil</button>
-  </nav>
-
-  <section class="map-wrap">
-    <div id="map"></div>
-    <div class="map-top">
-      <div class="status" id="gpsStatus">● GPS NO ACTIVO</div>
-    </div>
-    <div class="map-bottom">
-      <small>RIDE DIFFERENT</small>
-      <h1 id="heroTitle">ENCUENTRA TU<br>PRÓXIMA RUTA.</h1>
-      <p id="mapText">Activa el GPS y deja que RIDER encuentre carreteras que merezcan ser conducidas.</p>
-    </div>
-  </section>
-
-  <main>
-    <!-- PERFIL MOTO -->
-    <section class="section" id="profileSection">
-      <div class="eyebrow">01 — <span data-i18n="profileLabel">PERFIL</span></div>
-      <h2 data-i18n="bikeTitle">¿CON QUÉ VAS A RODAR?</h2>
-      <p class="description" data-i18n="bikeDescription">RIDER adapta el estilo de ruta al comportamiento de tu moto.</p>
-
-      <div class="bikes">
-        <button class="bike active" data-bike="sport">
-          <span class="bike-icon">🏁</span>
-          <strong>SPORT</strong>
-          <small>Curvas / técnica</small>
-        </button>
-        <button class="bike" data-bike="naked">
-          <span class="bike-icon">🏍️</span>
-          <strong>NAKED</strong>
-          <small>Equilibrada</small>
-        </button>
-        <button class="bike" data-bike="trail">
-          <span class="bike-icon">🧭</span>
-          <strong>TRAIL</strong>
-          <small>Aventura</small>
-        </button>
-        <button class="bike" data-bike="touring">
-          <span class="bike-icon">🛣️</span>
-          <strong>TOURING</strong>
-          <small>Distancia</small>
-        </button>
-        <button class="bike" data-bike="custom">
-          <span class="bike-icon">😎</span>
-          <strong>CUSTOM</strong>
-          <small>Paisaje</small>
-        </button>
-        <button class="bike" data-bike="supermoto">
-          <span class="bike-icon">⚡</span>
-          <strong>SUPERMOTO</strong>
-          <small>Diversión</small>
-        </button>
-        <button class="bike" data-bike="scooter">
-          <span class="bike-icon">🛵</span>
-          <strong>SCOOTER</strong>
-          <small>Versátil</small>
-        </button>
-        <button class="bike" data-bike="customized">
-          <span class="bike-icon">⚙️</span>
-          <strong>A MEDIDA</strong>
-          <small>Tú decides</small>
-        </button>
+  <!-- 2. OVERLAY NAVEGACIÓN EN APP (MODO MANILLAR PRO) -->
+  <div id="cockpitOverlay" class="screen-overlay">
+    <div class="cockpit-header">
+      <div class="speed-badge">
+        <div class="speed-val" id="cockpitSpeed">0</div>
+        <div class="speed-unit">KM/H</div>
       </div>
-    </section>
+      <button class="close-btn" id="cockpitExitBtn">✕</button>
+    </div>
 
-    <!-- RUTA CONFIGURACION -->
-    <section class="section" id="routeSection">
-      <div class="eyebrow">02 — <span data-i18n="styleLabel">ESTILO DE RUTA</span></div>
-      <h2 data-i18n="styleTitle">¿QUÉ TE APETECE HOY?</h2>
-      <p class="description" data-i18n="styleDescription">Cuanto más alto, más peso tendrá ese factor en el cálculo.</p>
+    <!-- El mapa se moverá temporalmente aquí durante la navegación -->
+    <div id="cockpitMapContainer"></div>
 
+    <div class="cockpit-card">
+      <div class="cockpit-icon" id="cockpitIcon">↑</div>
+      <div class="cockpit-instruction" id="cockpitInstruction">Cargando GPS...</div>
+      <div class="cockpit-dist" id="cockpitDist">0 m</div>
+    </div>
+  </div>
+
+  <!-- 3. OVERLAY COMUNIDAD E INTERCOMUNICADOR -->
+  <div id="communityOverlay" class="screen-overlay">
+    <div class="overlay-header">
+      <h2>📻 Comunidad & PTT</h2>
+      <button class="close-btn" id="closeCommunityBtn">✕</button>
+    </div>
+
+    <div class="intercom-box">
+      <h3>Intercomunicador de Grupo</h3>
+      <p style="font-size:0.8rem; color: var(--text-dim); margin-top:4px;">Canal de voz sobre datos en tiempo real</p>
+      <div class="channel-selector">
+        <button class="channel-btn active">Canal 1</button>
+        <button class="channel-btn">Canal 2</button>
+        <button class="channel-btn">Ruta VIP</button>
+      </div>
+      <div class="ptt-btn" id="pttBtn">PTT</div>
+      <span style="font-size: 0.75rem; color: var(--text-dim);">Mantén pulsado para hablar</span>
+    </div>
+
+    <div class="chat-box">
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg"><span>Carlos (GS1250):</span> ¿Cómo va ese asfalto por arriba?</div>
+        <div class="chat-msg"><span>Ana (Z900):</span> Todo limpio, cuidado en la paella de la ermita.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APLICACIÓN PRINCIPAL -->
+  <div id="app">
+    <div class="top-bar">
+      <div class="user-info">
+        <div class="user-avatar" id="avatarLetter">R</div>
+        <div>
+          <div style="font-weight:bold; font-size:0.9rem;" id="displayName">Piloto</div>
+          <div style="font-size:0.75rem; color:var(--text-dim);" id="displayBike">Moto</div>
+        </div>
+      </div>
+      <button class="btn" id="openCommunityBtn" style="padding: 8px 12px;">📻 Grupo</button>
+    </div>
+
+    <div class="map-wrap">
+      <div id="map"></div>
+    </div>
+
+    <div class="bottom-panel">
       <div class="controls">
-        <div class="control">
-          <div class="control-header">
-            <span class="control-title">🔥 CURVAS</span>
-            <span class="value" id="curvesValue">9</span>
-          </div>
-          <input id="curves" type="range" min="0" max="10" value="9">
-        </div>
-        <div class="control">
-          <div class="control-header">
-            <span class="control-title">⛰️ MONTAÑA</span>
-            <span class="value" id="mountainValue">8</span>
-          </div>
-          <input id="mountain" type="range" min="0" max="10" value="8">
-        </div>
-        <div class="control">
-          <div class="control-header">
-            <span class="control-title">🌲 SECUNDARIAS</span>
-            <span class="value" id="secondaryValue">9</span>
-          </div>
-          <input id="secondary" type="range" min="0" max="10" value="9">
-        </div>
-        <div class="control">
-          <div class="control-header">
-            <span class="control-title">🌄 PAISAJE</span>
-            <span class="value" id="sceneryValue">7</span>
-          </div>
-          <input id="scenery" type="range" min="0" max="10" value="7">
-        </div>
-        <div class="control">
-          <div class="control-header">
-            <span class="control-title">⚡ DIVERSIÓN</span>
-            <span class="value" id="funValue">9</span>
-          </div>
-          <input id="fun" type="range" min="0" max="10" value="9">
-        </div>
+        <button class="btn btn-accent btn-full" id="genRouteBtn">🔄 Generar Ruta Curvilínea</button>
+        <button class="btn btn-full" id="startCockpitBtn" style="background:#2563eb; color:#fff;">🏍️ INICIAR MODO GPS MANILLAR</button>
       </div>
-    </section>
-
-    <!-- DESTINO & TIPO -->
-    <section class="section">
-      <div class="eyebrow">03 — <span data-i18n="navigationType">TIPO Y DESTINO</span></div>
-      <h2 data-i18n="navigationTitle">¿CÓMO QUIERES NAVEGAR?</h2>
-
-      <div class="mode-selector">
-        <button class="mode-btn active" id="modeCircular">🔄 <span data-i18n="circular">RUTA CIRCULAR</span></button>
-        <button class="mode-btn" id="modeDest">🎯 <span data-i18n="destination">POR DESTINO</span></button>
-      </div>
-
-      <div class="destination-wrap">
-        <input type="text" id="destinationInput" class="dest-input" autocomplete="off" placeholder="Escribe ciudad o lugar de destino...">
-        <div class="suggestions" id="suggestions"></div>
-      </div>
-
-      <div class="distance" id="distanceSelector">
-        <button data-distance="100">100 KM</button>
-        <button data-distance="200">200 KM</button>
-        <button class="active" data-distance="250">250 KM</button>
-        <button data-distance="350">350 KM</button>
-        <button data-distance="500">500+</button>
-      </div>
-    </section>
-
-    <!-- TERRENO -->
-    <section class="section">
-      <div class="eyebrow">04 — <span data-i18n="roadLabel">CARRETERA</span></div>
-      <h2 data-i18n="roadTitle">DEFINE EL TERRENO.</h2>
-
-      <div class="options">
-        <div class="option" data-option="highways">
-          <div>
-            <div class="option-title">🛣️ EVITAR AUTOPISTAS</div>
-            <div class="option-description">Priorizar carreteras secundarias</div>
-          </div>
-          <div class="switch active"></div>
-        </div>
-        <div class="option" data-option="cities">
-          <div>
-            <div class="option-title">🏙️ EVITAR CIUDADES</div>
-            <div class="option-description">Menos tráfico urbano</div>
-          </div>
-          <div class="switch active"></div>
-        </div>
-        <div class="option" data-option="tolls">
-          <div>
-            <div class="option-title">💳 EVITAR PEAJES</div>
-            <div class="option-description">Sin carreteras de pago</div>
-          </div>
-          <div class="switch active"></div>
-        </div>
-        <div class="option" data-option="mountainPasses">
-          <div>
-            <div class="option-title">🏔️ PUERTOS</div>
-            <div class="option-description">Buscar carreteras de montaña</div>
-          </div>
-          <div class="switch active"></div>
-        </div>
-      </div>
-    </section>
-
-    <button class="generate" id="generateButton">🏍️ &nbsp; <span data-i18n="generate">GENERAR RUTAS RIDER</span></button>
-    
-    <div class="notice" id="notice"></div>
-    <div class="loading" id="loading">🛰️ Analizando trazados y curvas...<br><br>Generando opciones de ruta.</div>
-
-    <!-- RESULTADO -->
-    <section class="result" id="result">
-      <div class="result-head">
-        <div class="result-label">RIDER ROUTES</div>
-        <div class="result-name" id="resultName">OPCIONES ENCONTRADAS</div>
-        <div class="result-subtitle" id="resultSubtitle">Selecciona la variante que más te guste.</div>
-      </div>
-
-      <div class="route-selector">
-        <button class="route-opt active" id="btnOpt0">OPCIÓN A</button>
-        <button class="route-opt" id="btnOpt1">OPCIÓN B</button>
-        <button class="route-opt" id="btnOpt2">OPCIÓN C</button>
-      </div>
-
-      <div class="stats">
-        <div class="stat"><strong id="distanceResult">—</strong><span>Distancia</span></div>
-        <div class="stat"><strong id="timeResult">—</strong><span>Tiempo</span></div>
-        <div class="stat"><strong id="elevationResult">—</strong><span>Desnivel</span></div>
-        <div class="stat"><strong id="scoreResult">—</strong><span>RIDER SCORE</span></div>
-      </div>
-
-      <div class="result-body">
-        <div class="score">
-          <span class="score-title" data-i18n="compatibility">COMPATIBILIDAD CON TU PERFIL</span>
-          <span class="score-number" id="scoreNumber">—</span>
-        </div>
-        <div class="bar"><div id="scoreBar"></div></div>
-        <div class="result-buttons">
-          <button id="startCockpitBtn">🏍️ MODO MANILLAR Y VOZ</button>
-          <button id="saveOfflineBtn">💾 GUARDAR OFFLINE</button>
-          <button id="saveButton">♡ GUARDAR</button>
-          <button id="shareButton">↗ COMPARTIR</button>
-          <button id="gpxButton">⇩ GPX</button>
-          <button id="navigateButton">🧭 ABRIR EN GOOGLE MAPS</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- COMUNIDAD -->
-    <section class="section community" id="communitySection">
-      <div class="eyebrow">05 — COMUNIDAD</div>
-      <h2>RIDER COMMUNITY</h2>
-      <p class="description">Comparte tus rutas, fotos, experiencias y descubre dónde están rodando otros riders.</p>
-
-      <div class="post-creator">
-        <textarea id="postInput" class="post-input" placeholder="¡Comparte una foto o tu experiencia de hoy!"></textarea>
-        <div class="post-actions">
-          <label class="file-label">
-            📷 Añadir foto
-            <input type="file" id="postImage" accept="image/*" style="display:none;">
-          </label>
-          <span id="fileName" style="font-size: 10px; color: var(--muted); display: none;"></span>
-          <button class="post-btn" id="publishBtn">PUBLICAR</button>
-        </div>
-      </div>
-
-      <div class="posts-feed" id="postsFeed"></div>
-    </section>
-
-    <!-- INTERCOM Y GRUPO -->
-    <section class="section intercom" id="intercomSection">
-      <div class="eyebrow">06 — INTERCOM Y LIVE TRACKING</div>
-      <h2>RIDER INTERCOM & GROUP</h2>
-      <p class="description">Crea un grupo para rodar juntos, seguir la telemetría del grupo en directo e intercomunicarte.</p>
-
-      <div style="margin-top: 15px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px;">
-        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-          <input type="text" id="groupCodeInput" placeholder="Código de grupo (ej: MOTOS-99)" style="flex:1; background: var(--panel2); border: 1px solid var(--line); padding: 12px; border-radius: 10px; color: white; font-size: 12px;">
-          <button id="joinGroupBtn" style="background: var(--red); color: white; border: 0; padding: 0 16px; border-radius: 10px; font-weight: 900; font-size: 11px;">UNIRSE</button>
-        </div>
-        <div id="groupMembersList" style="font-size: 11px; color: var(--muted);">Sin grupo activo.</div>
-      </div>
-
-      <div class="intercom-panel" style="text-align: center; margin-top: 15px;">
-        <button class="talk" id="talkButton">🎙️<br>PULSA<br>PARA HABLAR</button>
-        <div class="intercom-status" id="intercomStatus" style="font-size: 11px; color: var(--muted); margin-top: 10px;">Modo prueba listo</div>
-      </div>
-    </section>
-
-    <!-- MI PERFIL -->
-    <section class="section" id="profileInfoSection">
-      <div class="eyebrow">07 — PERFIL</div>
-      <h2>MI RIDER</h2>
-      <div class="profile-panel" style="display: flex; gap: 10px; margin-top: 15px;">
-        <div class="profile-box" style="padding: 15px; background: var(--panel); border-radius: 12px; flex: 1;">
-          <span style="font-size: 9px; color: var(--muted); display: block;">VEHÍCULO</span>
-          <strong id="profileBike" style="font-size: 14px;">SPORT</strong>
-        </div>
-        <div class="profile-box" style="padding: 15px; background: var(--panel); border-radius: 12px; flex: 1;">
-          <span style="font-size: 9px; color: var(--muted); display: block;">IDIOMA</span>
-          <strong id="profileLanguage" style="font-size: 14px;">ES</strong>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    RIDER · RIDE DIFFERENT · POWERED BY OPENSTREETMAP
-  </footer>
-</div>
-
-<!-- ==========================================
-     CAPA DE MODO MANILLAR (NAVEGACIÓN EN RUTA)
-========================================== -->
-<div class="cockpit-overlay" id="cockpitOverlay">
-  <div class="cockpit-card" id="cockpitNextStep">
-    <div class="cockpit-icon" id="cockpitIcon">↑</div>
-    <div>
-      <div style="color: #10b981; font-weight: 900; font-size: 14px; text-transform: uppercase;" id="cockpitDist">En 500 m</div>
-      <h2 style="margin: 4px 0 0; font-size: 22px; font-weight: 900;" id="cockpitInstruction">Sigue recto por la carretera</h2>
     </div>
   </div>
 
-  <div class="cockpit-speedometer">
-    <div class="speed-number" id="cockpitSpeed">0</div>
-    <div class="speed-unit">KM/H</div>
-  </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const OSRM = "https://router.project-osrm.org/route/v1/driving/";
+    const $ = id => document.getElementById(id);
 
-  <div class="cockpit-controls">
-    <button class="cockpit-btn" id="cockpitMuteBtn">🔊 VOZ ACTIVA</button>
-    <button class="cockpit-btn danger" id="cockpitExitBtn">SALIR</button>
-  </div>
-</div>
+    let map, userPos = null, lastRoute = null, watchId = null;
+    let currentStepIdx = 0, routeSteps = [];
 
-<!-- ==========================================
-     MODAL DE EMERGENCIA SOS (CAÍDAS)
-========================================== -->
-<div class="sos-modal" id="sosModal">
-  <div style="width: 70px; h-height: 70px; background: #dc2626; border-radius: 50%; display: grid; place-items: center; font-size: 32px; margin-bottom: 12px;">⚠️</div>
-  <h1 style="font-size: 26px; font-weight: 900; margin: 0 0 8px;">¿TE ENCUENTRAS BIEN?</h1>
-  <p style="color: #cbd5e1; font-size: 12px; margin: 0 0 12px;">Hemos detectado una desaceleración o impacto fuerte.</p>
-  <div class="sos-timer" id="sosTimer">30</div>
-  <p style="color: #94a3b8; font-size: 10px; margin-bottom: 24px;">Se enviará un mensaje SOS de emergencia con tus coordenadas GPS exactas.</p>
-  <button id="cancelSosBtn" style="width: 100%; padding: 18px; background: white; color: #0f172a; border: 0; border-radius: 16px; font-weight: 900; font-size: 16px;">CANCELAR (ESTOY BIEN)</button>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-  /* CONFIGURACIÓN Y CONSTANTES */
-  const OSRM = "https://router.project-osrm.org/route/v1/driving/";
-  const NOMINATIM = "https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q=";
-
-  const translations = {
-    es: {
-      heroTitle: "ENCUENTRA TU<br>PRÓXIMA RUTA.",
-      heroText: "Activa el GPS y deja que RIDER encuentre carreteras que merezcan ser conducidas.",
-      gpsOff: "● GPS NO ACTIVO",
-      gpsSearching: "● BUSCANDO GPS...",
-      gpsActive: "● GPS ACTIVO",
-      navigate: "🧭 ABRIR EN GOOGLE MAPS",
-      profileLabel: "PERFIL",
-      bikeTitle: "¿CON QUÉ VAS A RODAR?",
-      bikeDescription: "RIDER adapta el estilo de ruta al comportamiento de tu moto.",
-      styleLabel: "ESTILO DE RUTA",
-      styleTitle: "¿QUÉ TE APETECE HOY?",
-      styleDescription: "Cuanto más alto, más peso tendrá ese factor en el cálculo.",
-      navigationType: "TIPO Y DESTINO",
-      navigationTitle: "¿CÓMO QUIERES NAVEGAR?",
-      circular: "RUTA CIRCULAR",
-      destination: "POR DESTINO",
-      roadLabel: "CARRETERA",
-      roadTitle: "DEFINE EL TERRENO.",
-      generate: "GENERAR RUTAS RIDER",
-      compatibility: "COMPATIBILIDAD CON TU PERFIL"
-    },
-    ca: {
-      heroTitle: "TROBA LA TEVA<br>PROPERA RUTA.",
-      heroText: "Activa el GPS i deixa que RIDER trobi carreteres que valgui la pena conduir.",
-      gpsOff: "● GPS NO ACTIU",
-      gpsSearching: "● CERCANT GPS...",
-      gpsActive: "● GPS ACTIU",
-      navigate: "🧭 OBRI EN GOOGLE MAPS",
-      profileLabel: "PERFIL",
-      bikeTitle: "AMB QUÈ SORTIRÀS A RODAR?",
-      bikeDescription: "RIDER adapta l'estil de la ruta al comportament de la teva moto.",
-      styleLabel: "ESTIL DE RUTA",
-      styleTitle: "QUÈ ET VE DE GUST AVUI?",
-      styleDescription: "Com més alt sigui el valor, més pes tindrà en el càlcul.",
-      navigationType: "TIPUS I DESTINACIÓ",
-      navigationTitle: "COM VOLS NAVEGAR?",
-      circular: "RUTA CIRCULAR",
-      destination: "PER DESTINACIÓ",
-      roadLabel: "CARRETERA",
-      roadTitle: "DEFINEIX EL TERRENY.",
-      generate: "GENERAR RUTES RIDER",
-      compatibility: "COMPATIBILITAT AMB EL TEU PERFIL"
-    },
-    en: {
-      heroTitle: "FIND YOUR<br>NEXT RIDE.",
-      heroText: "Enable GPS and let RIDER find roads worth riding.",
-      gpsOff: "● GPS INACTIVE",
-      gpsSearching: "● SEARCHING GPS...",
-      gpsActive: "● GPS ACTIVE",
-      navigate: "🧭 OPEN IN GOOGLE MAPS",
-      profileLabel: "PROFILE",
-      bikeTitle: "WHAT ARE YOU RIDING TODAY?",
-      bikeDescription: "RIDER adapts the route style to the behaviour of your motorcycle.",
-      styleLabel: "ROUTE STYLE",
-      styleTitle: "WHAT DO YOU FEEL LIKE TODAY?",
-      styleDescription: "The higher the value, the more importance it has in the calculation.",
-      navigationType: "TYPE AND DESTINATION",
-      navigationTitle: "HOW DO YOU WANT TO RIDE?",
-      circular: "CIRCULAR ROUTE",
-      destination: "BY DESTINATION",
-      roadLabel: "ROAD",
-      roadTitle: "DEFINE THE TERRAIN.",
-      generate: "GENERATE RIDER ROUTES",
-      compatibility: "COMPATIBILITY WITH YOUR PROFILE"
-    }
-  };
-
-  let currentLanguage = localStorage.getItem("rider-language") || "es";
-
-  /* MAPA CLARO (CartoDB Positron) */
-  const map = L.map("map", {
-    zoomControl: true,
-    preferCanvas: true
-  }).setView([41.3851, 2.1734], 10);
-
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-    maxZoom: 19,
-    subdomains: ["a", "b", "c", "d"],
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
-  }).addTo(map);
-
-  /* ESTADOS GLOBAL */
-  let userPosition = null;
-  let userMarker = null;
-  let destMarker = null;
-  let routeLayer = null;
-  let lastRoute = null;
-  let selectedBike = "sport";
-  let selectedDistance = 250;
-  let routeMode = "circular";
-  let generatedRoutes = [];
-  let autocompleteTimer = null;
-  let selectedDestination = null;
-
-  const preferences = {
-    highways: true,
-    cities: true,
-    tolls: true,
-    mountainPasses: true
-  };
-
-  const bikeProfiles = {
-    sport: { name: "SPORT", curves: 10, mountain: 8, secondary: 9, scenery: 6, fun: 10, radius: .15, patterns: [[15, 80, 150, 230, 300], [40, 120, 200, 280, 340], [70, 140, 220, 290, 350]] },
-    naked: { name: "NAKED", curves: 8, mountain: 7, secondary: 8, scenery: 7, fun: 9, radius: .14, patterns: [[20, 95, 175, 250, 325], [55, 130, 205, 275, 350], [85, 155, 225, 300, 15]] },
-    trail: { name: "TRAIL / ADVENTURE", curves: 7, mountain: 10, secondary: 10, scenery: 10, fun: 8, radius: .18, patterns: [[10, 65, 140, 220, 295], [45, 110, 190, 260, 330], [90, 155, 235, 305, 20]] },
-    touring: { name: "TOURING", curves: 5, mountain: 6, secondary: 7, scenery: 10, fun: 6, radius: .20, patterns: [[25, 110, 200, 290], [60, 150, 240, 330], [90, 180, 270, 360]] },
-    custom: { name: "CUSTOM / CRUISER", curves: 5, mountain: 5, secondary: 8, scenery: 10, fun: 6, radius: .13, patterns: [[30, 100, 180, 250, 320], [70, 145, 215, 285, 350], [110, 180, 250, 320, 30]] },
-    supermoto: { name: "SUPERMOTO", curves: 10, mountain: 9, secondary: 10, scenery: 6, fun: 10, radius: .11, patterns: [[10, 55, 100, 150, 205, 260, 315], [35, 85, 135, 190, 245, 300, 350], [65, 115, 170, 225, 280, 335, 20]] },
-    scooter: { name: "SCOOTER", curves: 5, mountain: 3, secondary: 6, scenery: 7, fun: 6, radius: .10, patterns: [[30, 110, 190, 270], [65, 145, 225, 305], [95, 175, 255, 335]] },
-    customized: { name: "PERSONALIZADA", curves: 8, mountain: 8, secondary: 8, scenery: 8, fun: 8, radius: .15, patterns: [[20, 100, 180, 260, 340], [55, 135, 215, 295, 15], [85, 165, 245, 325, 45]] }
-  };
-
-  /* HELPERS DOM */
-  const $ = id => document.getElementById(id);
-
-  function values() {
-    return {
-      curves: +$("curves").value,
-      mountain: +$("mountain").value,
-      secondary: +$("secondary").value,
-      scenery: +$("scenery").value,
-      fun: +$("fun").value
+    // Sintetizador de Voz
+    const voice = {
+      speak(text) {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'es-ES';
+        window.speechSynthesis.speak(msg);
+      }
     };
-  }
 
-  function setSlider(id, value) {
-    if ($(id)) {
-      $(id).value = value;
-      $(id + "Value").textContent = value;
-    }
-  }
-
-  /* IDIOMAS */
-  function applyLanguage() {
-    const t = translations[currentLanguage];
-    document.documentElement.lang = currentLanguage;
-    document.querySelectorAll("[data-i18n]").forEach(el => {
-      const key = el.dataset.i18n;
-      if (t[key]) el.textContent = t[key];
+    // --- 1. GESTIÓN DE AUTENTICACIÓN ---
+    window.addEventListener('load', () => {
+      const savedUser = JSON.parse(localStorage.getItem('rider_user'));
+      if (savedUser) {
+        loadUserProfile(savedUser);
+        $("authOverlay").classList.remove("active");
+      }
+      initMap();
     });
-    $("heroTitle").innerHTML = t.heroTitle;
 
-    if (!userPosition) {
-      $("mapText").textContent = t.heroText;
-      $("gpsStatus").textContent = t.gpsOff;
-    }
-
-    $("navigateButton").textContent = t.navigate;
-    $("profileLanguage").textContent = currentLanguage.toUpperCase();
-    $("destinationInput").placeholder = currentLanguage === "ca"
-      ? "Escriu ciutat o lloc de destinació..."
-      : currentLanguage === "en" ? "Enter city or destination..." : "Escribe ciudad o lugar de destino...";
-
-    $("languageSelect").value = currentLanguage;
-  }
-
-  $("languageSelect").addEventListener("change", e => {
-    currentLanguage = e.target.value;
-    localStorage.setItem("rider-language", currentLanguage);
-    applyLanguage();
-  });
-
-  /* MENU MOBILE */
-  $("menuButton").addEventListener("click", () => $("navMenu").classList.toggle("open"));
-
-  document.querySelectorAll("[data-scroll]").forEach(button => {
-    button.addEventListener("click", () => {
-      const target = $(button.dataset.scroll);
-      $("navMenu").classList.remove("open");
-      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    $("authForm").addEventListener('submit', (e) => {
+      e.preventDefault();
+      const user = {
+        name: $("authName").value.trim(),
+        bike: $("authBike").value.trim()
+      };
+      localStorage.setItem('rider_user', JSON.stringify(user));
+      loadUserProfile(user);
+      $("authOverlay").classList.remove("active");
     });
-  });
 
-  /* SELECCIÓN DE MOTOS Y RANGE INPUTS */
-  document.querySelectorAll(".bike").forEach(card => {
-    card.addEventListener("click", () => {
-      document.querySelectorAll(".bike").forEach(x => x.classList.remove("active"));
-      card.classList.add("active");
-      selectedBike = card.dataset.bike;
-      const p = bikeProfiles[selectedBike];
-      ["curves", "mountain", "secondary", "scenery", "fun"].forEach(id => setSlider(id, p[id]));
-      $("profileBike").textContent = p.name;
-      saveSettings();
-    });
-  });
-
-  document.querySelectorAll('input[type="range"]').forEach(s => {
-    s.addEventListener("input", () => {
-      $(s.id + "Value").textContent = s.value;
-      saveSettings();
-    });
-  });
-
-  /* DISTANCIAS Y MODOS */
-  document.querySelectorAll(".distance button").forEach(b => {
-    b.addEventListener("click", () => {
-      document.querySelectorAll(".distance button").forEach(x => x.classList.remove("active"));
-      b.classList.add("active");
-      selectedDistance = Number(b.dataset.distance);
-      saveSettings();
-    });
-  });
-
-  document.querySelectorAll(".option").forEach(o => {
-    o.addEventListener("click", () => {
-      const key = o.dataset.option;
-      preferences[key] = !preferences[key];
-      o.querySelector(".switch").classList.toggle("active", preferences[key]);
-      saveSettings();
-    });
-  });
-
-  $("modeCircular").addEventListener("click", () => {
-    routeMode = "circular";
-    $("modeCircular").classList.add("active");
-    $("modeDest").classList.remove("active");
-    $("destinationInput").style.display = "none";
-    $("suggestions").style.display = "none";
-    $("distanceSelector").style.display = "grid";
-    selectedDestination = null;
-  });
-
-  $("modeDest").addEventListener("click", () => {
-    routeMode = "destination";
-    $("modeDest").classList.add("active");
-    $("modeCircular").classList.remove("active");
-    $("destinationInput").style.display = "block";
-    $("distanceSelector").style.display = "none";
-    $("destinationInput").focus();
-  });
-
-  /* LOCAL STORAGE */
-  function saveSettings() {
-    localStorage.setItem("rider-settings", JSON.stringify({
-      bike: selectedBike,
-      distance: selectedDistance,
-      preferences,
-      values: values()
-    }));
-  }
-
-  function loadSettings() {
-    try {
-      const s = JSON.parse(localStorage.getItem("rider-settings"));
-      if (!s) return;
-      selectedBike = s.bike || selectedBike;
-      selectedDistance = s.distance || selectedDistance;
-      Object.assign(preferences, s.preferences || {});
-      if (s.values) Object.entries(s.values).forEach(([key, value]) => setSlider(key, value));
-
-      document.querySelectorAll(".bike").forEach(x => x.classList.toggle("active", x.dataset.bike === selectedBike));
-      document.querySelectorAll(".distance button").forEach(x => x.classList.toggle("active", Number(x.dataset.distance) === selectedDistance));
-      document.querySelectorAll(".option").forEach(x => x.querySelector(".switch").classList.toggle("active", preferences[x.dataset.option]));
-      $("profileBike").textContent = bikeProfiles[selectedBike].name;
-    } catch (e) {
-      console.warn("Storage Load Error", e);
-    }
-  }
-
-  /* GPS GEOLOCATION & SPEED TRACKING */
-  let currentSpeed = 0;
-
-  function locateUser() {
-    if (!navigator.geolocation) {
-      alert("GPS no disponible en este dispositivo.");
-      return;
+    function loadUserProfile(user) {
+      $("displayName").textContent = user.name;
+      $("displayBike").textContent = user.bike;
+      $("avatarLetter").textContent = user.name.charAt(0).toUpperCase();
     }
 
-    const t = translations[currentLanguage];
-    $("gpsStatus").textContent = t.gpsSearching;
+    // --- 2. MAPA E INICIALIZACIÓN ---
+    function initMap() {
+      map = L.map('map', { zoomControl: false }).setView([40.4167, -3.7037], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    navigator.geolocation.watchPosition(
-      pos => {
-        userPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        currentSpeed = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0;
-        $("cockpitSpeed").textContent = currentSpeed;
-
-        if (userMarker) map.removeLayer(userMarker);
-
-        userMarker = L.circleMarker([userPosition.lat, userPosition.lng], {
-          radius: 9,
-          color: "#000000",
-          weight: 3,
-          fillColor: "#ff3b30",
-          fillOpacity: 1
-        }).addTo(map);
-
-        userMarker.bindPopup("📍 RIDER");
-
-        $("gpsStatus").textContent = t.gpsActive;
-        $("gpsStatus").classList.add("gps");
-        $("mapText").textContent = currentLanguage === "en"
-          ? "Location detected. Ready to ride."
-          : currentLanguage === "ca" ? "Ubicació detectada. Preparat per rodar." : "Ubicación detectada. Listo para rodar.";
-
-        // Transmitir posición al grupo si hay WebSocket activo
-        if (wsGroup && wsGroup.readyState === WebSocket.OPEN) {
-          wsGroup.send(JSON.stringify({ ...userPosition, speed: currentSpeed }));
-        }
-      },
-      err => {
-        $("gpsStatus").textContent = "● ERROR GPS";
-      },
-      { enableHighAccuracy: true, maximumAge: 1000 }
-    );
-  }
-
-  $("locateButton").addEventListener("click", locateUser);
-
-  /* AUTOCOMPLETE NOMINATIM */
-  $("destinationInput").addEventListener("input", () => {
-    const query = $("destinationInput").value.trim();
-    selectedDestination = null;
-    clearTimeout(autocompleteTimer);
-    if (query.length < 3) {
-      $("suggestions").style.display = "none";
-      return;
+      navigator.geolocation.getCurrentPosition(pos => {
+        userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        map.setView([userPos.lat, userPos.lng], 14);
+        L.circleMarker([userPos.lat, userPos.lng], { radius: 8, color: '#2563eb', fillColor: '#3b82f6', fillOpacity: 1 }).addTo(map);
+      });
     }
-    autocompleteTimer = setTimeout(() => searchSuggestions(query), 450);
-  });
 
-  async function searchSuggestions(query) {
-    try {
-      const response = await fetch(`${NOMINATIM}${encodeURIComponent(query)}&accept-language=${encodeURIComponent(currentLanguage)}`);
-      if (!response.ok) throw new Error("API Error");
-      const data = await response.json();
-      const container = $("suggestions");
-      container.innerHTML = "";
-      if (!data.length) {
-        container.style.display = "none";
+    // --- 3. GENERACIÓN DE RUTAS ---
+    $("genRouteBtn").addEventListener("click", async () => {
+      if (!userPos) return alert("Esperando ubicación GPS...");
+      
+      // Waypoint aleatorio para simular tramo de curvas
+      const waypoint = {
+        lat: userPos.lat + (Math.random() - 0.5) * 0.1,
+        lng: userPos.lng + (Math.random() - 0.5) * 0.1
+      };
+
+      try {
+        const coords = `${userPos.lng},${userPos.lat};${waypoint.lng},${waypoint.lat};${userPos.lng},${userPos.lat}`;
+        const res = await fetch(`${OSRM}${coords}?overview=full&geometries=geojson&steps=true`);
+        const data = await res.json();
+        
+        if (data.code !== "Ok") throw new Error();
+        lastRoute = data.routes[0];
+
+        // Dibujar ruta en mapa
+        L.geoJSON(lastRoute.geometry, { style: { color: '#f59e0b', weight: 6 } }).addTo(map);
+        alert("¡Ruta de curvas calculada correctamente!");
+
+      } catch (err) {
+        alert("Error al calcular la ruta.");
+      }
+    });
+
+    // --- 4. NAVEGACIÓN GPS MANILLAR (DENTRO DE LA APP) ---
+    $("startCockpitBtn").addEventListener("click", () => {
+      if (!lastRoute) return alert("Genera una ruta primero.");
+
+      routeSteps = lastRoute.legs.flatMap(leg => leg.steps);
+      $("cockpitOverlay").classList.add("active");
+      
+      // Mover el mapa dentro del contenedor del modo manillar
+      const mapEl = $("map");
+      const mapContainer = $("cockpitMapContainer");
+      mapContainer.appendChild(mapEl);
+      mapEl.style.height = "250px";
+      mapEl.style.borderRadius = "16px";
+      setTimeout(() => map.invalidateSize(), 300);
+
+      currentStepIdx = 0;
+      updateCockpitStep();
+      startLiveTracking();
+    });
+
+    function updateCockpitStep() {
+      if (!routeSteps.length || currentStepIdx >= routeSteps.length) {
+        $("cockpitInstruction").textContent = "Llegada al destino";
+        $("cockpitDist").textContent = "--";
+        voice.speak("Has llegado a tu destino.");
         return;
       }
 
-      data.forEach(place => {
-        const item = document.createElement("div");
-        item.className = "suggestion";
-        const parts = place.display_name.split(",");
-        const mainName = parts.shift();
-        const secondary = parts.join(",").trim();
+      const step = routeSteps[currentStepIdx];
+      const text = step.maneuver.instruction || step.name || "Continúa la ruta";
+      $("cockpitInstruction").textContent = text;
+      $("cockpitDist").textContent = `${Math.round(step.distance)} m`;
 
-        item.innerHTML = `<strong>${escapeHtml(mainName)}</strong><small>${escapeHtml(secondary)}</small>`;
-        item.addEventListener("click", () => {
-          selectedDestination = { lat: parseFloat(place.lat), lng: parseFloat(place.lon), name: place.display_name };
-          $("destinationInput").value = place.display_name;
-          container.style.display = "none";
-          if (destMarker) map.removeLayer(destMarker);
+      let icon = "↑";
+      const mod = step.maneuver.modifier;
+      if (mod?.includes("left")) icon = "↖";
+      if (mod?.includes("right")) icon = "↗";
+      $("cockpitIcon").textContent = icon;
 
-          destMarker = L.marker([selectedDestination.lat, selectedDestination.lng]).addTo(map);
-          destMarker.bindPopup("🎯 " + escapeHtml(mainName));
-        });
-        container.appendChild(item);
-      });
-      container.style.display = "block";
-    } catch (e) {
-      console.error("Autocomplete exception:", e);
-    }
-  }
-
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
-  }
-
-  /* GEOMETRÍA CÁLCULOS */
-  function destination(origin, bearing, distanceKm) {
-    const R = 6371;
-    const lat1 = origin.lat * Math.PI / 180;
-    const lon1 = origin.lng * Math.PI / 180;
-    const b = bearing * Math.PI / 180;
-    const d = distanceKm / R;
-
-    const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(b));
-    const lon2 = lon1 + Math.atan2(Math.sin(b) * Math.sin(d) * Math.cos(lat1), Math.cos(d) - Math.sin(lat1) * Math.sin(lat2));
-
-    return { lat: lat2 * 180 / Math.PI, lng: ((lon2 * 180 / Math.PI + 540) % 360) - 180 };
-  }
-
-  function calculateBearing(a, b) {
-    const lat1 = a.lat * Math.PI / 180;
-    const lat2 = b.lat * Math.PI / 180;
-    const dLon = (b.lng - a.lng) * Math.PI / 180;
-
-    const y = Math.sin(dLon) * Math.cos(lat2);
-    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-    return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-  }
-
-  function distanceBetween(a, b) {
-    const R = 6371;
-    const dLat = (b.lat - a.lat) * Math.PI / 180;
-    const dLon = (b.lng - a.lng) * Math.PI / 180;
-    const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
-  }
-
-  /* API RUTAS (OSRM) */
-  async function osrm(points) {
-    const coords = points.map(p => `${p.lng},${p.lat}`).join(";");
-    const response = await fetch(`${OSRM}${coords}?overview=full&geometries=geojson&steps=true`);
-    if (!response.ok) throw new Error("OSRM Fetch Error");
-    const data = await response.json();
-    if (data.code !== "Ok" || !data.routes.length) throw new Error("No route found");
-    return data.routes[0];
-  }
-
-  /* GENERAR RUTA */
-  async function generateRoute() {
-    if (!userPosition) {
-      alert("Primero activa la geolocalización GPS.");
-      locateUser();
-      return;
+      voice.speak(`${$("cockpitDist").textContent}, ${text}`);
     }
 
-    const button = $("generateButton");
-    const loading = $("loading");
-    const notice = $("notice");
-
-    button.disabled = true;
-    loading.style.display = "block";
-    notice.style.display = "none";
-    generatedRoutes = [];
-
-    try {
-      const prefs = values();
-      const profile = bikeProfiles[selectedBike];
-      const fetchPromises = [];
-
-      if (routeMode === "circular") {
-        const baseRadius = selectedDistance * profile.radius;
-        for (let variant = 0; variant < 3; variant++) {
-          const pattern = profile.patterns[variant];
-          const points = [userPosition];
-          pattern.forEach((angle, index) => {
-            let mult = 1;
-            if (selectedBike === "sport") mult = index % 2 === 0 ? .85 : 1.15;
-            if (selectedBike === "supermoto") mult = index % 2 === 0 ? .75 : 1.05;
-            points.push(destination(userPosition, angle, baseRadius * mult));
-          });
-          points.push(userPosition);
-          fetchPromises.push(osrm(points));
-        }
-      } else {
-        let destCoords = selectedDestination;
-        if (!destCoords) {
-          const text = $("destinationInput").value.trim();
-          if (!text) throw new Error("Selecciona un destino");
-          const res = await fetch(`${NOMINATIM}${encodeURIComponent(text)}`);
-          const data = await res.json();
-          if (!data.length) throw new Error("Destino no encontrado");
-          destCoords = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-        }
-
-        const bearing = calculateBearing(userPosition, destCoords);
-        const offsets = [-40, 0, 40];
-        const directDist = distanceBetween(userPosition, destCoords);
-
-        for (let i = 0; i < 3; i++) {
-          const mid = destination(userPosition, bearing + offsets[i], directDist * .45);
-          const pts = offsets[i] === 0 ? [userPosition, destCoords] : [userPosition, mid, destCoords];
-          fetchPromises.push(osrm(pts));
-        }
-      }
-
-      const results = await Promise.allSettled(fetchPromises);
-
-      results.forEach((res) => {
-        if (res.status === "fulfilled") {
-          const route = res.value;
-          route.elevation = Math.round((route.distance / 1000) * 12 * ((prefs.mountain / 10) * 1.5 + .5));
-          route.score = Math.max(50, Math.min(99, Math.round(65 + ((prefs.curves + prefs.mountain + prefs.secondary + prefs.scenery + prefs.fun) / 5) * 2.8)));
-          route.profile = selectedBike;
-          generatedRoutes.push(route);
-        }
-      });
-
-      if (!generatedRoutes.length) throw new Error("No routes calculated");
-
-      selectOption(0);
-      $("result").style.display = "block";
-      $("result").scrollIntoView({ behavior: "smooth" });
-    } catch (e) {
-      notice.textContent = "Error al calcular las rutas. Por favor ajusta los parámetros.";
-      notice.style.display = "block";
-    } finally {
-      button.disabled = false;
-      loading.style.display = "none";
-    }
-  }
-
-  $("generateButton").addEventListener("click", generateRoute);
-
-  /* RUTA RENDERING */
-  function selectOption(index) {
-    if (!generatedRoutes[index]) return;
-    lastRoute = generatedRoutes[index];
-    [0, 1, 2].forEach(i => {
-      const btn = $(`btnOpt${i}`);
-      if (btn) {
-        btn.classList.toggle("active", i === index);
-        btn.style.display = generatedRoutes[i] ? "block" : "none";
-      }
-    });
-    displayRoute(lastRoute);
-  }
-
-  ["btnOpt0", "btnOpt1", "btnOpt2"].forEach((id, idx) => {
-    if ($(id)) $(id).addEventListener("click", () => selectOption(idx));
-  });
-
-  function displayRoute(route) {
-    if (routeLayer) map.removeLayer(routeLayer);
-
-    routeLayer = L.geoJSON(route.geometry, {
-      style: { color: "#0066ff", weight: 6, opacity: 0.95 }
-    }).addTo(map);
-
-    map.fitBounds(routeLayer.getBounds(), { padding: [35, 35], maxZoom: 13 });
-
-    const km = (route.distance / 1000).toFixed(0);
-    $("distanceResult").textContent = km + " km";
-    $("timeResult").textContent = `${Math.floor(route.duration / 3600)}h ${Math.round((route.duration % 3600) / 60)}m`;
-    $("elevationResult").textContent = "+" + route.elevation + "m";
-    $("scoreResult").textContent = route.score + "%";
-    $("scoreNumber").textContent = route.score + "%";
-
-    setTimeout(() => { $("scoreBar").style.width = route.score + "%"; }, 100);
-
-    $("resultName").textContent = `${bikeProfiles[selectedBike].name} ATTACK · ${km} KM`;
-  }
-
-  /* NAVEGACIÓN GOOGLE MAPS OPTIMIZADA */
-  $("navigateButton").addEventListener("click", () => {
-    if (!lastRoute?.geometry?.coordinates) {
-      alert("Genera una ruta antes de iniciar la navegación.");
-      return;
+    function startLiveTracking() {
+      if (!navigator.geolocation) return;
+      watchId = navigator.geolocation.watchPosition(pos => {
+        const { latitude: lat, longitude: lng, speed } = pos.coords;
+        $("cockpitSpeed").textContent = speed ? Math.round(speed * 3.6) : 0;
+        map.panTo([lat, lng]);
+      }, null, { enableHighAccuracy: true });
     }
 
-    const coords = lastRoute.geometry.coordinates;
-    const total = coords.length;
-    if (total < 2) return;
-
-    const origin = `${coords[0][1]},${coords[0][0]}`;
-    const destination = routeMode === "circular" ? origin : `${coords[total - 1][1]},${coords[total - 1][0]}`;
-
-    const sampleSize = Math.min(8, Math.floor(total / 2));
-    const step = Math.floor(total / (sampleSize + 1));
-    const waypoints = [];
-
-    for (let i = 1; i <= sampleSize; i++) {
-      const pt = coords[i * step];
-      waypoints.push(`${pt[1]},${pt[0]}`);
-    }
-
-    const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving&waypoints=${encodeURIComponent(waypoints.join('|'))}`;
-    window.open(mapsUrl, '_blank');
-  });
-
-  /* GPX EXPORT */
-  $("gpxButton").addEventListener("click", () => {
-    if (!lastRoute) return;
-    const coords = lastRoute.geometry.coordinates;
-    let gpx = '<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="RIDER 2.3"><trk><name>RIDER ROUTE</name><trkseg>';
-    coords.forEach(c => gpx += `<trkpt lat="${c[1]}" lon="${c[0]}"></trkpt>`);
-    gpx += '</trkseg></trk></gpx>';
-
-    const blob = new Blob([gpx], { type: "application/gpx+xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "rider-route.gpx";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  });
-
-  /* MÓDULO COMUNIDAD CON COMPRESIÓN DE IMÁGENES */
-  let posts = JSON.parse(localStorage.getItem("rider-posts")) || [
-    {
-      id: 1,
-      user: "Rider_Pro",
-      content: "¡Ruta increíble por la sierra este fin de semana! Asfalto perfecto y cero tráfico.",
-      image: null,
-      likes: 8,
-      liked: false,
-      date: "Hace 2 horas"
-    }
-  ];
-
-  let currentImageData = null;
-
-  function compressImage(base64Str, maxWidth = 800, quality = 0.7) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.src = base64Str;
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", quality));
-      };
-    });
-  }
-
-  $("postImage").addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = async function(evt) {
-        currentImageData = await compressImage(evt.target.result);
-        $("fileName").textContent = file.name;
-        $("fileName").style.display = "inline";
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-  $("publishBtn").addEventListener("click", () => {
-    const text = $("postInput").value.trim();
-    if (!text && !currentImageData) {
-      alert("Escribe algo o adjunta una imagen.");
-      return;
-    }
-
-    const newPost = {
-      id: Date.now(),
-      user: "Rider_User",
-      content: text,
-      image: currentImageData,
-      likes: 0,
-      liked: false,
-      date: "Ahora mismo"
-    };
-
-    posts.unshift(newPost);
-    localStorage.setItem("rider-posts", JSON.stringify(posts));
-    
-    $("postInput").value = "";
-    $("postImage").value = "";
-    $("fileName").style.display = "none";
-    currentImageData = null;
-
-    renderPosts();
-  });
-
-  function toggleLike(id) {
-    posts = posts.map(p => {
-      if (p.id === id) {
-        p.liked = !p.liked;
-        p.likes += p.liked ? 1 : -1;
-      }
-      return p;
-    });
-    localStorage.setItem("rider-posts", JSON.stringify(posts));
-    renderPosts();
-  }
-
-  function renderPosts() {
-    const container = $("postsFeed");
-    container.innerHTML = "";
-    posts.forEach(post => {
-      const card = document.createElement("div");
-      card.className = "post-card";
+    $("cockpitExitBtn").addEventListener("click", () => {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
       
-      let imgHtml = post.image ? `<img src="${post.image}" class="post-img" alt="Post Image">` : "";
-      
-      card.innerHTML = `
-        <div class="post-header">
-          <span class="post-user">@${escapeHtml(post.user)}</span>
-          <span class="post-date">${escapeHtml(post.date)}</span>
-        </div>
-        ${post.content ? `<div class="post-content">${escapeHtml(post.content)}</div>` : ""}
-        ${imgHtml}
-        <div class="post-footer">
-          <button class="like-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
-            ${post.liked ? '❤️' : '🤍'} ${post.likes} Me gusta
-          </button>
-        </div>
-      `;
-      container.appendChild(card);
+      // Devolver mapa a su posición original
+      const mapEl = $("map");
+      document.querySelector(".map-wrap").appendChild(mapEl);
+      mapEl.style.height = "100%";
+      mapEl.style.borderRadius = "0";
+
+      $("cockpitOverlay").classList.remove("active");
+      setTimeout(() => map.invalidateSize(), 300);
     });
-  }
 
-  /* INTERCOM Y MANEJO DE EVENTOS TÁCTILES */
-  const talkBtn = $("talkButton");
+    // --- 5. PANTALLA DE COMUNIDAD E INTERCOMUNICADOR ---
+    $("openCommunityBtn").addEventListener("click", () => $("communityOverlay").classList.add("active"));
+    $("closeCommunityBtn").addEventListener("click", () => $("communityOverlay").classList.remove("active"));
 
-  function handleTalkStart(e) {
-    e.preventDefault();
-    talkBtn.classList.add("active");
-    $("intercomStatus").textContent = "🎙️ Estás hablando · Transmitiendo...";
-    if (navigator.vibrate) navigator.vibrate(50);
-  }
-
-  function handleTalkEnd(e) {
-    if (e) e.preventDefault();
-    talkBtn.classList.remove("active");
-    $("intercomStatus").textContent = "Grupo conectado · En espera";
-  }
-
-  talkBtn.addEventListener("pointerdown", handleTalkStart);
-  talkBtn.addEventListener("pointerup", handleTalkEnd);
-  talkBtn.addEventListener("pointercancel", handleTalkEnd);
-  talkBtn.addEventListener("contextmenu", e => e.preventDefault());
-
-  /* ==========================================
-     NUEVAS FUNCIONALIDADES (VOZ, SOS, OFFLINE, GRUPO)
-  ========================================== */
-
-  // 1. MOTOR DE VOZ (SINTETIZADOR NATIVO)
-  class VoiceEngine {
-    constructor() {
-      this.synth = window.speechSynthesis;
-      this.voice = null;
-      this.isMuted = false;
-      this.init();
-    }
-    init() {
-      if (!this.synth) return;
-      const load = () => {
-        const voices = this.synth.getVoices();
-        this.voice = voices.find(v => v.lang.startsWith('es')) || voices[0];
-      };
-      load();
-      if (this.synth.onvoiceschanged !== undefined) this.synth.onvoiceschanged = load;
-    }
-    speak(text) {
-      if (this.isMuted || !this.synth) return;
-      this.synth.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      if (this.voice) u.voice = this.voice;
-      this.synth.speak(u);
-    }
-    toggleMute() {
-      this.isMuted = !this.isMuted;
-      if (this.isMuted) this.synth.cancel();
-      return this.isMuted;
-    }
-  }
-  const voice = new VoiceEngine();
-
-  // 2. MODO MANILLAR
-  let currentStepIdx = 0;
-  $("startCockpitBtn").addEventListener("click", () => {
-    if (!lastRoute) return;
-    $("cockpitOverlay").classList.add("active");
-    currentStepIdx = 0;
-    updateCockpitStep();
-  });
-
-  $("cockpitExitBtn").addEventListener("click", () => {
-    $("cockpitOverlay").classList.remove("active");
-  });
-
-  $("cockpitMuteBtn").addEventListener("click", () => {
-    const muted = voice.toggleMute();
-    $("cockpitMuteBtn").textContent = muted ? "🔇 SIN AUDIO" : "🔊 VOZ ACTIVA";
-  });
-
-  $("cockpitNextStep").addEventListener("click", () => {
-    if (!lastRoute || !lastRoute.legs || !lastRoute.legs[0].steps) return;
-    const steps = lastRoute.legs[0].steps;
-    currentStepIdx = (currentStepIdx + 1) % steps.length;
-    updateCockpitStep();
-  });
-
-  function updateCockpitStep() {
-    if (!lastRoute || !lastRoute.legs || !lastRoute.legs[0].steps.length) {
-      $("cockpitInstruction").textContent = "Sigue la ruta en el mapa";
-      $("cockpitDist").textContent = "EN RUTA";
-      voice.speak("Ruta iniciada. Sigue las indicaciones del mapa.");
-      return;
-    }
-    const step = lastRoute.legs[0].steps[currentStepIdx];
-    $("cockpitInstruction").textContent = step.maneuver.instruction || "Continúa por la carretera";
-    $("cockpitDist").textContent = `En ${Math.round(step.distance)} m`;
-    voice.speak(step.maneuver.instruction || "Continúa por la carretera");
-  }
-
-  // 3. DETECTOR SOS DE CAÍDAS (ACELERÓMETRO)
-  let sosTimerValue = 30;
-  let sosInterval = null;
-  const emergencyContact = "+34600000000";
-
-  if ('DeviceMotionEvent' in window) {
-    window.addEventListener('devicemotion', (e) => {
-      const acc = e.accelerationIncludingGravity;
-      if (!acc) return;
-      const totalG = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
-      if (totalG > 32) triggerSOS(); // Umbral de impacto brusco
+    // Simulación PTT
+    const pttBtn = $("pttBtn");
+    pttBtn.addEventListener("touchstart", () => {
+      pttBtn.style.background = "#10b981";
+      pttBtn.textContent = "HABLANDO";
     });
-  }
-
-  function triggerSOS() {
-    if ($("sosModal").classList.contains("active")) return;
-    $("sosModal").classList.add("active");
-    sosTimerValue = 30;
-    $("sosTimer").textContent = sosTimerValue;
-
-    sosInterval = setInterval(() => {
-      sosTimerValue--;
-      $("sosTimer").textContent = sosTimerValue;
-      if (sosTimerValue <= 0) {
-        clearInterval(sosInterval);
-        const lat = userPosition ? userPosition.lat : 0;
-        const lng = userPosition ? userPosition.lng : 0;
-        const msg = encodeURIComponent(`¡ALERTA SOS RIDER! He tenido un accidente en moto. Mi posición: https://maps.google.com/?q=${lat},${lng}`);
-        window.location.href = `sms:${emergencyContact}?body=${msg}`;
-      }
-    }, 1000);
-  }
-
-  $("cancelSosBtn").addEventListener("click", () => {
-    clearInterval(sosInterval);
-    $("sosModal").classList.remove("active");
-  });
-
-  // 4. BBDD OFFLINE (INDEXEDDB)
-  const offlineStorage = {
-    dbName: 'RiderDB',
-    async open() {
-      return new Promise((resolve) => {
-        const req = indexedDB.open(this.dbName, 1);
-        req.onupgradeneeded = (e) => e.target.result.createObjectStore('routes', { keyPath: 'id' });
-        req.onsuccess = () => resolve(req.result);
-      });
-    },
-    async saveRoute(route) {
-      const db = await this.open();
-      const tx = db.transaction('routes', 'readwrite');
-      tx.objectStore('routes').put({ id: 'active_route', data: route, timestamp: Date.now() });
-      alert("Ruta guardada correctamente para uso sin cobertura.");
-    }
-  };
-
-  $("saveOfflineBtn").addEventListener("click", () => {
-    if (lastRoute) offlineStorage.saveRoute(lastRoute);
-  });
-
-  // 5. GRUPO Y TRACKING EN TIEMPO REAL
-  let wsGroup = null;
-  $("joinGroupBtn").addEventListener("click", () => {
-    const code = $("groupCodeInput").value.trim();
-    if (!code) return;
-    try {
-      wsGroup = new WebSocket(`wss://echo.websocket.events`);
-      wsGroup.onopen = () => {
-        $("groupMembersList").innerHTML = `<span style="color:#10b981;">Conectado al grupo ${escapeHtml(code)}. Transmitiendo GPS...</span>`;
-      };
-    } catch(e) {
-      console.warn("Simulación de grupo activa");
-    }
-  });
-
-  /* INICIALIZAR */
-  loadSettings();
-  applyLanguage();
-  renderPosts();
-  locateUser();
-  setTimeout(() => map.invalidateSize(), 500);
-</script>
+    pttBtn.addEventListener("touchend", () => {
+      pttBtn.style.background = "#ef4444";
+      pttBtn.textContent = "PTT";
+    });
+  </script>
 </body>
 </html>
