@@ -4,306 +4,249 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>RIDER - Motorbike GPS & Community</title>
-
-  <!-- PWA Manifest Inline -->
-  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlJJREVSIiwKICAic2hvcnRfbmFtZSI6ICJSSURFUiIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGYxNzJhIiwKICAidGhlbWVfY29sb3IiOiAiIzBmMTcyYSIKfQ==">
-  <meta name="theme-color" content="#0f172a">
-
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --accent: #f59e0b;
-      --accent-hover: #d97706;
-      --accent-danger: #ef4444;
-      --accent-success: #10b981;
-      --text: #f8fafc;
-      --text-dim: #94a3b8;
+      --bg: #0d1014;
+      --panel: #171b21;
+      --panel2: #21262d;
+      --line: #30363d;
+      --red: #ff3b30;
+      --muted: #8b949e;
+      --text: #f0f6fc;
+      --accent-success: #3fb950;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; width: 100vw; }
+    body { background: var(--bg); color: var(--text); overflow-x: hidden; min-height: 100vh; }
 
-    /* --- OVERLAYS & PANTALLAS --- */
+    /* HEADER Y MENÚ DE NAVEGACIÓN ORIGINAL */
+    .top-bar {
+      position: fixed; top: 0; left: 0; right: 0; height: 68px;
+      background: rgba(13, 16, 20, 0.95); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line); z-index: 3000;
+      display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
+    }
+    .brand { font-size: 20px; font-weight: 900; letter-spacing: 2px; color: white; display: flex; align-items: center; gap: 8px; }
+    .brand span { color: var(--red); }
+    .user-pill { font-size: 11px; font-weight: 800; background: var(--panel2); border: 1px solid var(--line); padding: 6px 12px; border-radius: 20px; color: var(--muted); }
+
+    .nav-menu {
+      position: fixed; top: 76px; right: 12px; z-index: 2900; display: none;
+      width: 210px; padding: 10px; border: 1px solid var(--line); border-radius: 18px;
+      background: rgba(13, 16, 20, 0.98); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
+    }
+    .nav-menu.open { display: block; }
+    .nav-menu button {
+      width: 100%; padding: 13px; margin: 2px 0; border: 0; border-radius: 11px;
+      background: transparent; color: white; text-align: left; font-size: 11px; font-weight: 900; cursor: pointer;
+    }
+    .nav-menu button:hover { background: var(--panel2); }
+
+    /* PANTALLAS MODALES / OVERLAYS */
     .screen-overlay {
-      position: fixed; inset: 0; z-index: 9999;
-      background: var(--bg); display: flex; flex-direction: column;
-      transition: transform 0.3s ease, opacity 0.3s ease;
+      position: fixed; inset: 0; z-index: 9999; background: var(--bg);
+      display: flex; flex-direction: column; transition: transform 0.3s ease, opacity 0.3s ease;
       opacity: 0; pointer-events: none; transform: translateY(100%);
     }
     .screen-overlay.active { opacity: 1; pointer-events: all; transform: translateY(0); }
 
-    /* 1. REGISTRO / LOGIN */
+    /* 1. REGISTRO / LOGIN (SPLASH) */
     #authOverlay {
       z-index: 10000; justify-content: center; align-items: center; padding: 20px;
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      background: radial-gradient(circle at center, #171b21 0%, #0d1014 100%);
     }
     .auth-card {
-      background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 24px;
       padding: 30px 24px; width: 100%; max-width: 400px; text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
     }
-    .auth-card h1 { font-size: 2.2rem; color: var(--accent); margin-bottom: 8px; letter-spacing: 2px; }
-    .auth-card p { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 24px; }
+    .auth-card h1 { font-size: 2.2rem; color: var(--red); margin-bottom: 8px; letter-spacing: 2px; }
+    .auth-card p { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
     .auth-form input {
-      width: 100%; padding: 14px 16px; margin-bottom: 12px; background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 1rem;
+      width: 100%; padding: 14px 16px; margin-bottom: 12px; background: var(--panel2);
+      border: 1px solid var(--line); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;
     }
+    .auth-form input:focus { border-color: var(--red); }
 
-    /* 2. MODO MANILLAR GPS */
-    #cockpitOverlay { padding: 16px; background: #000; justify-content: space-between; }
-    .cockpit-header { display: flex; justify-content: space-between; align-items: center; }
-    .speed-badge { background: #111; border: 2px solid var(--accent); border-radius: 16px; padding: 10px 20px; text-align: center; }
-    .speed-val { font-size: 2.5rem; font-weight: 900; color: var(--accent); line-height: 1; }
-    .speed-unit { font-size: 0.7rem; color: var(--text-dim); }
-    .cockpit-card { background: #111; border-radius: 20px; padding: 20px; border: 1px solid #222; text-align: center; }
-    .cockpit-icon { font-size: 4rem; color: var(--accent); margin-bottom: 8px; }
-    .cockpit-instruction { font-size: 1.5rem; font-weight: bold; line-height: 1.2; }
-    .cockpit-dist { font-size: 1.2rem; color: var(--accent); font-weight: bold; margin-top: 6px; }
+    /* 2. COMUNIDAD E INTERCOMUNICADOR */
+    #communityOverlay { padding: 85px 16px 30px 16px; overflow-y: auto; }
+    .overlay-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .close-btn { background: var(--panel2); border: 1px solid var(--line); color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
 
-    /* 3. COMUNIDAD E INTERCOMUNICADOR */
-    #communityOverlay { padding: 20px; overflow-y: auto; }
-    .overlay-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
-    .close-btn { background: var(--card); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
-    
-    .intercom-box { background: var(--card); border-radius: 20px; padding: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
-    .channel-selector { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
-    .channel-btn { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 10px; color: var(--text-dim); cursor: pointer; }
-    .channel-btn.active { border-color: var(--accent); color: var(--accent); font-weight: bold; }
-    .ptt-btn {
-      width: 90px; height: 90px; border-radius: 50%; background: var(--accent-danger); border: 4px solid rgba(255,255,255,0.2);
-      color: #fff; font-weight: bold; font-size: 1.1rem; margin: 10px auto; display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); cursor: pointer; user-select: none;
+    /* MAPA ORIGINAL */
+    .map-wrap { position: relative; height: 55vh; min-height: 400px; margin-top: 68px; overflow: hidden; }
+    #map { width: 100%; height: 100%; background: #171b21; }
+
+    /* PANELES DE CONTROL */
+    .main-container { padding: 16px; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+    .panel-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn {
+      background: var(--panel2); border: 1px solid var(--line); color: #fff; padding: 14px;
+      border-radius: 12px; font-size: 11px; font-weight: 900; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px;
     }
-    .ptt-btn:active { transform: scale(0.95); background: #dc2626; }
+    .btn-red { background: var(--red); color: white; border: 0; }
+    .btn-full { grid-column: span 2; }
 
-    /* SECCIÓN OPINIONES Y CATEGORÍAS DE MOTOS */
-    .section-title { font-size: 1.1rem; font-weight: bold; margin: 15px 0 10px 0; color: var(--accent); display: flex; align-items: center; gap: 8px; }
-    .categories-pills { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
-    .pill { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: var(--text-dim); }
-    .pill.active { background: var(--accent); color: #000; font-weight: bold; border-color: var(--accent); }
+    /* SECCIÓN OPINIONES DE MOTOS (NAKED, TRAIL, ADVENTURE) */
+    .categories-pills { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin: 12px 0; }
+    .pill { background: var(--panel2); border: 1px solid var(--line); padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; white-space: nowrap; cursor: pointer; color: var(--muted); }
+    .pill.active { background: var(--red); color: white; border-color: var(--red); }
 
     .reviews-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-    .review-card { background: var(--card); border-radius: 14px; padding: 14px; border: 1px solid rgba(255,255,255,0.05); }
+    .review-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
     .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .bike-tag { font-size: 0.75rem; background: rgba(245, 158, 11, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 6px; font-weight: bold; }
-    .stars { color: var(--accent); font-size: 0.85rem; }
+    .bike-tag { font-size: 11px; background: rgba(255, 59, 48, 0.15); color: var(--red); padding: 3px 8px; border-radius: 6px; font-weight: 900; }
+    .stars { color: var(--red); font-size: 12px; }
 
-    /* FEED DE COMUNIDAD */
-    .feed-list { display: flex; flex-direction: column; gap: 12px; }
-    .post-card { background: var(--card); border-radius: 14px; padding: 14px; border: 1px solid rgba(255,255,255,0.05); }
-    .post-user { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .post-avatar { width: 32px; height: 32px; border-radius: 50%; background: #3b82f6; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
-
-    /* ALERTA SOS OVERLAY */
-    #sosModal {
-      position: fixed; inset: 0; background: rgba(239, 68, 68, 0.95); z-index: 20000;
-      display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
-    }
-    #sosModal.active { display: flex; }
-    .sos-timer { font-size: 5rem; font-weight: 900; margin: 20px 0; }
-
-    /* LAYOUT PRINCIPAL */
-    #app { display: flex; flex-direction: column; height: 100vh; }
-    .top-bar { height: 60px; background: var(--card); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; z-index: 500; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .user-info { display: flex; align-items: center; gap: 10px; }
-    .user-avatar { width: 36px; height: 36px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; }
+    /* FEED SOCIAL DE COMUNIDAD */
+    .post-creator { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; margin-bottom: 16px; }
+    .post-input { width: 100%; height: 80px; background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; color: white; resize: none; font-size: 12px; outline: none; }
+    .post-input:focus { border-color: rgba(255, 59, 48, 0.5); }
+    .post-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+    .file-label { background: var(--panel2); border: 1px solid var(--line); padding: 9px 14px; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .post-btn { background: var(--red); color: white; border: 0; padding: 9px 18px; border-radius: 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
     
-    .map-wrap { flex: 1; position: relative; }
-    #map { height: 100%; width: 100%; z-index: 100; }
+    .posts-feed { display: flex; flex-direction: column; gap: 16px; }
+    .post-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+    .post-header { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 10px; }
+    .post-user { font-weight: 900; color: var(--red); }
+    .post-date { color: var(--muted); font-size: 9px; }
+    .post-content { font-size: 12px; line-height: 1.4; margin-bottom: 12px; white-space: pre-wrap; }
+    .post-img { width: 100%; max-height: 320px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; }
+    .post-footer { display: flex; align-items: center; gap: 15px; }
+    .like-btn { background: transparent; border: 0; color: var(--muted); font-size: 12px; font-weight: 800; padding: 0; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .like-btn.liked { color: var(--red); }
 
-    .bottom-panel { background: var(--card); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 20px; z-index: 500; max-height: 45vh; overflow-y: auto; }
-    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-    .btn { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 14px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-accent { background: var(--accent); color: #000; border: none; }
-    .btn-full { grid-column: span 2; }
-    
-    .sos-config { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; margin-top: 10px; display: flex; gap: 8px; align-items: center; }
-    .sos-config input { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: #fff; }
-
-    #log { font-size: 0.75rem; color: var(--text-dim); max-height: 60px; overflow-y: auto; margin-top: 8px; font-family: monospace; }
+    /* INTERCOM PTT */
+    .intercom-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 20px; text-align: center; margin-bottom: 20px; }
+    .talk { width: 130px; height: 130px; border-radius: 50%; background: var(--red); border: 4px solid rgba(255,255,255,0.2); color: white; font-weight: 900; font-size: 18px; margin: 15px auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(255, 59, 48, 0.4); cursor: pointer; user-select: none; }
+    .talk:active { transform: scale(0.95); background: #e02d24; }
   </style>
 </head>
 <body>
 
-  <!-- 1. OVERLAY AUTENTICACIÓN / REGISTRO -->
+  <!-- HEADER ORIGINAL CON BRANDING -->
+  <div class="top-bar">
+    <div class="brand">RIDER <span>COMMUNITY</span></div>
+    <div class="user-pill" id="userPill">@Piloto</div>
+    <button class="btn" id="menuToggle" style="width: auto; padding: 8px 12px;">☰ MENÚ</button>
+  </div>
+
+  <!-- MENÚ DESPLEGABLE FLOTANTE -->
+  <div class="nav-menu" id="navMenu">
+    <button id="openCommunityMenuBtn">📻 COMUNIDAD Y PTT</button>
+    <button id="resetProfileBtn">👤 CAMBIAR PERFIL</button>
+  </div>
+
+  <!-- 1. PANTALLA DE REGISTRO / LOGIN (SPLASH) -->
   <div id="authOverlay" class="screen-overlay active">
     <div class="auth-card">
-      <h1>🏍️ RIDER</h1>
-      <p>Crea tu perfil de piloto para empezar</p>
+      <h1>RIDER</h1>
+      <p>Configura tu perfil para unirte a la ruta</p>
       <form class="auth-form" id="authForm">
-        <input type="text" id="authName" placeholder="Tu Nombre / Alias" required>
-        <input type="text" id="authBike" placeholder="Modelo de tu Moto (ej. MT-07)" required>
-        <button type="submit" class="btn btn-accent btn-full">ENTRAR A LA RUTA</button>
+        <input type="text" id="authName" placeholder="Tu Alias / Usuario" required>
+        <input type="text" id="authBike" placeholder="Modelo de tu Moto (ej. MT-07, GS1250)" required>
+        <button type="submit" class="btn btn-red btn-full" style="padding:16px;">ENTRAR A LA RUTA</button>
       </form>
     </div>
   </div>
 
-  <!-- 2. OVERLAY NAVEGACIÓN EN APP (MODO MANILLAR PRO) -->
-  <div id="cockpitOverlay" class="screen-overlay">
-    <div class="cockpit-header">
-      <div class="speed-badge">
-        <div class="speed-val" id="cockpitSpeed">0</div>
-        <div class="speed-unit">KM/H</div>
-      </div>
-      <button class="close-btn" id="cockpitExitBtn">✕</button>
-    </div>
-
-    <!-- El mapa se moverá temporalmente aquí durante la navegación -->
-    <div id="cockpitMapContainer"></div>
-
-    <div class="cockpit-card">
-      <div class="cockpit-icon" id="cockpitIcon">↑</div>
-      <div class="cockpit-instruction" id="cockpitInstruction">Cargando GPS...</div>
-      <div class="cockpit-dist" id="cockpitDist">0 m</div>
-    </div>
-  </div>
-
-  <!-- 3. OVERLAY COMUNIDAD, INTERCOMUNICADOR Y OPINIONES MOTOS -->
+  <!-- 2. PANTALLA COMUNIDAD E INTERCOMUNICADOR -->
   <div id="communityOverlay" class="screen-overlay">
-    <div class="overlay-header">
-      <h2>📻 Comunidad & Opiniones</h2>
+    <div class="top-bar">
+      <div class="brand">RIDER <span>HUB</span></div>
       <button class="close-btn" id="closeCommunityBtn">✕</button>
     </div>
 
-    <!-- INTERCOMUNICADOR PTT -->
-    <div class="intercom-box">
-      <h3>Intercomunicador de Grupo</h3>
-      <p style="font-size:0.8rem; color: var(--text-dim); margin-top:2px;">Canal de voz en tiempo real</p>
-      <div class="channel-selector">
-        <button class="channel-btn active">Canal 1</button>
-        <button class="channel-btn">Canal 2</button>
-        <button class="channel-btn">Ruta VIP</button>
+    <div id="communityOverlayContent" style="padding: 85px 16px 30px 16px;">
+      <!-- INTERCOM PTT -->
+      <div class="intercom-card">
+        <h3>📻 INTERCOMUNICADOR DE GRUPO</h3>
+        <p style="font-size: 11px; color: var(--muted); margin-top: 4px;">Canal de voz sobre datos en tiempo real</p>
+        <div class="talk" id="talkButton">PTT</div>
+        <span style="font-size: 10px; color: var(--muted);">MANTÉN PULSADO PARA HABLAR</span>
       </div>
-      <div class="ptt-btn" id="pttBtn">PTT</div>
-      <span style="font-size: 0.75rem; color: var(--text-dim);">Mantén pulsado para hablar</span>
-    </div>
 
-    <!-- SECCIÓN DE OPINIONES POR ESTILO DE MOTO -->
-    <div class="section-title">⭐ Valoraciones de Motos</div>
-    <div class="categories-pills" id="categoryPills">
-      <div class="pill active" data-cat="all">Todas</div>
-      <div class="pill" data-cat="naked">Naked</div>
-      <div class="pill" data-cat="trail">Trail</div>
-      <div class="pill" data-cat="adventure">Adventure</div>
-      <div class="pill" data-cat="r">Deportivas</div>
-    </div>
+      <!-- VALORACIONES Y REVIEWS DE MOTOS -->
+      <h3 style="font-size: 14px; font-weight: 900; color: white;">⭐ REVIEWS DE MOTOS</h3>
+      <div class="categories-pills">
+        <div class="pill active" data-cat="all">TODAS</div>
+        <div class="pill" data-cat="naked">NAKED</div>
+        <div class="pill" data-cat="trail">TRAIL</div>
+        <div class="pill" data-cat="adventure">ADVENTURE</div>
+      </div>
+      <div class="reviews-list" id="reviewsContainer"></div>
 
-    <div class="reviews-list" id="reviewsContainer">
-      <!-- Se puebla dinámicamente con JS -->
-    </div>
-
-    <!-- FEED SOCIAL DE LA COMUNIDAD -->
-    <div class="section-title">💬 Feed de Ruta</div>
-    <div class="feed-list">
-      <div class="post-card">
-        <div class="post-user">
-          <div class="post-avatar">M</div>
-          <div>
-            <div style="font-weight:bold; font-size:0.85rem;">Marcos GS</div>
-            <div style="font-size:0.7rem; color:var(--text-dim);">BMW R1250GS • Hace 20 min</div>
-          </div>
+      <!-- CREADOR DE POSTS Y FEED SOCIAL -->
+      <h3 style="font-size: 14px; font-weight: 900; color: white; margin-bottom: 12px;">📸 RIDER FEED</h3>
+      <div class="post-creator">
+        <textarea id="postInput" class="post-input" placeholder="¡Comparte una foto o tu experiencia de hoy!"></textarea>
+        <div class="post-actions">
+          <label class="file-label">
+            📷 Añadir foto
+            <input type="file" id="postImage" accept="image/*" style="display:none;">
+          </label>
+          <span id="fileName" style="font-size: 10px; color: var(--muted); display: none;"></span>
+          <button class="post-btn" id="publishBtn">PUBLICAR</button>
         </div>
-        <p style="font-size:0.85rem;">Asfalto perfecto subiendo al puerto. Nada de niebla hoy. ¡Disfrutad los giros!</p>
       </div>
 
-      <div class="post-card">
-        <div class="post-user">
-          <div class="post-avatar" style="background:#10b981;">L</div>
-          <div>
-            <div style="font-weight:bold; font-size:0.85rem;">Laura MT</div>
-            <div style="font-size:0.7rem; color:var(--text-dim);">Yamaha MT-09 • Hace 1 hora</div>
-          </div>
-        </div>
-        <p style="font-size:0.85rem;">Ojo con la gravilla en la bajada del kilómetro 14. Peligroso para las Naked.</p>
-      </div>
+      <div class="posts-feed" id="postsFeed"></div>
     </div>
   </div>
 
-  <!-- OVERLAY ALERTA DETECCIÓN DE CAÍDA SOS -->
-  <div id="sosModal">
-    <h2>🚨 CAÍDA DETECTADA 🚨</h2>
-    <p>Enviando alerta SMS con tu ubicación en:</p>
-    <div class="sos-timer" id="sosCountdown">15</div>
-    <button class="btn btn-full" id="cancelSosBtn" style="background:#fff; color:#000;">CANCELAR FALSO POSITIVO</button>
-  </div>
-
-  <!-- APLICACIÓN PRINCIPAL -->
+  <!-- NAVEGACIÓN PRINCIPAL CON MAPA ORIGINAL -->
   <div id="app">
-    <div class="top-bar">
-      <div class="user-info">
-        <div class="user-avatar" id="avatarLetter">R</div>
-        <div>
-          <div style="font-weight:bold; font-size:0.9rem;" id="displayName">Piloto</div>
-          <div style="font-size:0.75rem; color:var(--text-dim);" id="displayBike">Moto</div>
-        </div>
-      </div>
-      <button class="btn" id="openCommunityBtn" style="padding: 8px 12px;">📻 Comunidad</button>
-    </div>
-
     <div class="map-wrap">
       <div id="map"></div>
     </div>
 
-    <div class="bottom-panel">
-      <div class="controls">
-        <button class="btn btn-accent btn-full" id="genRouteBtn">🔄 Generar Ruta Curvilínea</button>
-        <button class="btn btn-full" id="startCockpitBtn" style="background:#2563eb; color:#fff;">🏍️ INICIAR MODO GPS MANILLAR</button>
-        <button class="btn" id="gmapsBtn">🗺️ Abrir Maps</button>
-        <button class="btn" id="gpxBtn">📥 Exportar GPX</button>
+    <div class="main-container">
+      <div class="panel-card">
+        <div class="controls">
+          <button class="btn btn-red btn-full" id="genRouteBtn">🔄 GENERAR RUTA CURVILÍNEA</button>
+          <button class="btn" id="gmapsBtn">🗺️ ABRIR GOOGLE MAPS</button>
+          <button class="btn" id="gpxBtn">📥 EXPORTAR GPX</button>
+        </div>
       </div>
-
-      <div class="sos-config">
-        <span style="font-size:0.8rem;">🚨 Contacto SOS:</span>
-        <input type="tel" id="sosPhone" placeholder="+34600000000">
-      </div>
-
-      <div id="log">Estado: Esperando acción...</div>
     </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const OSRM = "https://router.project-osrm.org/route/v1/driving/";
     const $ = id => document.getElementById(id);
-    const log = msg => { $("log").textContent = `[${new Date().toLocaleTimeString()}] ${msg}`; };
 
-    let map, userPos = null, lastRoute = null, watchId = null;
-    let currentStepIdx = 0, routeSteps = [];
+    let map, userPos = null, lastRoute = null, routeLayer = null;
+    let currentImageData = null;
 
-    // BASE DE DATOS DE OPINIONES DE MOTOS
+    // BASE DE DATOS DE REVIEWS POR ESTILO
     const bikeReviews = [
       { bike: "Yamaha MT-07", category: "naked", stars: "★★★★★", comment: "Agilidad increíble para curvas ratoneras. El motor CP2 empuja de maravilla." },
       { bike: "BMW R1250GS", category: "adventure", stars: "★★★★★", comment: "La reina de las rutas largas. El motor bóxer da una estabilidad envidiable." },
       { bike: "Honda CB500X", category: "trail", stars: "★★★★☆", comment: "Ligera, económica y perfecta para tramos mixtos de asfalto y pista." },
       { bike: "Kawasaki Z900", category: "naked", stars: "★★★★☆", comment: "Potencia tetra-cilíndrica pura. Fiel en curvas rápidas." },
-      { bike: "KTM 890 Adventure", category: "adventure", stars: "★★★★★", comment: "Capacidad off-road brutal sin perder prestaciones en tramos revirados." },
-      { bike: "Yamaha Tenere 700", category: "trail", stars: "★★★★★", comment: "Pura filosofía Trail tradicional. Ligera, robusta e indestructible." }
+      { bike: "KTM 890 Adventure", category: "adventure", stars: "★★★★★", comment: "Capacidad off-road brutal sin perder prestaciones en tramos revirados." }
     ];
 
-    // Sintetizador de Voz para Navegación
-    const voice = {
-      speak(text) {
-        if (!('speechSynthesis' in window)) return;
-        window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'es-ES';
-        window.speechSynthesis.speak(msg);
+    // POSTS DE COMUNIDAD CON PERSISTENCIA
+    let posts = JSON.parse(localStorage.getItem("rider-posts")) || [
+      {
+        id: 1,
+        user: "Rider_Pro",
+        content: "¡Ruta increíble por la sierra este fin de semana! Asfalto perfecto y cero tráfico.",
+        image: null,
+        likes: 8,
+        liked: false,
+        date: "Hace 2 horas"
       }
-    };
+    ];
 
-    // DB Offline (IndexedDB)
-    const dbPromise = indexedDB.open("RiderDB", 1);
-    dbPromise.onupgradeneeded = e => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains("routes")) db.createObjectStore("routes", { keyPath: "id", autoIncrement: true });
-    };
-
-    // --- 1. GESTIÓN DE AUTENTICACIÓN / PERFIL ---
+    // --- 1. INICIALIZACIÓN DE USUARIO ---
     window.addEventListener('load', () => {
       const savedUser = JSON.parse(localStorage.getItem('rider_user'));
       if (savedUser) {
@@ -311,7 +254,7 @@
         $("authOverlay").classList.remove("active");
       }
       initMap();
-      initFallDetection();
+      renderPosts();
       renderReviews('all');
     });
 
@@ -327,199 +270,76 @@
     });
 
     function loadUserProfile(user) {
-      $("displayName").textContent = user.name;
-      $("displayBike").textContent = user.bike;
-      $("avatarLetter").textContent = user.name.charAt(0).toUpperCase();
+      $("userPill").textContent = `@${user.name} (${user.bike})`;
     }
 
-    // --- 2. RENDERIZADO DE OPINIONES DE MOTOS ---
-    function renderReviews(filterCat) {
-      const container = $("reviewsContainer");
-      container.innerHTML = "";
-      
-      const filtered = filterCat === 'all' 
-        ? bikeReviews 
-        : bikeReviews.filter(r => r.category === filterCat);
-
-      filtered.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "review-card";
-        card.innerHTML = `
-          <div class="review-header">
-            <span class="bike-tag">${r.bike}</span>
-            <span class="stars">${r.stars}</span>
-          </div>
-          <p style="font-size:0.85rem;">${r.comment}</p>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    // Filtros de categoría pill
-    document.querySelectorAll(".pill").forEach(pill => {
-      pill.addEventListener("click", (e) => {
-        document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
-        e.target.classList.add("active");
-        renderReviews(e.target.dataset.cat);
-      });
+    $("resetProfileBtn").addEventListener("click", () => {
+      localStorage.removeItem('rider_user');
+      location.reload();
     });
 
-    // --- 3. INICIALIZACIÓN DEL MAPA Y GEOLOCALIZACIÓN ---
+    // MENÚ NAVEGACIÓN FLOTANTE
+    $("menuToggle").addEventListener("click", () => $("navMenu").classList.toggle("open"));
+
+    // --- 2. MAPA CARTO POSITRON / DARK MATTER ---
     function initMap() {
-      map = L.map('map', { zoomControl: false }).setView([40.4167, -3.7037], 12);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
+      map = L.map("map", { zoomControl: true, preferCanvas: true }).setView([41.3851, 2.1734], 10);
+
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        maxZoom: 19,
+        subdomains: ["a", "b", "c", "d"],
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
       }).addTo(map);
 
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
           userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          map.setView([userPos.lat, userPos.lng], 14);
-          L.circleMarker([userPos.lat, userPos.lng], { radius: 8, color: '#2563eb', fillColor: '#3b82f6', fillOpacity: 1 }).addTo(map);
-          log("Ubicación GPS obtenida.");
-        }, () => log("Error leyendo GPS. Usa SSL/HTTPS."));
+          map.setView([userPos.lat, userPos.lng], 13);
+
+          L.circleMarker([userPos.lat, userPos.lng], {
+            radius: 9, color: "#000000", weight: 3, fillColor: "#ff3b30", fillOpacity: 1
+          }).addTo(map);
+        });
       }
     }
 
-    // --- 4. MOTOR DE RUTAS OSRM ---
-    function distanceBetween(p1, p2) {
-      const R = 6371;
-      const dLat = (p2.lat - p1.lat) * Math.PI / 180;
-      const dLng = (p2.lng - p1.lng) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
-                Math.sin(dLng/2) * Math.sin(dLng/2);
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-
-    function generateCurvyWaypoints(start, radiusKm = 12, count = 3) {
-      const points = [];
-      const angleStep = (Math.PI * 2) / count;
-      const randomOffset = Math.random() * Math.PI;
-
-      for (let i = 0; i < count; i++) {
-        const angle = i * angleStep + randomOffset;
-        const d = radiusKm * (0.6 + Math.random() * 0.5);
-        const lat = start.lat + (d / 111) * Math.cos(angle);
-        const lng = start.lng + (d / (111 * Math.cos(start.lat * Math.PI / 180))) * Math.sin(angle);
-        points.push({ lat, lng });
-      }
-      return points;
-    }
-
+    // --- 3. RUTAS OSRM ---
     $("genRouteBtn").addEventListener("click", async () => {
-      if (!userPos) return alert("Esperando conexión GPS...");
-      log("Calculando ruta con giros...");
-
-      const waypoints = generateCurvyWaypoints(userPos, 12, 3);
-      const firstLegWay = {
-        lat: userPos.lat + (waypoints[0].lat - userPos.lat) * 0.2,
-        lng: userPos.lng + (waypoints[0].lng - userPos.lng) * 0.2
+      if (!userPos) return alert("Obteniendo ubicación GPS...");
+      
+      const waypoint = {
+        lat: userPos.lat + (Math.random() - 0.5) * 0.1,
+        lng: userPos.lng + (Math.random() - 0.5) * 0.1
       };
 
-      const routePoints = [userPos, firstLegWay, ...waypoints, userPos];
+      const coordsStr = `${userPos.lng},${userPos.lat};${waypoint.lng},${waypoint.lat};${userPos.lng},${userPos.lat}`;
       
       try {
-        const coordsStr = routePoints.map(p => `${p.lng},${p.lat}`).join(";");
-        const res = await fetch(`${OSRM}${coordsStr}?overview=full&geometries=geojson&steps=true`);
+        const res = await fetch(`${OSRM}${coordsStr}?overview=full&geometries=geojson`);
         const data = await res.json();
+        if (data.code !== "Ok") throw new Error();
 
-        if (data.code !== "Ok" || !data.routes.length) throw new Error("No route");
-        
         lastRoute = data.routes[0];
-        
-        L.geoJSON(lastRoute.geometry, { style: { color: '#f59e0b', weight: 6, opacity: 0.8 } }).addTo(map);
-        log(`Ruta lista: ${(lastRoute.distance/1000).toFixed(1)} km`);
 
-      } catch (err) {
-        log("Error conectando con OSRM.");
+        if (routeLayer) map.removeLayer(routeLayer);
+        routeLayer = L.geoJSON(lastRoute.geometry, {
+          style: { color: "#0066ff", weight: 6, opacity: 0.95 }
+        }).addTo(map);
+
+        map.fitBounds(routeLayer.getBounds(), { padding: [35, 35] });
+
+      } catch (e) {
+        alert("Error generando la ruta.");
       }
     });
 
-    // --- 5. NAVEGACIÓN GPS MANILLAR ---
-    $("startCockpitBtn").addEventListener("click", () => {
-      if (!lastRoute) return alert("Genera una ruta primero.");
-
-      routeSteps = lastRoute.legs.flatMap(leg => leg.steps);
-      $("cockpitOverlay").classList.add("active");
-      
-      const mapEl = $("map");
-      $("cockpitMapContainer").appendChild(mapEl);
-      mapEl.style.height = "250px";
-      mapEl.style.borderRadius = "16px";
-      setTimeout(() => map.invalidateSize(), 300);
-
-      currentStepIdx = 0;
-      updateCockpitStep();
-      startLiveTracking();
-    });
-
-    function updateCockpitStep() {
-      if (!routeSteps.length || currentStepIdx >= routeSteps.length) {
-        $("cockpitInstruction").textContent = "Llegada al destino";
-        $("cockpitDist").textContent = "--";
-        voice.speak("Has llegado a tu destino.");
-        return;
-      }
-
-      const step = routeSteps[currentStepIdx];
-      const text = step.maneuver.instruction || step.name || "Continúa la ruta";
-      $("cockpitInstruction").textContent = text;
-      $("cockpitDist").textContent = `${Math.round(step.distance)} m`;
-
-      let icon = "↑";
-      const mod = step.maneuver.modifier;
-      if (mod?.includes("left")) icon = "↖";
-      if (mod?.includes("right")) icon = "↗";
-      if (step.maneuver.type?.includes("roundabout")) icon = "🔄";
-      $("cockpitIcon").textContent = icon;
-
-      voice.speak(`${$("cockpitDist").textContent}, ${text}`);
-    }
-
-    function startLiveTracking() {
-      if (!navigator.geolocation) return;
-      watchId = navigator.geolocation.watchPosition(pos => {
-        const { latitude: lat, longitude: lng, speed } = pos.coords;
-        $("cockpitSpeed").textContent = speed ? Math.round(speed * 3.6) : 0;
-        map.panTo([lat, lng]);
-
-        if (routeSteps[currentStepIdx]) {
-          const stepLoc = routeSteps[currentStepIdx].maneuver.location;
-          const distToStep = distanceBetween({ lat, lng }, { lat: stepLoc[1], lng: stepLoc[0] }) * 1000;
-          if (distToStep < 30 && currentStepIdx < routeSteps.length - 1) {
-            currentStepIdx++;
-            updateCockpitStep();
-          }
-        }
-      }, null, { enableHighAccuracy: true });
-    }
-
-    $("cockpitExitBtn").addEventListener("click", () => {
-      if (watchId) navigator.geolocation.clearWatch(watchId);
-      
-      const mapEl = $("map");
-      document.querySelector(".map-wrap").appendChild(mapEl);
-      mapEl.style.height = "100%";
-      mapEl.style.borderRadius = "0";
-
-      $("cockpitOverlay").classList.remove("active");
-      setTimeout(() => map.invalidateSize(), 300);
-    });
-
-    // --- 6. EXPORTACIONES ---
+    // --- 4. EXPORTACIÓN GOOGLE MAPS & GPX ---
     $("gmapsBtn").addEventListener("click", () => {
       if (!lastRoute) return alert("Genera una ruta primero.");
       const coords = lastRoute.geometry.coordinates;
       const origin = `${coords[0][1]},${coords[0][0]}`;
       const destination = `${coords[coords.length-1][1]},${coords[coords.length-1][0]}`;
-      const waypoints = coords.filter((_, i) => i % Math.floor(coords.length / 5) === 0)
-                              .slice(1, -1)
-                              .map(c => `${c[1]},${c[0]}`)
-                              .join('|');
-
-      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
-      window.open(url, '_blank');
+      window.open(`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`, '_blank');
     });
 
     $("gpxBtn").addEventListener("click", () => {
@@ -532,67 +352,128 @@
       const blob = new Blob([gpx], { type: 'application/gpx+xml' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `ruta_rider_${Date.now()}.gpx`;
+      a.download = `rider_route_${Date.now()}.gpx`;
       a.click();
     });
 
-    // --- 7. DETECCIÓN DE CAÍDAS (SOS ACCELEROMETER) ---
-    let sosTimer = null;
-    let sosCountdownVal = 15;
-
-    function initFallDetection() {
-      if (window.DeviceMotionEvent) {
-        window.addEventListener('devicemotion', e => {
-          const acc = e.accelerationIncludingGravity;
-          if (!acc) return;
-          const totalAcc = Math.sqrt(acc.x*acc.x + acc.y*acc.y + acc.z*acc.z);
-          if (totalAcc > 40) triggerSosAlert();
-        });
-      }
+    // --- 5. REVIEWS DE MOTOS Y COMUNIDAD ---
+    function renderReviews(cat) {
+      const container = $("reviewsContainer");
+      container.innerHTML = "";
+      const filtered = cat === 'all' ? bikeReviews : bikeReviews.filter(r => r.category === cat);
+      filtered.forEach(r => {
+        const card = document.createElement("div");
+        card.className = "review-card";
+        card.innerHTML = `
+          <div class="review-header">
+            <span class="bike-tag">${r.bike}</span>
+            <span class="stars">${r.stars}</span>
+          </div>
+          <p style="font-size:12px; line-height:1.4;">${r.comment}</p>
+        `;
+        container.appendChild(card);
+      });
     }
 
-    function triggerSosAlert() {
-      if ($("sosModal").classList.contains("active")) return;
-      $("sosModal").classList.add("active");
-      sosCountdownVal = 15;
-      $("sosCountdown").textContent = sosCountdownVal;
-
-      sosTimer = setInterval(() => {
-        sosCountdownVal--;
-        $("sosCountdown").textContent = sosCountdownVal;
-        if (sosCountdownVal <= 0) {
-          clearInterval(sosTimer);
-          sendSosSms();
-        }
-      }, 1000);
-    }
-
-    function sendSosSms() {
-      const phone = $("sosPhone").value.trim();
-      const locStr = userPos ? `https://maps.google.com/?q=${userPos.lat},${userPos.lng}` : "Ubicación desconocida";
-      const body = encodeURIComponent(`¡ALERTA RIDER! He sufrido una caída en moto. Mi posición: ${locStr}`);
-      window.location.href = `sms:${phone}?body=${body}`;
-      $("sosModal").classList.remove("active");
-    }
-
-    $("cancelSosBtn").addEventListener("click", () => {
-      if (sosTimer) clearInterval(sosTimer);
-      $("sosModal").classList.remove("active");
+    document.querySelectorAll(".pill").forEach(pill => {
+      pill.addEventListener("click", (e) => {
+        document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+        e.target.classList.add("active");
+        renderReviews(e.target.dataset.cat);
+      });
     });
 
-    // --- 8. COMUNIDAD E INTERCOMUNICADOR ---
-    $("openCommunityBtn").addEventListener("click", () => $("communityOverlay").classList.add("active"));
+    // FEED DE PUBLICACIONES
+    $("postImage").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = evt => {
+          currentImageData = evt.target.result;
+          $("fileName").textContent = file.name;
+          $("fileName").style.display = "inline";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    $("publishBtn").addEventListener("click", () => {
+      const text = $("postInput").value.trim();
+      const savedUser = JSON.parse(localStorage.getItem('rider_user')) || { name: 'Rider' };
+      if (!text && !currentImageData) return alert("Escribe algo o sube una imagen.");
+
+      const newPost = {
+        id: Date.now(),
+        user: savedUser.name,
+        content: text,
+        image: currentImageData,
+        likes: 0,
+        liked: false,
+        date: "Ahora mismo"
+      };
+
+      posts.unshift(newPost);
+      localStorage.setItem("rider-posts", JSON.stringify(posts));
+      $("postInput").value = "";
+      $("postImage").value = "";
+      $("fileName").style.display = "none";
+      currentImageData = null;
+      renderPosts();
+    });
+
+    function toggleLike(id) {
+      posts = posts.map(p => {
+        if (p.id === id) {
+          p.liked = !p.liked;
+          p.likes += p.liked ? 1 : -1;
+        }
+        return p;
+      });
+      localStorage.setItem("rider-posts", JSON.stringify(posts));
+      renderPosts();
+    }
+
+    function renderPosts() {
+      const container = $("postsFeed");
+      container.innerHTML = "";
+      posts.forEach(post => {
+        const card = document.createElement("div");
+        card.className = "post-card";
+        let imgHtml = post.image ? `<img src="${post.image}" class="post-img">` : "";
+        card.innerHTML = `
+          <div class="post-header">
+            <span class="post-user">@${post.user}</span>
+            <span class="post-date">${post.date}</span>
+          </div>
+          ${post.content ? `<div class="post-content">${post.content}</div>` : ""}
+          ${imgHtml}
+          <div class="post-footer">
+            <button class="like-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
+              ${post.liked ? '❤️' : '🤍'} ${post.likes} Me gusta
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // CONTROL DE PANTALLA DE COMUNIDAD / PTT
+    $("openCommunityMenuBtn").addEventListener("click", () => {
+      $("navMenu").classList.remove("open");
+      $("communityOverlay").classList.add("active");
+    });
     $("closeCommunityBtn").addEventListener("click", () => $("communityOverlay").classList.remove("active"));
 
-    const pttBtn = $("pttBtn");
-    pttBtn.addEventListener("touchstart", (e) => {
+    // BOTÓN INTERCOM PTT
+    const talkBtn = $("talkButton");
+    talkBtn.addEventListener("touchstart", (e) => {
       e.preventDefault();
-      pttBtn.style.background = "#10b981";
-      pttBtn.textContent = "TRANSMITIENDO";
+      talkBtn.style.background = "#3fb950";
+      talkBtn.textContent = "HABLANDO";
     });
-    pttBtn.addEventListener("touchend", () => {
-      pttBtn.style.background = "#ef4444";
-      pttBtn.textContent = "PTT";
+    talkBtn.addEventListener("touchend", () => {
+      talkBtn.style.background = "#ff3b30";
+      talkBtn.textContent = "PTT";
     });
   </script>
 </body>
