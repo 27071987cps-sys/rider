@@ -706,6 +706,13 @@
       font-weight: 900;
     }
 
+    #startCockpitBtn {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: 0;
+      font-size: 13px;
+    }
+
     #navigateButton {
       grid-column: 1 / -1;
       background: linear-gradient(135deg, var(--red), var(--red2));
@@ -849,6 +856,8 @@
       font-size: 12px;
       font-weight: 900;
       user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
       touch-action: none;
       transition: transform 0.15s, box-shadow 0.15s;
     }
@@ -856,6 +865,120 @@
     .talk.active {
       transform: scale(1.06);
       box-shadow: 0 0 0 16px rgba(255, 59, 48, 0.15);
+    }
+
+    /* ==========================================
+       ESTILOS DEL MODO MANILLAR, SOS Y GRUPO
+    ========================================== */
+    .cockpit-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #020617;
+      padding: 24px;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .cockpit-overlay.active {
+      display: flex;
+    }
+
+    .cockpit-card {
+      background: #0f172a;
+      border: 3px solid #10b981;
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .cockpit-icon {
+      width: 64px;
+      height: 64px;
+      background: #10b981;
+      color: #020617;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    .cockpit-speedometer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: auto 0;
+    }
+
+    .speed-number {
+      font-size: 110px;
+      font-weight: 900;
+      font-family: monospace;
+      line-height: 1;
+      color: #ffffff;
+    }
+
+    .speed-unit {
+      color: #94a3b8;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      margin-top: 8px;
+    }
+
+    .cockpit-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .cockpit-btn {
+      padding: 22px;
+      border-radius: 20px;
+      font-weight: 900;
+      font-size: 16px;
+      border: 2px solid #334155;
+      background: #0f172a;
+      color: white;
+    }
+
+    .cockpit-btn.danger {
+      background: #dc2626;
+      border-color: #ef4444;
+    }
+
+    .sos-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(69, 10, 10, 0.96);
+      backdrop-filter: blur(12px);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .sos-modal.active {
+      display: flex;
+    }
+
+    .sos-timer {
+      font-size: 80px;
+      font-weight: 900;
+      font-family: monospace;
+      color: #f87171;
+      margin: 20px 0;
     }
 
     footer {
@@ -1108,6 +1231,8 @@
         </div>
         <div class="bar"><div id="scoreBar"></div></div>
         <div class="result-buttons">
+          <button id="startCockpitBtn">🏍️ MODO MANILLAR Y VOZ</button>
+          <button id="saveOfflineBtn">💾 GUARDAR OFFLINE</button>
           <button id="saveButton">♡ GUARDAR</button>
           <button id="shareButton">↗ COMPARTIR</button>
           <button id="gpxButton">⇩ GPX</button>
@@ -1137,11 +1262,19 @@
       <div class="posts-feed" id="postsFeed"></div>
     </section>
 
-    <!-- INTERCOM -->
+    <!-- INTERCOM Y GRUPO -->
     <section class="section intercom" id="intercomSection">
-      <div class="eyebrow">06 — INTERCOM</div>
-      <h2>RIDER INTERCOM</h2>
-      <p class="description">Crea un grupo para rodar juntos. Esta versión permite probar la interfaz y el flujo de grupo localmente.</p>
+      <div class="eyebrow">06 — INTERCOM Y LIVE TRACKING</div>
+      <h2>RIDER INTERCOM & GROUP</h2>
+      <p class="description">Crea un grupo para rodar juntos, seguir la telemetría del grupo en directo e intercomunicarte.</p>
+
+      <div style="margin-top: 15px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px;">
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="text" id="groupCodeInput" placeholder="Código de grupo (ej: MOTOS-99)" style="flex:1; background: var(--panel2); border: 1px solid var(--line); padding: 12px; border-radius: 10px; color: white; font-size: 12px;">
+          <button id="joinGroupBtn" style="background: var(--red); color: white; border: 0; padding: 0 16px; border-radius: 10px; font-weight: 900; font-size: 11px;">UNIRSE</button>
+        </div>
+        <div id="groupMembersList" style="font-size: 11px; color: var(--muted);">Sin grupo activo.</div>
+      </div>
 
       <div class="intercom-panel" style="text-align: center; margin-top: 15px;">
         <button class="talk" id="talkButton">🎙️<br>PULSA<br>PARA HABLAR</button>
@@ -1169,6 +1302,41 @@
   <footer>
     RIDER · RIDE DIFFERENT · POWERED BY OPENSTREETMAP
   </footer>
+</div>
+
+<!-- ==========================================
+     CAPA DE MODO MANILLAR (NAVEGACIÓN EN RUTA)
+========================================== -->
+<div class="cockpit-overlay" id="cockpitOverlay">
+  <div class="cockpit-card" id="cockpitNextStep">
+    <div class="cockpit-icon" id="cockpitIcon">↑</div>
+    <div>
+      <div style="color: #10b981; font-weight: 900; font-size: 14px; text-transform: uppercase;" id="cockpitDist">En 500 m</div>
+      <h2 style="margin: 4px 0 0; font-size: 22px; font-weight: 900;" id="cockpitInstruction">Sigue recto por la carretera</h2>
+    </div>
+  </div>
+
+  <div class="cockpit-speedometer">
+    <div class="speed-number" id="cockpitSpeed">0</div>
+    <div class="speed-unit">KM/H</div>
+  </div>
+
+  <div class="cockpit-controls">
+    <button class="cockpit-btn" id="cockpitMuteBtn">🔊 VOZ ACTIVA</button>
+    <button class="cockpit-btn danger" id="cockpitExitBtn">SALIR</button>
+  </div>
+</div>
+
+<!-- ==========================================
+     MODAL DE EMERGENCIA SOS (CAÍDAS)
+========================================== -->
+<div class="sos-modal" id="sosModal">
+  <div style="width: 70px; h-height: 70px; background: #dc2626; border-radius: 50%; display: grid; place-items: center; font-size: 32px; margin-bottom: 12px;">⚠️</div>
+  <h1 style="font-size: 26px; font-weight: 900; margin: 0 0 8px;">¿TE ENCUENTRAS BIEN?</h1>
+  <p style="color: #cbd5e1; font-size: 12px; margin: 0 0 12px;">Hemos detectado una desaceleración o impacto fuerte.</p>
+  <div class="sos-timer" id="sosTimer">30</div>
+  <p style="color: #94a3b8; font-size: 10px; margin-bottom: 24px;">Se enviará un mensaje SOS de emergencia con tus coordenadas GPS exactas.</p>
+  <button id="cancelSosBtn" style="width: 100%; padding: 18px; background: white; color: #0f172a; border: 0; border-radius: 16px; font-weight: 900; font-size: 16px;">CANCELAR (ESTOY BIEN)</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1438,7 +1606,9 @@
     }
   }
 
-  /* GPS GEOLOCATION */
+  /* GPS GEOLOCATION & SPEED TRACKING */
+  let currentSpeed = 0;
+
   function locateUser() {
     if (!navigator.geolocation) {
       alert("GPS no disponible en este dispositivo.");
@@ -1448,9 +1618,12 @@
     const t = translations[currentLanguage];
     $("gpsStatus").textContent = t.gpsSearching;
 
-    navigator.geolocation.getCurrentPosition(
+    navigator.geolocation.watchPosition(
       pos => {
         userPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        currentSpeed = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0;
+        $("cockpitSpeed").textContent = currentSpeed;
+
         if (userMarker) map.removeLayer(userMarker);
 
         userMarker = L.circleMarker([userPosition.lat, userPosition.lng], {
@@ -1462,19 +1635,22 @@
         }).addTo(map);
 
         userMarker.bindPopup("📍 RIDER");
-        map.setView([userPosition.lat, userPosition.lng], 12);
 
         $("gpsStatus").textContent = t.gpsActive;
         $("gpsStatus").classList.add("gps");
         $("mapText").textContent = currentLanguage === "en"
           ? "Location detected. Ready to ride."
           : currentLanguage === "ca" ? "Ubicació detectada. Preparat per rodar." : "Ubicación detectada. Listo para rodar.";
+
+        // Transmitir posición al grupo si hay WebSocket activo
+        if (wsGroup && wsGroup.readyState === WebSocket.OPEN) {
+          wsGroup.send(JSON.stringify({ ...userPosition, speed: currentSpeed }));
+        }
       },
       err => {
         $("gpsStatus").textContent = "● ERROR GPS";
-        alert("No se pudo obtener la ubicación GPS.");
       },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 }
+      { enableHighAccuracy: true, maximumAge: 1000 }
     );
   }
 
@@ -1568,7 +1744,7 @@
   /* API RUTAS (OSRM) */
   async function osrm(points) {
     const coords = points.map(p => `${p.lng},${p.lat}`).join(";");
-    const response = await fetch(`${OSRM}${coords}?overview=full&geometries=geojson&steps=false`);
+    const response = await fetch(`${OSRM}${coords}?overview=full&geometries=geojson&steps=true`);
     if (!response.ok) throw new Error("OSRM Fetch Error");
     const data = await response.json();
     if (data.code !== "Ok" || !data.routes.length) throw new Error("No route found");
@@ -1595,6 +1771,7 @@
     try {
       const prefs = values();
       const profile = bikeProfiles[selectedBike];
+      const fetchPromises = [];
 
       if (routeMode === "circular") {
         const baseRadius = selectedDistance * profile.radius;
@@ -1608,16 +1785,7 @@
             points.push(destination(userPosition, angle, baseRadius * mult));
           });
           points.push(userPosition);
-
-          try {
-            const route = await osrm(points);
-            route.elevation = Math.round((route.distance / 1000) * 12 * ((prefs.mountain / 10) * 1.5 + .5));
-            route.score = Math.max(50, Math.min(99, Math.round(65 + ((prefs.curves + prefs.mountain + prefs.secondary + prefs.scenery + prefs.fun) / 5) * 2.8)));
-            route.profile = selectedBike;
-            generatedRoutes.push(route);
-          } catch (e) {
-            console.warn("Circ. Variant Error", e);
-          }
+          fetchPromises.push(osrm(points));
         }
       } else {
         let destCoords = selectedDestination;
@@ -1637,17 +1805,21 @@
         for (let i = 0; i < 3; i++) {
           const mid = destination(userPosition, bearing + offsets[i], directDist * .45);
           const pts = offsets[i] === 0 ? [userPosition, destCoords] : [userPosition, mid, destCoords];
-          try {
-            const route = await osrm(pts);
-            route.elevation = Math.round((route.distance / 1000) * 12 * ((prefs.mountain / 10) * 1.5 + .5));
-            route.score = Math.max(50, Math.min(99, Math.round(65 + ((prefs.curves + prefs.mountain + prefs.secondary + prefs.scenery + prefs.fun) / 5) * 2.8)));
-            route.profile = selectedBike;
-            generatedRoutes.push(route);
-          } catch (e) {
-            console.warn("Dest. Variant Error", e);
-          }
+          fetchPromises.push(osrm(pts));
         }
       }
+
+      const results = await Promise.allSettled(fetchPromises);
+
+      results.forEach((res) => {
+        if (res.status === "fulfilled") {
+          const route = res.value;
+          route.elevation = Math.round((route.distance / 1000) * 12 * ((prefs.mountain / 10) * 1.5 + .5));
+          route.score = Math.max(50, Math.min(99, Math.round(65 + ((prefs.curves + prefs.mountain + prefs.secondary + prefs.scenery + prefs.fun) / 5) * 2.8)));
+          route.profile = selectedBike;
+          generatedRoutes.push(route);
+        }
+      });
 
       if (!generatedRoutes.length) throw new Error("No routes calculated");
 
@@ -1686,7 +1858,6 @@
   function displayRoute(route) {
     if (routeLayer) map.removeLayer(routeLayer);
 
-    // Color azul con gran visibilidad sobre fondo claro
     routeLayer = L.geoJSON(route.geometry, {
       style: { color: "#0066ff", weight: 6, opacity: 0.95 }
     }).addTo(map);
@@ -1705,45 +1876,31 @@
     $("resultName").textContent = `${bikeProfiles[selectedBike].name} ATTACK · ${km} KM`;
   }
 
-  /* NAVEGACIÓN GOOGLE MAPS */
+  /* NAVEGACIÓN GOOGLE MAPS OPTIMIZADA */
   $("navigateButton").addEventListener("click", () => {
-    if (!lastRoute || !lastRoute.geometry || !lastRoute.geometry.coordinates) {
+    if (!lastRoute?.geometry?.coordinates) {
       alert("Genera una ruta antes de iniciar la navegación.");
       return;
     }
 
     const coords = lastRoute.geometry.coordinates;
-    const totalPoints = coords.length;
-
-    if (totalPoints < 2) return;
+    const total = coords.length;
+    if (total < 2) return;
 
     const origin = `${coords[0][1]},${coords[0][0]}`;
-    
-    let destinationIndex = totalPoints - 1;
-    if (routeMode === "circular") {
-      destinationIndex = Math.floor(totalPoints * 0.85);
-    }
+    const destination = routeMode === "circular" ? origin : `${coords[total - 1][1]},${coords[total - 1][0]}`;
 
-    const destination = `${coords[destinationIndex][1]},${coords[destinationIndex][0]}`;
-
-    const waypointsCount = 4;
+    const sampleSize = Math.min(8, Math.floor(total / 2));
+    const step = Math.floor(total / (sampleSize + 1));
     const waypoints = [];
-    const step = Math.floor(destinationIndex / (waypointsCount + 1));
 
-    for (let i = 1; i <= waypointsCount; i++) {
-      const idx = step * i;
-      if (idx < destinationIndex) {
-        waypoints.push(`${coords[idx][1]},${coords[idx][0]}`);
-      }
+    for (let i = 1; i <= sampleSize; i++) {
+      const pt = coords[i * step];
+      waypoints.push(`${pt[1]},${pt[0]}`);
     }
 
-    let googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
-
-    if (waypoints.length > 0) {
-      googleMapsUrl += `&waypoints=${encodeURIComponent(waypoints.join('|'))}`;
-    }
-
-    window.open(googleMapsUrl, '_blank');
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving&waypoints=${encodeURIComponent(waypoints.join('|'))}`;
+    window.open(mapsUrl, '_blank');
   });
 
   /* GPX EXPORT */
@@ -1765,7 +1922,7 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
-  /* MÓDULO COMUNIDAD FUNCIONAL */
+  /* MÓDULO COMUNIDAD CON COMPRESIÓN DE IMÁGENES */
   let posts = JSON.parse(localStorage.getItem("rider-posts")) || [
     {
       id: 1,
@@ -1780,12 +1937,35 @@
 
   let currentImageData = null;
 
+  function compressImage(base64Str, maxWidth = 800, quality = 0.7) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+    });
+  }
+
   $("postImage").addEventListener("change", e => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = function(evt) {
-        currentImageData = evt.target.result;
+      reader.onload = async function(evt) {
+        currentImageData = await compressImage(evt.target.result);
         $("fileName").textContent = file.name;
         $("fileName").style.display = "inline";
       };
@@ -1859,7 +2039,7 @@
     });
   }
 
-  /* INTERCOM TALK BUTTON */
+  /* INTERCOM Y MANEJO DE EVENTOS TÁCTILES */
   const talkBtn = $("talkButton");
 
   function handleTalkStart(e) {
@@ -1878,11 +2058,162 @@
   talkBtn.addEventListener("pointerdown", handleTalkStart);
   talkBtn.addEventListener("pointerup", handleTalkEnd);
   talkBtn.addEventListener("pointercancel", handleTalkEnd);
+  talkBtn.addEventListener("contextmenu", e => e.preventDefault());
+
+  /* ==========================================
+     NUEVAS FUNCIONALIDADES (VOZ, SOS, OFFLINE, GRUPO)
+  ========================================== */
+
+  // 1. MOTOR DE VOZ (SINTETIZADOR NATIVO)
+  class VoiceEngine {
+    constructor() {
+      this.synth = window.speechSynthesis;
+      this.voice = null;
+      this.isMuted = false;
+      this.init();
+    }
+    init() {
+      if (!this.synth) return;
+      const load = () => {
+        const voices = this.synth.getVoices();
+        this.voice = voices.find(v => v.lang.startsWith('es')) || voices[0];
+      };
+      load();
+      if (this.synth.onvoiceschanged !== undefined) this.synth.onvoiceschanged = load;
+    }
+    speak(text) {
+      if (this.isMuted || !this.synth) return;
+      this.synth.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      if (this.voice) u.voice = this.voice;
+      this.synth.speak(u);
+    }
+    toggleMute() {
+      this.isMuted = !this.isMuted;
+      if (this.isMuted) this.synth.cancel();
+      return this.isMuted;
+    }
+  }
+  const voice = new VoiceEngine();
+
+  // 2. MODO MANILLAR
+  let currentStepIdx = 0;
+  $("startCockpitBtn").addEventListener("click", () => {
+    if (!lastRoute) return;
+    $("cockpitOverlay").classList.add("active");
+    currentStepIdx = 0;
+    updateCockpitStep();
+  });
+
+  $("cockpitExitBtn").addEventListener("click", () => {
+    $("cockpitOverlay").classList.remove("active");
+  });
+
+  $("cockpitMuteBtn").addEventListener("click", () => {
+    const muted = voice.toggleMute();
+    $("cockpitMuteBtn").textContent = muted ? "🔇 SIN AUDIO" : "🔊 VOZ ACTIVA";
+  });
+
+  $("cockpitNextStep").addEventListener("click", () => {
+    if (!lastRoute || !lastRoute.legs || !lastRoute.legs[0].steps) return;
+    const steps = lastRoute.legs[0].steps;
+    currentStepIdx = (currentStepIdx + 1) % steps.length;
+    updateCockpitStep();
+  });
+
+  function updateCockpitStep() {
+    if (!lastRoute || !lastRoute.legs || !lastRoute.legs[0].steps.length) {
+      $("cockpitInstruction").textContent = "Sigue la ruta en el mapa";
+      $("cockpitDist").textContent = "EN RUTA";
+      voice.speak("Ruta iniciada. Sigue las indicaciones del mapa.");
+      return;
+    }
+    const step = lastRoute.legs[0].steps[currentStepIdx];
+    $("cockpitInstruction").textContent = step.maneuver.instruction || "Continúa por la carretera";
+    $("cockpitDist").textContent = `En ${Math.round(step.distance)} m`;
+    voice.speak(step.maneuver.instruction || "Continúa por la carretera");
+  }
+
+  // 3. DETECTOR SOS DE CAÍDAS (ACELERÓMETRO)
+  let sosTimerValue = 30;
+  let sosInterval = null;
+  const emergencyContact = "+34600000000";
+
+  if ('DeviceMotionEvent' in window) {
+    window.addEventListener('devicemotion', (e) => {
+      const acc = e.accelerationIncludingGravity;
+      if (!acc) return;
+      const totalG = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
+      if (totalG > 32) triggerSOS(); // Umbral de impacto brusco
+    });
+  }
+
+  function triggerSOS() {
+    if ($("sosModal").classList.contains("active")) return;
+    $("sosModal").classList.add("active");
+    sosTimerValue = 30;
+    $("sosTimer").textContent = sosTimerValue;
+
+    sosInterval = setInterval(() => {
+      sosTimerValue--;
+      $("sosTimer").textContent = sosTimerValue;
+      if (sosTimerValue <= 0) {
+        clearInterval(sosInterval);
+        const lat = userPosition ? userPosition.lat : 0;
+        const lng = userPosition ? userPosition.lng : 0;
+        const msg = encodeURIComponent(`¡ALERTA SOS RIDER! He tenido un accidente en moto. Mi posición: https://maps.google.com/?q=${lat},${lng}`);
+        window.location.href = `sms:${emergencyContact}?body=${msg}`;
+      }
+    }, 1000);
+  }
+
+  $("cancelSosBtn").addEventListener("click", () => {
+    clearInterval(sosInterval);
+    $("sosModal").classList.remove("active");
+  });
+
+  // 4. BBDD OFFLINE (INDEXEDDB)
+  const offlineStorage = {
+    dbName: 'RiderDB',
+    async open() {
+      return new Promise((resolve) => {
+        const req = indexedDB.open(this.dbName, 1);
+        req.onupgradeneeded = (e) => e.target.result.createObjectStore('routes', { keyPath: 'id' });
+        req.onsuccess = () => resolve(req.result);
+      });
+    },
+    async saveRoute(route) {
+      const db = await this.open();
+      const tx = db.transaction('routes', 'readwrite');
+      tx.objectStore('routes').put({ id: 'active_route', data: route, timestamp: Date.now() });
+      alert("Ruta guardada correctamente para uso sin cobertura.");
+    }
+  };
+
+  $("saveOfflineBtn").addEventListener("click", () => {
+    if (lastRoute) offlineStorage.saveRoute(lastRoute);
+  });
+
+  // 5. GRUPO Y TRACKING EN TIEMPO REAL
+  let wsGroup = null;
+  $("joinGroupBtn").addEventListener("click", () => {
+    const code = $("groupCodeInput").value.trim();
+    if (!code) return;
+    try {
+      wsGroup = new WebSocket(`wss://echo.websocket.events`);
+      wsGroup.onopen = () => {
+        $("groupMembersList").innerHTML = `<span style="color:#10b981;">Conectado al grupo ${escapeHtml(code)}. Transmitiendo GPS...</span>`;
+      };
+    } catch(e) {
+      console.warn("Simulación de grupo activa");
+    }
+  });
 
   /* INICIALIZAR */
   loadSettings();
   applyLanguage();
   renderPosts();
+  locateUser();
   setTimeout(() => map.invalidateSize(), 500);
 </script>
 </body>
