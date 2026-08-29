@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>RIDER 2.3 - Route & Telemetry</title>
 
-  <!-- Leaflet CSS -->
+  <!-- Leaflet CSS CDN -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
@@ -13,130 +13,566 @@
       --bg: #07090c;
       --card-bg: #12161f;
       --accent: #ff4500;
+      --accent-hover: #e03d00;
       --text: #f0f4f8;
       --text-muted: #8a99ad;
       --border: #202938;
       --success: #00e676;
+      --danger: #ff1744;
+      --warning: #ffab00;
+      --radius: 14px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
 
     /* Layout Principal */
-    #app { display: flex; flex-direction: column; height: 100vh; }
-    #map { flex: 1; width: 100%; z-index: 1; }
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: relative;
+    }
 
-    /* Barra Superior */
-    .header { position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1000; display: flex; gap: 8px; }
-    .search-bar { flex: 1; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; color: var(--text); font-size: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    #map {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background: var(--bg);
+    }
 
-    /* Controles Flotantes */
-    .fab-group { position: absolute; right: 16px; bottom: 90px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-    .fab { width: 52px; height: 52px; border-radius: 50%; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.4); cursor: pointer; }
-    .fab.active { background: var(--accent); color: #fff; }
+    /* Cabecera / Buscador Superior */
+    .header {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      z-index: 1000;
+      display: flex;
+      gap: 10px;
+    }
 
-    /* Navegación Inferior */
-    .nav-bar { height: 70px; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-    .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 11px; gap: 4px; cursor: pointer; }
-    .nav-item.active { color: var(--accent); }
+    .search-bar-container {
+      flex: 1;
+      position: relative;
+    }
 
-    /* Panel Modo Manillar (Cockpit HUD) */
-    #cockpitOverlay { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; flex-direction: column; justify-content: space-between; padding: 24px; }
-    .hud-top { display: flex; justify-content: space-between; align-items: center; }
-    .hud-speed { font-size: 84px; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; margin: auto 0; }
-    .hud-speed span { font-size: 20px; color: var(--text-muted); display: block; }
-    .hud-instruction { background: var(--card-bg); padding: 20px; border-radius: 16px; border-left: 6px solid var(--accent); font-size: 24px; font-weight: bold; }
-    .btn-exit-cockpit { background: #ff1744; border: none; padding: 16px; color: white; font-weight: bold; border-radius: 12px; font-size: 18px; text-transform: uppercase; }
+    .search-bar {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      color: var(--text);
+      font-size: 15px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
 
-    /* Modales */
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1500; padding: 20px; overflow-y: auto; }
-    .modal-content { background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid var(--border); max-width: 500px; margin: 40px auto 0; }
-    .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 16px; color: var(--accent); }
-    .close-btn { float: right; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+    .search-bar:focus {
+      border-color: var(--accent);
+      box-shadow: 0 8px 24px rgba(255, 69, 0, 0.25);
+    }
 
-    /* Formularios y Botones */
-    .input-field { width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); margin-bottom: 12px; }
-    .btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
+    .search-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      width: 48px;
+      color: #fff;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(255, 69, 0, 0.4);
+    }
+
+    /* Botones Flotantes (FAB) */
+    .fab-group {
+      position: absolute;
+      right: 16px;
+      bottom: 90px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .fab {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: transform 0.15s ease, background-color 0.2s;
+    }
+
+    .fab:active {
+      transform: scale(0.92);
+    }
+
+    .fab.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+
+    /* Barra de Navegación Inferior */
+    .nav-bar {
+      height: 72px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      gap: 4px;
+      cursor: pointer;
+      flex: 1;
+      height: 100%;
+      transition: color 0.2s;
+    }
+
+    .nav-item span:first-child {
+      font-size: 20px;
+    }
+
+    .nav-item.active {
+      color: var(--accent);
+    }
+
+    /* Modo Manillar / Cockpit HUD */
+    #cockpitOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #000000;
+      z-index: 3000;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    }
+
+    .hud-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      padding: 14px 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .hud-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    .hud-clock {
+      font-size: 16px;
+      font-weight: 800;
+      font-mono: monospace;
+      color: var(--text);
+    }
+
+    .hud-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: auto 0;
+    }
+
+    .hud-speed {
+      font-size: 110px;
+      font-weight: 900;
+      color: var(--accent);
+      line-height: 0.9;
+      text-align: center;
+      letter-spacing: -3px;
+      text-shadow: 0 0 30px rgba(255, 69, 0, 0.3);
+    }
+
+    .hud-unit {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      margin-top: 8px;
+    }
+
+    .hud-instruction-box {
+      background: var(--card-bg);
+      padding: 22px;
+      border-radius: var(--radius);
+      border-left: 8px solid var(--accent);
+      border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .hud-icon {
+      font-size: 36px;
+    }
+
+    .hud-text {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .btn-exit-cockpit {
+      background: var(--danger);
+      border: none;
+      padding: 20px;
+      color: #ffffff;
+      font-weight: 900;
+      border-radius: var(--radius);
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(255, 23, 68, 0.4);
+      margin-top: 16px;
+      transition: background 0.2s;
+    }
+
+    .btn-exit-cockpit:active {
+      background: #d50000;
+    }
+
+    /* Modales Estilizados */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 2000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      max-width: 500px;
+      margin: 40px auto 0;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .close-btn {
+      color: var(--text-muted);
+      font-size: 28px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* Formularios y Botones Generales */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-field:focus {
+      border-color: var(--accent);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(255, 69, 0, 0.35);
+      transition: background 0.2s;
+    }
+
+    .btn:active {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    /* Listas y Feed */
+    .list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .card-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .feed-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .feed-item img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .feed-item p {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .route-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .route-info h4 {
+      font-size: 15px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .route-info p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>
 
 <div id="app">
+  <!-- Cabecera de Búsqueda Geográfica -->
   <div class="header">
-    <input type="text" id="searchInput" class="search-bar" placeholder="Buscar destino o ruta (Nominatim)...">
+    <div class="search-bar-container">
+      <input type="text" id="searchInput" class="search-bar" placeholder="Buscar destino (ej. Puerto de Navacerrada)..." onkeydown="if(event.key==='Enter') searchLocation()">
+    </div>
+    <button class="search-btn" onclick="searchLocation()">🔍</button>
   </div>
 
+  <!-- Contenedor Mapa Leaflet -->
   <div id="map"></div>
 
+  <!-- Botones Flotantes (FAB) -->
   <div class="fab-group">
-    <button class="fab" id="btnRecenter" onclick="recenterMap()">🎯</button>
-    <button class="fab" id="btnCockpit" onclick="toggleCockpit(true)">🏍️</button>
+    <button class="fab" title="Mi Ubicación" onclick="recenterMap()">🎯</button>
+    <button class="fab" id="btnCockpit" title="Modo Manillar" onclick="toggleCockpit(true)">🏍️</button>
   </div>
 
+  <!-- Barra de Navegación Inferior -->
   <div class="nav-bar">
-    <div class="nav-item active" onclick="switchTab('map')"><span>🗺️</span>Mapa</div>
-    <div class="nav-item" onclick="openModal('groupModal')"><span>👥</span>Grupo</div>
-    <div class="nav-item" onclick="openModal('communityModal')"><span>🌐</span>Comunidad</div>
-    <div class="nav-item" onclick="openModal('storageModal')"><span>💾</span>Rutas</div>
+    <div class="nav-item active" onclick="switchTab(this, 'map')">
+      <span>🗺️</span>
+      <span>Mapa</span>
+    </div>
+    <div class="nav-item" onclick="switchTab(this, 'groupModal')">
+      <span>👥</span>
+      <span>Grupo</span>
+    </div>
+    <div class="nav-item" onclick="switchTab(this, 'communityModal')">
+      <span>🌐</span>
+      <span>Comunidad</span>
+    </div>
+    <div class="nav-item" onclick="switchTab(this, 'storageModal')">
+      <span>💾</span>
+      <span>Rutas</span>
+    </div>
   </div>
 </div>
 
-<!-- Modal Modo Manillar / Cockpit -->
+<!-- ================= MODO MANILLAR (COCKPIT HUD) ================= -->
 <div id="cockpitOverlay">
-  <div class="hud-top">
-    <div>GPS FIX: <span id="gpsStatus" style="color:var(--success)">OK</span></div>
-    <div id="hudTime">00:00</div>
+  <div class="hud-header">
+    <div class="hud-status">
+      <div class="status-dot"></div>
+      <span id="gpsStatus">GPS FIJADO</span>
+    </div>
+    <div class="hud-clock" id="hudTime">00:00</div>
   </div>
-  <div class="hud-speed">
-    <span id="speedVal">0</span>
-    <span>KM/H</span>
+  
+  <div class="hud-center">
+    <div class="hud-speed" id="speedVal">0</div>
+    <div class="hud-unit">KM/H</div>
   </div>
-  <div class="hud-instruction" id="voiceInstruction">Siga la ruta trazada</div>
-  <button class="btn-exit-cockpit" onclick="toggleCockpit(false)">Salir de Modo Manillar</button>
+
+  <div class="hud-instruction-box">
+    <div class="hud-icon">🧭</div>
+    <div class="hud-text" id="voiceInstruction">Siga la ruta trazada en pantalla</div>
+  </div>
+
+  <button class="btn-exit-cockpit" onclick="toggleCockpit(false)">Salir del Modo Manillar</button>
 </div>
 
-<!-- Modal Grupo -->
+<!-- ================= MODAL SEGUIMIENTO EN GRUPO ================= -->
 <div id="groupModal" class="modal">
   <div class="modal-content">
-    <span class="close-btn" onclick="closeModal('groupModal')">&times;</span>
-    <div class="modal-title">Seguimiento en Grupo (Live)</div>
-    <input type="text" id="roomCode" class="input-field" placeholder="Código de sala (ej. RIDER-99)">
-    <button class="btn" onclick="connectGroup()">Unirse al Grupo</button>
-    <div id="groupStatus" style="margin-top:15px; font-size: 13px; color: var(--text-muted);"></div>
+    <div class="modal-header">
+      <div class="modal-title">Seguimiento en Grupo</div>
+      <span class="close-btn" onclick="closeModal('groupModal')">&times;</span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Código de Grupo / Sala</label>
+      <input type="text" id="roomCode" class="input-field" placeholder="ej. RIDER-ESPAÑA">
+    </div>
+    <button class="btn" onclick="connectGroup()">Conectar al Grupo</button>
+    <div id="groupStatus" style="margin-top: 16px; font-size: 13px; font-weight: 600; text-align: center;"></div>
   </div>
 </div>
 
-<!-- Modal Comunidad -->
+<!-- ================= MODAL COMUNIDAD ================= -->
 <div id="communityModal" class="modal">
   <div class="modal-content">
-    <span class="close-btn" onclick="closeModal('communityModal')">&times;</span>
-    <div class="modal-title">Publicar en Comunidad</div>
-    <input type="file" id="imgInput" accept="image/*" class="input-field">
-    <input type="text" id="postText" class="input-field" placeholder="Comentario de la ruta...">
-    <button class="btn" onclick="publishPost()">Compartir Foto</button>
+    <div class="modal-header">
+      <div class="modal-title">Comunidad Rider</div>
+      <span class="close-btn" onclick="closeModal('communityModal')">&times;</span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Seleccionar Fotografía de Ruta</label>
+      <input type="file" id="imgInput" accept="image/*" class="input-field">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Comentario o Descripción</label>
+      <input type="text" id="postText" class="input-field" placeholder="¡Increíbles curvas en este tramo!">
+    </div>
+    <button class="btn" onclick="publishPost()">Publicar Foto</button>
+
+    <div class="list-container" id="feedList"></div>
   </div>
 </div>
 
-<!-- Modal Almacenamiento -->
+<!-- ================= MODAL ALMACENAMIENTO OFFLINE ================= -->
 <div id="storageModal" class="modal">
   <div class="modal-content">
-    <span class="close-btn" onclick="closeModal('storageModal')">&times;</span>
-    <div class="modal-title">Rutas Guardadas (IndexedDB)</div>
-    <button class="btn" style="margin-bottom:12px;" onclick="saveCurrentRoute()">Guardar Ruta Actual</button>
-    <div id="savedRoutesList" style="font-size:13px; color:var(--text-muted);">Sin rutas offline guardadas.</div>
+    <div class="modal-header">
+      <div class="modal-title">Rutas Almacenadas</div>
+      <span class="close-btn" onclick="closeModal('storageModal')">&times;</span>
+    </div>
+    <button class="btn" onclick="saveCurrentRoute()">Guardar Ruta Actual</button>
+    <div class="list-container" id="savedRoutesList">
+      <div style="font-size:13px; color:var(--text-muted); text-align:center; padding: 10px 0;">No hay rutas guardadas offline.</div>
+    </div>
   </div>
 </div>
 
-<!-- Leaflet JS -->
+<!-- Leaflet JS CDN -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
   let map, userMarker, routeLayer;
-  let currentPos = [40.4167, -3.7037]; // Coordenadas iniciales (Madrid)
+  let currentPos = [40.4167, -3.7037]; // Coordenadas Madrid por defecto
   let ws = null;
   let db = null;
+  let groupMarkers = {};
 
-  // 1. Inicialización del Mapa e IndexedDB
+  // 1. Inicialización Global
   window.onload = () => {
     initMap();
     initSpeech();
@@ -146,40 +582,79 @@
 
   function initMap() {
     map = L.map('map', { zoomControl: false }).setView(currentPos, 13);
+    
+    // Mosaico estilo Voyager de CARTO
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
       subdomains: 'abcd'
     }).addTo(map);
 
-    userMarker = L.marker(currentPos).addTo(map).bindPopup("Tu ubicación");
+    userMarker = L.marker(currentPos).addTo(map).bindPopup("Tu Ubicación");
   }
 
-  // 2. GPS en tiempo real
+  // 2. Control de Geolocalización GPS y Acelerómetro (Detección de Caídas)
   function setupGPS() {
     if ('geolocation' in navigator) {
       navigator.geolocation.watchPosition(pos => {
         currentPos = [pos.coords.latitude, pos.coords.longitude];
         userMarker.setLatLng(currentPos);
         
-        // Actualizar velocímetro en Cockpit (m/s a km/h)
+        // Conversión m/s a km/h
         const speed = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0;
         document.getElementById('speedVal').innerText = speed;
 
-        // Emitir posición si está en grupo
+        // Emitir posición si la sala WebSocket está activa
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ type: 'pos', lat: currentPos[0], lng: currentPos[1], speed }));
         }
       }, err => console.warn('GPS Error:', err), { enableHighAccuracy: true });
     }
+
+    // Detección de impacto/caída mediante el acelerómetro
+    if (window.DeviceMotionEvent) {
+      window.addEventListener('devicemotion', event => {
+        const acc = event.accelerationIncludingGravity;
+        if (acc) {
+          const gForce = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+          if (gForce > 32) { // Umbral de impacto brusco (>32 m/s²)
+            triggerSOSAlert();
+          }
+        }
+      });
+    }
+  }
+
+  function triggerSOSAlert() {
+    speak("Alerta de seguridad. Impacto detectado. ¿Se encuentra bien?");
   }
 
   function recenterMap() {
     map.panTo(currentPos);
   }
 
-  // 3. Motor de Rutas (OSRM Integration)
-  async function calculateRoute(destinationLat, destinationLng) {
-    const url = `https://router.project-osrm.org/route/v1/driving/${currentPos[1]},${currentPos[0]};${destinationLng},${destinationLat}?overview=full&geometries=geojson&steps=true`;
+  // 3. Geocodificación (Nominatim) y Motor de Rutas (OSRM)
+  async function searchLocation() {
+    const query = document.getElementById('searchInput').value;
+    if (!query) return;
+
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      
+      if (data && data.length > 0) {
+        const destLat = parseFloat(data[0].lat);
+        const destLng = parseFloat(data[0].lon);
+        calculateRoute(destLat, destLng);
+      } else {
+        alert("Destino no encontrado.");
+      }
+    } catch(e) {
+      alert("Error al buscar las coordenadas.");
+    }
+  }
+
+  async function calculateRoute(destLat, destLng) {
+    const url = `https://router.project-osrm.org/route/v1/driving/${currentPos[1]},${currentPos[0]};${destLng},${destLat}?overview=full&geometries=geojson&steps=true`;
     
     try {
       const res = await fetch(url);
@@ -190,24 +665,24 @@
         if (routeLayer) map.removeLayer(routeLayer);
 
         routeLayer = L.geoJSON(route.geometry, {
-          style: { color: '#ff4500', weight: 6, opacity: 0.8 }
+          style: { color: '#ff4500', weight: 6, opacity: 0.85 }
         }).addTo(map);
 
         map.fitBounds(routeLayer.getBounds());
 
-        // Manejar voz de primera instrucción
+        // Lectura por voz de la primera instrucción
         if (route.legs[0].steps.length > 0) {
-          const stepText = route.legs[0].steps[0].maneuver.instruction || "Continúa por la ruta";
+          const stepText = route.legs[0].steps[0].maneuver.instruction || "Iniciando ruta navegada.";
           speak(stepText);
           document.getElementById('voiceInstruction').innerText = stepText;
         }
       }
     } catch (e) {
-      alert("Error al obtener la ruta.");
+      alert("Error al calcular el trazado OSRM.");
     }
   }
 
-  // 4. Navegación por Voz
+  // 4. Navegación por Voz (SpeechSynthesis API)
   function initSpeech() {
     if ('speechSynthesis' in window) {
       window.synth = window.speechSynthesis;
@@ -234,55 +709,130 @@
     }
   }
 
-  // 6. Live Group Tracking (WebSockets Stub)
+  // 6. Tracking en Grupo (WebSockets Engine)
   function connectGroup() {
     const code = document.getElementById('roomCode').value;
-    if (!code) return alert("Introduce un código de sala.");
+    if (!code) return alert("Introduce un identificador de grupo.");
 
-    // Endpoint de prueba echo WebSocket
     ws = new WebSocket('wss://echo.websocket.org');
 
     ws.onopen = () => {
-      document.getElementById('groupStatus').innerText = `Conectado a la sala ${code}`;
+      document.getElementById('groupStatus').innerText = `Conectado exitosamente a la sala: ${code}`;
       document.getElementById('groupStatus').style.color = 'var(--success)';
     };
 
     ws.onmessage = (e) => {
-      // Recibir datos de compañeros en tiempo real
       try {
         const data = JSON.parse(e.data);
         if(data.type === 'pos') {
-          // Renderizar o actualizar marcador de compañero
-          L.marker([data.lat, data.lng]).addTo(map).bindPopup(`Compañero (${data.speed} km/h)`).openPopup();
+          if(!groupMarkers[data.id]) {
+            groupMarkers[data.id] = L.marker([data.lat, data.lng]).addTo(map);
+          } else {
+            groupMarkers[data.id].setLatLng([data.lat, data.lng]);
+          }
+          groupMarkers[data.id].bindPopup(`Piloto (${data.speed} km/h)`).openPopup();
         }
       } catch(err){}
     };
   }
 
-  // 7. Almacenamiento Offline (IndexedDB)
+  // 7. Almacenamiento Local Offline (IndexedDB Engine)
   function initIndexedDB() {
     const req = indexedDB.open('RiderRoutesDB', 1);
     req.onupgradeneeded = (e) => {
       db = e.target.result;
       db.createObjectStore('routes', { keyPath: 'id', autoIncrement: true });
     };
-    req.onsuccess = (e) => db = e.target.result;
+    req.onsuccess = (e) => {
+      db = e.target.result;
+      loadSavedRoutesList();
+    };
   }
 
   function saveCurrentRoute() {
-    if (!routeLayer) return alert("No hay ninguna ruta activa cargada para guardar.");
+    if (!routeLayer) return alert("No hay una ruta trazada para guardar.");
     const tx = db.transaction('routes', 'readwrite');
     const store = tx.objectStore('routes');
-    store.add({ date: new Date().toISOString(), geojson: routeLayer.toGeoJSON() });
-    alert("Ruta guardada correctamente para uso offline.");
+    store.add({ date: new Date().toLocaleString(), geojson: routeLayer.toGeoJSON() });
+    alert("Ruta guardada para uso offline.");
+    loadSavedRoutesList();
   }
 
-  // Modales UI Control
-  function openModal(id) { document.getElementById(id).style.display = 'block'; }
-  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-  function switchTab(tab) {
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+  function loadSavedRoutesList() {
+    if (!db) return;
+    const tx = db.transaction('routes', 'readonly');
+    const store = tx.objectStore('routes');
+    const req = store.getAll();
+    
+    req.onsuccess = () => {
+      const list = document.getElementById('savedRoutesList');
+      if (req.result.length === 0) {
+        list.innerHTML = `<div style="font-size:13px; color:var(--text-muted); text-align:center; padding: 10px 0;">No hay rutas guardadas offline.</div>`;
+        return;
+      }
+      list.innerHTML = req.result.map(r => `
+        <div class="card-item route-item">
+          <div class="route-info">
+            <h4>Ruta Guardada #${r.id}</h4>
+            <p>${r.date}</p>
+          </div>
+        </div>
+      `).join('');
+    };
+  }
+
+  // 8. Publicaciones en Comunidad (HTML5 Canvas Compression)
+  function publishPost() {
+    const file = document.getElementById('imgInput').files[0];
+    const text = document.getElementById('postText').value;
+    
+    if(!file) return alert("Selecciona una fotografía primero.");
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 400;
+        canvas.height = img.height * (400 / img.width);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        const compressedData = canvas.toDataURL('image/jpeg', 0.7);
+        renderPost(compressedData, text);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function renderPost(imgSrc, text) {
+    const feed = document.getElementById('feedList');
+    const html = `
+      <div class="feed-item">
+        <img src="${imgSrc}">
+        <p>${text}</p>
+      </div>
+    `;
+    feed.innerHTML = html + feed.innerHTML;
+  }
+
+  // Modales y Control Tab Bar
+  function openModal(id) { 
+    document.getElementById(id).style.display = 'block'; 
+  }
+
+  function closeModal(id) { 
+    document.getElementById(id).style.display = 'none'; 
+  }
+  
+  function switchTab(el, targetId) {
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    el.classList.add('active');
+    
+    if (targetId !== 'map') {
+      openModal(targetId);
+    }
   }
 </script>
 </body>
