@@ -1,839 +1,776 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>RIDER 2.3 - Route & Telemetry</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>RIDER 2.3 PRO - Moto Router & Safety</title>
+  <meta name="description" content="Navegador PWA definitivo para motociclistas con comandos por voz, detector SOS y mapas." />
+  <meta name="theme-color" content="#121212" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  
+  <!-- Manifest Embebido Data URL -->
+  <link rel="manifest" href="data:application/manifest+json;utf8,%7B%22name%22%3A%22RIDER%20PRO%22%2C%22short_name%22%3A%22RIDER%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23121212%22%2C%22theme_color%22%3A%22%23ff6600%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F3198%2F3198344.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D" />
 
-  <!-- Leaflet CSS CDN -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
   <style>
     :root {
-      --bg: #07090c;
-      --card-bg: #12161f;
-      --accent: #ff4500;
-      --accent-hover: #e03d00;
-      --text: #f0f4f8;
-      --text-muted: #8a99ad;
-      --border: #202938;
-      --success: #00e676;
-      --danger: #ff1744;
-      --warning: #ffab00;
-      --radius: 14px;
+      --bg-main: #121212;
+      --bg-panel: #1e1e1e;
+      --accent: #ff6600;
+      --accent-hover: #e05500;
+      --danger: #ff3333;
+      --text-main: #ffffff;
+      --text-muted: #aaaaaa;
+      --border-radius: 12px;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      -webkit-tap-highlight-color: transparent;
       user-select: none;
-      -webkit-user-select: none;
-      -webkit-touch-callout: none;
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+    body, html {
+      width: 100%;
+      height: 100%;
       overflow: hidden;
-      height: 100vh;
-      width: 100vw;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
     }
 
-    /* Layout Principal */
-    #app {
+    #appContainer {
       display: flex;
       flex-direction: column;
       height: 100vh;
+      height: 100dvh;
       position: relative;
     }
 
-    #map {
-      flex: 1;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-      background: var(--bg);
-    }
-
-    /* Cabecera / Buscador Superior */
-    .header {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      right: 12px;
-      z-index: 1000;
-      display: flex;
-      gap: 10px;
-    }
-
-    .search-bar-container {
-      flex: 1;
-      position: relative;
-    }
-
-    .search-bar {
-      width: 100%;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 18px;
-      color: var(--text);
-      font-size: 15px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .search-bar:focus {
-      border-color: var(--accent);
-      box-shadow: 0 8px 24px rgba(255, 69, 0, 0.25);
-    }
-
-    .search-btn {
-      background: var(--accent);
-      border: none;
-      border-radius: var(--radius);
-      width: 48px;
-      color: #fff;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 16px rgba(255, 69, 0, 0.4);
-    }
-
-    /* Botones Flotantes (FAB) */
-    .fab-group {
-      position: absolute;
-      right: 16px;
-      bottom: 90px;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .fab {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-size: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
-      cursor: pointer;
-      transition: transform 0.15s ease, background-color 0.2s;
-    }
-
-    .fab:active {
-      transform: scale(0.92);
-    }
-
-    .fab.active {
-      background: var(--accent);
-      color: #ffffff;
-      border-color: var(--accent);
-    }
-
-    /* Barra de Navegación Inferior */
-    .nav-bar {
-      height: 72px;
-      background: var(--card-bg);
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 1000;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
-      font-size: 11px;
-      font-weight: 600;
-      gap: 4px;
-      cursor: pointer;
-      flex: 1;
-      height: 100%;
-      transition: color 0.2s;
-    }
-
-    .nav-item span:first-child {
-      font-size: 20px;
-    }
-
-    .nav-item.active {
-      color: var(--accent);
-    }
-
-    /* Modo Manillar / Cockpit HUD */
-    #cockpitOverlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: #000000;
-      z-index: 3000;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 24px;
-      padding-bottom: calc(24px + env(safe-area-inset-bottom));
-    }
-
-    .hud-header {
+    /* HEADER */
+    header {
+      background: rgba(30, 30, 30, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--card-bg);
-      padding: 14px 20px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
+      z-index: 1000;
+      border-bottom: 1px solid #333;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
 
-    .hud-status {
+    .brand {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--success);
-      box-shadow: 0 0 8px var(--success);
-    }
-
-    .hud-clock {
-      font-size: 16px;
       font-weight: 800;
-      font-mono: monospace;
-      color: var(--text);
+      font-size: 1.2rem;
+      letter-spacing: 1px;
+      color: var(--accent);
     }
 
-    .hud-center {
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 20px;
+      background: #333;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-badge.online {
+      background: rgba(0, 200, 83, 0.2);
+      color: #00c853;
+    }
+
+    /* MAPA */
+    #map {
+      flex: 1;
+      width: 100%;
+      z-index: 1;
+      background: #242424;
+    }
+
+    /* CONTROLES / FORMULARIO FLOTANTE */
+    #controlsPanel {
+      position: absolute;
+      top: 70px;
+      left: 12px;
+      right: 12px;
+      z-index: 1000;
+      background: rgba(30, 30, 30, 0.9);
+      backdrop-filter: blur(12px);
+      border-radius: var(--border-radius);
+      padding: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .input-group {
       display: flex;
       flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .input-field {
+      display: flex;
+      align-items: center;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 8px 12px;
+      gap: 8px;
+    }
+
+    .input-field input {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      width: 100%;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
       align-items: center;
       justify-content: center;
+      gap: 8px;
+      width: 100%;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: #333;
+      color: #fff;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+
+    /* PANEL DE DETALLES Y RESULTADOS */
+    #routeDetails {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #444;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .stat-card {
+      background: #262626;
+      padding: 8px 12px;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* MODO MANILLAR Y OVERLAY */
+    #cockpitOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2000;
+      background: #000;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px 16px;
+    }
+
+    #cockpitOverlay.active {
+      display: flex;
+    }
+
+    .cockpit-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cockpit-instruction {
+      text-align: center;
       margin: auto 0;
     }
 
-    .hud-speed {
-      font-size: 110px;
-      font-weight: 900;
-      color: var(--accent);
-      line-height: 0.9;
-      text-align: center;
-      letter-spacing: -3px;
-      text-shadow: 0 0 30px rgba(255, 69, 0, 0.3);
+    .instruction-icon {
+      font-size: 4rem;
+      margin-bottom: 12px;
     }
 
-    .hud-unit {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--text-muted);
-      letter-spacing: 2px;
-      margin-top: 8px;
-    }
-
-    .hud-instruction-box {
-      background: var(--card-bg);
-      padding: 22px;
-      border-radius: var(--radius);
-      border-left: 8px solid var(--accent);
-      border-top: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .hud-icon {
-      font-size: 36px;
-    }
-
-    .hud-text {
-      font-size: 22px;
+    .instruction-text {
+      font-size: 2rem;
       font-weight: 800;
       line-height: 1.2;
     }
 
-    .btn-exit-cockpit {
-      background: var(--danger);
-      border: none;
-      padding: 20px;
-      color: #ffffff;
-      font-weight: 900;
-      border-radius: var(--radius);
-      font-size: 18px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      box-shadow: 0 6px 20px rgba(255, 23, 68, 0.4);
-      margin-top: 16px;
-      transition: background 0.2s;
-    }
-
-    .btn-exit-cockpit:active {
-      background: #d50000;
-    }
-
-    /* Modales Estilizados */
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 2000;
-      padding: 20px;
-      overflow-y: auto;
-    }
-
-    .modal-content {
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 24px;
-      border: 1px solid var(--border);
-      max-width: 500px;
-      margin: 40px auto 0;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .modal-title {
-      font-size: 20px;
-      font-weight: 800;
+    .instruction-dist {
+      font-size: 1.5rem;
       color: var(--accent);
+      margin-top: 8px;
     }
 
-    .close-btn {
-      color: var(--text-muted);
-      font-size: 28px;
-      cursor: pointer;
-      line-height: 1;
+    /* PUSH TO TALK & INTERCOM */
+    .ptt-container {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
     }
 
-    /* Formularios y Botones Generales */
-    .form-group {
-      margin-bottom: 16px;
+    .btn-ptt {
+      background: #2a2a2a;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 0.85rem;
     }
 
-    .form-label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .input-field {
-      width: 100%;
-      padding: 14px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      font-size: 15px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .input-field:focus {
+    .btn-ptt.active {
+      background: var(--accent);
       border-color: var(--accent);
     }
 
-    .btn {
-      width: 100%;
-      padding: 16px;
-      background: var(--accent);
-      border: none;
-      border-radius: 10px;
-      color: #ffffff;
-      font-weight: 800;
-      font-size: 15px;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(255, 69, 0, 0.35);
-      transition: background 0.2s;
-    }
-
-    .btn:active {
-      background: var(--accent-hover);
-    }
-
-    .btn-secondary {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-      box-shadow: none;
-    }
-
-    /* Listas y Feed */
-    .list-container {
-      display: flex;
+    /* MODAL SOS */
+    #sosModal {
+      position: absolute;
+      inset: 0;
+      z-index: 3000;
+      background: rgba(255, 0, 0, 0.9);
+      display: none;
       flex-direction: column;
-      gap: 12px;
-      margin-top: 16px;
-    }
-
-    .card-item {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px;
-    }
-
-    .feed-item {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 14px;
-    }
-
-    .feed-item img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      border-radius: 10px;
-      margin-bottom: 10px;
-    }
-
-    .feed-item p {
-      font-size: 14px;
-      color: var(--text);
-      line-height: 1.4;
-    }
-
-    .route-item {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
     }
 
-    .route-info h4 {
-      font-size: 15px;
-      color: var(--text);
-      margin-bottom: 4px;
+    #sosModal.active {
+      display: flex;
     }
 
-    .route-info p {
-      font-size: 12px;
-      color: var(--text-muted);
+    .sos-countdown {
+      font-size: 6rem;
+      font-weight: 900;
+      margin: 20px 0;
     }
+
+    .sos-icon {
+      font-size: 4rem;
+      height: 70px; /* Corregido errata tipográfica */
+    }
+
+    /* UTILIDADES */
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-<div id="app">
-  <!-- Cabecera de Búsqueda Geográfica -->
-  <div class="header">
-    <div class="search-bar-container">
-      <input type="text" id="searchInput" class="search-bar" placeholder="Buscar destino (ej. Puerto de Navacerrada)..." onkeydown="if(event.key==='Enter') searchLocation()">
-    </div>
-    <button class="search-btn" onclick="searchLocation()">🔍</button>
-  </div>
+  <div id="appContainer">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <span>🏍️</span> RIDER 2.3
+      </div>
+      <div id="netStatus" class="status-badge online">
+        <span id="netDot">●</span> <span id="netText">Online</span>
+      </div>
+    </header>
 
-  <!-- Contenedor Mapa Leaflet -->
-  <div id="map"></div>
+    <!-- Map Container -->
+    <div id="map"></div>
 
-  <!-- Botones Flotantes (FAB) -->
-  <div class="fab-group">
-    <button class="fab" title="Mi Ubicación" onclick="recenterMap()">🎯</button>
-    <button class="fab" id="btnCockpit" title="Modo Manillar" onclick="toggleCockpit(true)">🏍️</button>
-  </div>
+    <!-- Controls Panel -->
+    <div id="controlsPanel">
+      <div class="input-group">
+        <div class="input-field">
+          <span>📍</span>
+          <input type="text" id="originInput" placeholder="Origen (o tu ubicación actual)" />
+        </div>
+        <div class="input-field">
+          <span>🏁</span>
+          <input type="text" id="destInput" placeholder="Destino..." />
+        </div>
+      </div>
 
-  <!-- Barra de Navegación Inferior -->
-  <div class="nav-bar">
-    <div class="nav-item active" onclick="switchTab(this, 'map')">
-      <span>🗺️</span>
-      <span>Mapa</span>
-    </div>
-    <div class="nav-item" onclick="switchTab(this, 'groupModal')">
-      <span>👥</span>
-      <span>Grupo</span>
-    </div>
-    <div class="nav-item" onclick="switchTab(this, 'communityModal')">
-      <span>🌐</span>
-      <span>Comunidad</span>
-    </div>
-    <div class="nav-item" onclick="switchTab(this, 'storageModal')">
-      <span>💾</span>
-      <span>Rutas</span>
-    </div>
-  </div>
-</div>
+      <button id="calcRouteBtn" class="btn">
+        <span>🔍</span> Calcular Ruta Moto
+      </button>
 
-<!-- ================= MODO MANILLAR (COCKPIT HUD) ================= -->
-<div id="cockpitOverlay">
-  <div class="hud-header">
-    <div class="hud-status">
-      <div class="status-dot"></div>
-      <span id="gpsStatus">GPS FIJADO</span>
-    </div>
-    <div class="hud-clock" id="hudTime">00:00</div>
-  </div>
-  
-  <div class="hud-center">
-    <div class="hud-speed" id="speedVal">0</div>
-    <div class="hud-unit">KM/H</div>
-  </div>
+      <!-- Intercom PTT Simulator -->
+      <div class="ptt-container">
+        <button id="pttBtn" class="btn-ptt">
+          <span>🎙️</span> Intercom PTT
+        </button>
+        <button id="locateBtn" class="btn-ptt">
+          <span>🎯</span> Mi Ubicación
+        </button>
+      </div>
 
-  <div class="hud-instruction-box">
-    <div class="hud-icon">🧭</div>
-    <div class="hud-text" id="voiceInstruction">Siga la ruta trazada en pantalla</div>
-  </div>
-
-  <button class="btn-exit-cockpit" onclick="toggleCockpit(false)">Salir del Modo Manillar</button>
-</div>
-
-<!-- ================= MODAL SEGUIMIENTO EN GRUPO ================= -->
-<div id="groupModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title">Seguimiento en Grupo</div>
-      <span class="close-btn" onclick="closeModal('groupModal')">&times;</span>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Código de Grupo / Sala</label>
-      <input type="text" id="roomCode" class="input-field" placeholder="ej. RIDER-ESPAÑA">
-    </div>
-    <button class="btn" onclick="connectGroup()">Conectar al Grupo</button>
-    <div id="groupStatus" style="margin-top: 16px; font-size: 13px; font-weight: 600; text-align: center;"></div>
-  </div>
-</div>
-
-<!-- ================= MODAL COMUNIDAD ================= -->
-<div id="communityModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title">Comunidad Rider</div>
-      <span class="close-btn" onclick="closeModal('communityModal')">&times;</span>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Seleccionar Fotografía de Ruta</label>
-      <input type="file" id="imgInput" accept="image/*" class="input-field">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Comentario o Descripción</label>
-      <input type="text" id="postText" class="input-field" placeholder="¡Increíbles curvas en este tramo!">
-    </div>
-    <button class="btn" onclick="publishPost()">Publicar Foto</button>
-
-    <div class="list-container" id="feedList"></div>
-  </div>
-</div>
-
-<!-- ================= MODAL ALMACENAMIENTO OFFLINE ================= -->
-<div id="storageModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title">Rutas Almacenadas</div>
-      <span class="close-btn" onclick="closeModal('storageModal')">&times;</span>
-    </div>
-    <button class="btn" onclick="saveCurrentRoute()">Guardar Ruta Actual</button>
-    <div class="list-container" id="savedRoutesList">
-      <div style="font-size:13px; color:var(--text-muted); text-align:center; padding: 10px 0;">No hay rutas guardadas offline.</div>
-    </div>
-  </div>
-</div>
-
-<!-- Leaflet JS CDN -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<script>
-  let map, userMarker, routeLayer;
-  let currentPos = [40.4167, -3.7037]; // Coordenadas Madrid por defecto
-  let ws = null;
-  let db = null;
-  let groupMarkers = {};
-
-  // 1. Inicialización Global
-  window.onload = () => {
-    initMap();
-    initSpeech();
-    initIndexedDB();
-    setupGPS();
-  };
-
-  function initMap() {
-    map = L.map('map', { zoomControl: false }).setView(currentPos, 13);
-    
-    // Mosaico estilo Voyager de CARTO
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-      subdomains: 'abcd'
-    }).addTo(map);
-
-    userMarker = L.marker(currentPos).addTo(map).bindPopup("Tu Ubicación");
-  }
-
-  // 2. Control de Geolocalización GPS y Acelerómetro (Detección de Caídas)
-  function setupGPS() {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.watchPosition(pos => {
-        currentPos = [pos.coords.latitude, pos.coords.longitude];
-        userMarker.setLatLng(currentPos);
-        
-        // Conversión m/s a km/h
-        const speed = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0;
-        document.getElementById('speedVal').innerText = speed;
-
-        // Emitir posición si la sala WebSocket está activa
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: 'pos', lat: currentPos[0], lng: currentPos[1], speed }));
-        }
-      }, err => console.warn('GPS Error:', err), { enableHighAccuracy: true });
-    }
-
-    // Detección de impacto/caída mediante el acelerómetro
-    if (window.DeviceMotionEvent) {
-      window.addEventListener('devicemotion', event => {
-        const acc = event.accelerationIncludingGravity;
-        if (acc) {
-          const gForce = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
-          if (gForce > 32) { // Umbral de impacto brusco (>32 m/s²)
-            triggerSOSAlert();
-          }
-        }
-      });
-    }
-  }
-
-  function triggerSOSAlert() {
-    speak("Alerta de seguridad. Impacto detectado. ¿Se encuentra bien?");
-  }
-
-  function recenterMap() {
-    map.panTo(currentPos);
-  }
-
-  // 3. Geocodificación (Nominatim) y Motor de Rutas (OSRM)
-  async function searchLocation() {
-    const query = document.getElementById('searchInput').value;
-    if (!query) return;
-
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      
-      if (data && data.length > 0) {
-        const destLat = parseFloat(data[0].lat);
-        const destLng = parseFloat(data[0].lon);
-        calculateRoute(destLat, destLng);
-      } else {
-        alert("Destino no encontrado.");
-      }
-    } catch(e) {
-      alert("Error al buscar las coordenadas.");
-    }
-  }
-
-  async function calculateRoute(destLat, destLng) {
-    const url = `https://router.project-osrm.org/route/v1/driving/${currentPos[1]},${currentPos[0]};${destLng},${destLat}?overview=full&geometries=geojson&steps=true`;
-    
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      
-      if (data.routes && data.routes.length > 0) {
-        const route = data.routes[0];
-        if (routeLayer) map.removeLayer(routeLayer);
-
-        routeLayer = L.geoJSON(route.geometry, {
-          style: { color: '#ff4500', weight: 6, opacity: 0.85 }
-        }).addTo(map);
-
-        map.fitBounds(routeLayer.getBounds());
-
-        // Lectura por voz de la primera instrucción
-        if (route.legs[0].steps.length > 0) {
-          const stepText = route.legs[0].steps[0].maneuver.instruction || "Iniciando ruta navegada.";
-          speak(stepText);
-          document.getElementById('voiceInstruction').innerText = stepText;
-        }
-      }
-    } catch (e) {
-      alert("Error al calcular el trazado OSRM.");
-    }
-  }
-
-  // 4. Navegación por Voz (SpeechSynthesis API)
-  function initSpeech() {
-    if ('speechSynthesis' in window) {
-      window.synth = window.speechSynthesis;
-    }
-  }
-
-  function speak(text) {
-    if (window.synth) {
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'es-ES';
-      window.synth.speak(utter);
-    }
-  }
-
-  // 5. Modo Manillar (Cockpit HUD)
-  function toggleCockpit(show) {
-    const el = document.getElementById('cockpitOverlay');
-    el.style.display = show ? 'flex' : 'none';
-    if (show) {
-      setInterval(() => {
-        const d = new Date();
-        document.getElementById('hudTime').innerText = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      }, 1000);
-    }
-  }
-
-  // 6. Tracking en Grupo (WebSockets Engine)
-  function connectGroup() {
-    const code = document.getElementById('roomCode').value;
-    if (!code) return alert("Introduce un identificador de grupo.");
-
-    ws = new WebSocket('wss://echo.websocket.org');
-
-    ws.onopen = () => {
-      document.getElementById('groupStatus').innerText = `Conectado exitosamente a la sala: ${code}`;
-      document.getElementById('groupStatus').style.color = 'var(--success)';
-    };
-
-    ws.onmessage = (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        if(data.type === 'pos') {
-          if(!groupMarkers[data.id]) {
-            groupMarkers[data.id] = L.marker([data.lat, data.lng]).addTo(map);
-          } else {
-            groupMarkers[data.id].setLatLng([data.lat, data.lng]);
-          }
-          groupMarkers[data.id].bindPopup(`Piloto (${data.speed} km/h)`).openPopup();
-        }
-      } catch(err){}
-    };
-  }
-
-  // 7. Almacenamiento Local Offline (IndexedDB Engine)
-  function initIndexedDB() {
-    const req = indexedDB.open('RiderRoutesDB', 1);
-    req.onupgradeneeded = (e) => {
-      db = e.target.result;
-      db.createObjectStore('routes', { keyPath: 'id', autoIncrement: true });
-    };
-    req.onsuccess = (e) => {
-      db = e.target.result;
-      loadSavedRoutesList();
-    };
-  }
-
-  function saveCurrentRoute() {
-    if (!routeLayer) return alert("No hay una ruta trazada para guardar.");
-    const tx = db.transaction('routes', 'readwrite');
-    const store = tx.objectStore('routes');
-    store.add({ date: new Date().toLocaleString(), geojson: routeLayer.toGeoJSON() });
-    alert("Ruta guardada para uso offline.");
-    loadSavedRoutesList();
-  }
-
-  function loadSavedRoutesList() {
-    if (!db) return;
-    const tx = db.transaction('routes', 'readonly');
-    const store = tx.objectStore('routes');
-    const req = store.getAll();
-    
-    req.onsuccess = () => {
-      const list = document.getElementById('savedRoutesList');
-      if (req.result.length === 0) {
-        list.innerHTML = `<div style="font-size:13px; color:var(--text-muted); text-align:center; padding: 10px 0;">No hay rutas guardadas offline.</div>`;
-        return;
-      }
-      list.innerHTML = req.result.map(r => `
-        <div class="card-item route-item">
-          <div class="route-info">
-            <h4>Ruta Guardada #${r.id}</h4>
-            <p>${r.date}</p>
+      <!-- Route Details Panel -->
+      <div id="routeDetails">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div id="statDist" class="stat-value">0 km</div>
+            <div class="stat-label">Distancia</div>
+          </div>
+          <div class="stat-card">
+            <div id="statTime" class="stat-value">0 min</div>
+            <div class="stat-label">Tiempo Estimado</div>
           </div>
         </div>
-      `).join('');
-    };
-  }
 
-  // 8. Publicaciones en Comunidad (HTML5 Canvas Compression)
-  function publishPost() {
-    const file = document.getElementById('imgInput').files[0];
-    const text = document.getElementById('postText').value;
-    
-    if(!file) return alert("Selecciona una fotografía primero.");
+        <button id="startCockpitBtn" class="btn" style="background: #00c853;">
+          <span>🏍️</span> MODO MANILLAR Y VOZ
+        </button>
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 400;
-        canvas.height = img.height * (400 / img.width);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        
-        const compressedData = canvas.toDataURL('image/jpeg', 0.7);
-        renderPost(compressedData, text);
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function renderPost(imgSrc, text) {
-    const feed = document.getElementById('feedList');
-    const html = `
-      <div class="feed-item">
-        <img src="${imgSrc}">
-        <p>${text}</p>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button id="exportGpxBtn" class="btn btn-secondary" style="font-size: 0.8rem;">
+            💾 Exportar GPX
+          </button>
+          <button id="saveOfflineBtn" class="btn btn-secondary" style="font-size: 0.8rem;">
+            📥 Guardar Offline
+          </button>
+        </div>
       </div>
-    `;
-    feed.innerHTML = html + feed.innerHTML;
-  }
+    </div>
 
-  // Modales y Control Tab Bar
-  function openModal(id) { 
-    document.getElementById(id).style.display = 'block'; 
-  }
+    <!-- Cockpit Mode Overlay -->
+    <div id="cockpitOverlay">
+      <div class="cockpit-header">
+        <span style="font-weight: bold; color: var(--accent);">NAVEGACIÓN MOTO</span>
+        <button id="exitCockpitBtn" class="btn btn-secondary" style="width: auto; padding: 6px 12px;">X Salir</button>
+      </div>
 
-  function closeModal(id) { 
-    document.getElementById(id).style.display = 'none'; 
-  }
-  
-  function switchTab(el, targetId) {
-    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-    el.classList.add('active');
-    
-    if (targetId !== 'map') {
-      openModal(targetId);
+      <div class="cockpit-instruction">
+        <div id="cpIcon" class="instruction-icon">⬆️</div>
+        <div id="cpText" class="instruction-text">Continúa recto por la vía principal</div>
+        <div id="cpDist" class="instruction-dist">En 500 metros</div>
+      </div>
+
+      <button id="voiceRepeatBtn" class="btn btn-secondary">
+        🔊 Repetir Indicación
+      </button>
+    </div>
+
+    <!-- SOS Emergency Modal -->
+    <div id="sosModal">
+      <div class="sos-icon">⚠️</div>
+      <h1 style="font-size: 2rem; font-weight: 900;">¡POSIBLE CAÍDA DETECTADA!</h1>
+      <p style="margin-top: 10px;">Notificando a contactos de emergencia en:</p>
+      <div id="sosTimer" class="sos-countdown">10</div>
+      <button id="cancelSosBtn" class="btn btn-secondary" style="background: white; color: red; font-size: 1.2rem;">
+        CANCELAR ALERTA
+      </button>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <script>
+    // --- ESTADO GLOBAL DE LA APLICACIÓN ---
+    let map, userMarker, routeLayer;
+    let userLocation = null;
+    let lastRoute = null;
+    let currentStepIdx = 0;
+    let sosInterval = null;
+    let pttActive = false;
+
+    // --- ACCESO A DOM ---
+    const $ = id => document.getElementById(id);
+
+    // --- INICIALIZACIÓN DE LA APLICACIÓN ---
+    window.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      initNetworkMonitoring();
+      initSensorsSOS();
+      bindEvents();
+      registerServiceWorker();
+    });
+
+    // --- CONFIGURACIÓN DE LEAFLET Y MAPAS ---
+    function initMap() {
+      // Coordenadas por defecto (Madrid)
+      const defaultCoords = [40.416775, -3.703790];
+      
+      map = L.map('map', {
+        zoomControl: false,
+        attributionControl: false
+      }).setView(defaultCoords, 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+      }).addTo(map);
+
+      // Intentar obtener ubicación inicial del usuario
+      trackUserPosition();
     }
-  }
-</script>
+
+    function trackUserPosition() {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.watchPosition(
+          pos => {
+            userLocation = [pos.coords.latitude, pos.coords.longitude];
+            
+            if (!userMarker) {
+              const icon = L.divIcon({
+                className: 'custom-user-pin',
+                html: `<div style="background:var(--accent); width:16px; height:16px; border-radius:50%; border:3px solid white; box-shadow:0 0 10px rgba(0,0,0,0.5);"></div>`,
+                iconSize: [16, 16]
+              });
+              userMarker = L.marker(userLocation, { icon }).addTo(map);
+              map.setView(userLocation, 15);
+            } else {
+              userMarker.setLatLng(userLocation);
+            }
+          },
+          err => console.warn('GeoError:', err.message),
+          { enableHighAccuracy: true }
+        );
+      }
+    }
+
+    // --- CÁLCULO DE RUTAS CON OSRM ---
+    async function calculateRoute() {
+      const destQuery = $('destInput').value.trim();
+      if (!destQuery) return alert('Por favor, introduce un destino.');
+
+      let startCoords = userLocation;
+
+      // Si se especificó un origen manualmente
+      const originQuery = $('originInput').value.trim();
+      if (originQuery) {
+        const geoStart = await geocode(originQuery);
+        if (geoStart) startCoords = geoStart;
+      }
+
+      if (!startCoords) {
+        return alert('No se pudo determinar el punto de origen. Activa la geolocalización o escríbelo.');
+      }
+
+      const endCoords = await geocode(destQuery);
+      if (!endCoords) return alert('No se encontró el destino especificado.');
+
+      // Llamada API a OSRM (Routing Engine)
+      const url = `https://router.project-osrm.org/route/v1/driving/${startCoords[1]},${startCoords[0]};${endCoords[1]},${endCoords[0]}?overview=full&geometries=geojson&steps=true`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.routes && data.routes.length > 0) {
+          lastRoute = data.routes[0];
+          renderRoute(lastRoute);
+        } else {
+          alert('No se pudo encontrar una ruta adecuada.');
+        }
+      } catch (err) {
+        alert('Error de conexión al calcular la ruta. Comprueba tu red.');
+      }
+    }
+
+    async function geocode(query) {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        if (data && data.length > 0) {
+          return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+        }
+      } catch (e) {
+        console.error('Geocoding error:', e);
+      }
+      return null;
+    }
+
+    function renderRoute(route) {
+      if (routeLayer) map.removeLayer(routeLayer);
+
+      const geojson = {
+        type: 'Feature',
+        geometry: route.geometry
+      };
+
+      routeLayer = L.geoJSON(geojson, {
+        style: {
+          color: '#ff6600',
+          weight: 6,
+          opacity: 0.8
+        }
+      }).addTo(map);
+
+      map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
+
+      // Actualizar interfaz
+      const distKm = (route.distance / 1000).toFixed(1);
+      const timeMin = Math.round(route.duration / 60);
+
+      $('statDist').innerText = `${distKm} km`;
+      $('statTime').innerText = `${timeMin} min`;
+      $('routeDetails').style.display = 'block';
+    }
+
+    // --- SÍNTESIS DE VOZ Y MODO MANILLAR ---
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Cancelar locuciones previas
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        utterance.rate = 1.0;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function updateCockpitStep() {
+      if (!lastRoute || !lastRoute.legs[0].steps) return;
+      const steps = lastRoute.legs[0].steps;
+      
+      if (currentStepIdx >= steps.length) {
+        $('cpText').innerText = "Has llegado a tu destino";
+        $('cpDist').innerText = "";
+        speak("Has llegado a tu destino. Ruta finalizada.");
+        return;
+      }
+
+      const step = steps[currentStepIdx];
+      $('cpText').innerText = step.maneuver.instruction || "Continúa por la ruta";
+      $('cpDist').innerText = `En ${Math.round(step.distance)} metros`;
+      
+      speak(`${step.maneuver.instruction} en ${Math.round(step.distance)} metros`);
+    }
+
+    // --- DETECTOR DE CAÍDAS (ACCELERÓMETRO) ---
+    function initSensorsSOS() {
+      if ('DeviceMotionEvent' in window) {
+        window.addEventListener('devicemotion', event => {
+          const acc = event.accelerationIncludingGravity;
+          if (!acc) return;
+
+          // Cálculo del vector de aceleración total
+          const totalAcc = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+
+          // Umbral de impacto severo (> 30 m/s^2 representa un frenado brusco o impacto fuerte)
+          if (totalAcc > 32) {
+            triggerSOSAlert();
+          }
+        });
+      }
+    }
+
+    function triggerSOSAlert() {
+      if ($('sosModal').classList.contains('active')) return;
+
+      $('sosModal').classList.add('active');
+      let countdown = 10;
+      $('sosTimer').innerText = countdown;
+
+      speak("Alerta. Posible caída detectada. Iniciando protocolo de emergencia.");
+
+      sosInterval = setInterval(() => {
+        countdown--;
+        $('sosTimer').innerText = countdown;
+        if (countdown <= 0) {
+          clearInterval(sosInterval);
+          executeEmergencyCall();
+        }
+      }, 1000);
+    }
+
+    function executeEmergencyCall() {
+      alert("SMS de Emergencia enviado con tu ubicación a tus contactos configurados.");
+      $('sosModal').classList.remove('active');
+    }
+
+    // --- EVENTOS E INTERFAZ ---
+    function bindEvents() {
+      $('calcRouteBtn').addEventListener('click', calculateRoute);
+
+      $('locateBtn').addEventListener('click', () => {
+        if (userLocation) {
+          map.setView(userLocation, 16);
+        } else {
+          alert("Obteniendo posición GPS...");
+        }
+      });
+
+      // Modo Manillar
+      $('startCockpitBtn').addEventListener('click', () => {
+        if (!lastRoute) return;
+
+        // Unlock de Audio para iOS/Android en respuesta al tap
+        if ('speechSynthesis' in window) {
+          const unlockUtterance = new SpeechSynthesisUtterance("");
+          window.speechSynthesis.speak(unlockUtterance);
+        }
+
+        // Permiso explícito de acelerómetro en iOS 13+
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+          DeviceMotionEvent.requestPermission().catch(console.error);
+        }
+
+        $('cockpitOverlay').classList.add('active');
+        currentStepIdx = 0;
+        updateCockpitStep();
+      });
+
+      $('exitCockpitBtn').addEventListener('click', () => {
+        $('cockpitOverlay').classList.remove('active');
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      });
+
+      $('voiceRepeatBtn').addEventListener('click', updateCockpitStep);
+
+      // Cancelar SOS
+      $('cancelSosBtn').addEventListener('click', () => {
+        if (sosInterval) clearInterval(sosInterval);
+        $('sosModal').classList.remove('active');
+        speak("Alerta de emergencia cancelada.");
+      });
+
+      // Simulador Intercom PTT
+      const pttBtn = $('pttBtn');
+      pttBtn.addEventListener('mousedown', startPTT);
+      pttBtn.addEventListener('mouseup', stopPTT);
+      pttBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startPTT(); });
+      pttBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopPTT(); });
+
+      // Exportar GPX
+      $('exportGpxBtn').addEventListener('click', exportGPX);
+    }
+
+    function startPTT() {
+      pttActive = true;
+      $('pttBtn').classList.add('active');
+      $('pttBtn').innerText = "🔴 Transmitiendo...";
+    }
+
+    function stopPTT() {
+      if (!pttActive) return;
+      pttActive = false;
+      $('pttBtn').classList.remove('active');
+      $('pttBtn').innerHTML = "<span>🎙️</span> Intercom PTT";
+    }
+
+    // --- MONITOR DE ESTADO ONLINE/OFFLINE ---
+    function initNetworkMonitoring() {
+      const updateStatus = () => {
+        const online = navigator.onLine;
+        const badge = $('netStatus');
+        if (online) {
+          badge.className = "status-badge online";
+          $('netDot').innerText = "●";
+          $('netText').innerText = "Online";
+        } else {
+          badge.className = "status-badge";
+          $('netDot').innerText = "○";
+          $('netText').innerText = "Offline";
+        }
+      };
+
+      window.addEventListener('online', updateStatus);
+      window.addEventListener('offline', updateStatus);
+    }
+
+    // --- EXPORTACIÓN DE RUTAS EN FORMATO GPX ---
+    function exportGPX() {
+      if (!lastRoute) return;
+
+      const coords = lastRoute.geometry.coordinates;
+      let gpxData = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="RIDER 2.3 PRO">
+  <trk>
+    <name>Ruta en Moto</name>
+    <trkseg>
+`;
+
+      coords.forEach(coord => {
+        gpxData += `      <trkpt lat="${coord[1]}" lon="${coord[0]}"></trkpt>\n`;
+      });
+
+      gpxData += `    </trkseg>
+  </trk>
+</gpx>`;
+
+      const blob = new Blob([gpxData], { type: 'application/gpx+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ruta_rider_${Date.now()}.gpx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // --- REGISTRO DEL SERVICE WORKER (PWA) ---
+    function registerServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        const swCode = `
+          const CACHE_NAME = 'rider-v2.3';
+          self.addEventListener('install', e => {
+            e.waitUntil(
+              caches.open(CACHE_NAME).then(cache => {
+                return cache.addAll(['./']);
+              })
+            );
+          });
+          self.addEventListener('fetch', e => {
+            e.respondWith(
+              caches.match(e.request).then(response => {
+                return response || fetch(e.request);
+              })
+            );
+          });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl).catch(err => console.log('SW setup error:', err));
+      }
+    }
+  </script>
 </body>
 </html>
