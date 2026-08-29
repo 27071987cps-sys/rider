@@ -52,7 +52,6 @@
       width: 100%; padding: 14px 16px; margin-bottom: 12px; background: rgba(15, 23, 42, 0.6);
       border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 1rem;
     }
-    .auth-form input:focus { outline: none; border-color: var(--accent); }
 
     /* 2. MODO MANILLAR GPS */
     #cockpitOverlay { padding: 16px; background: #000; justify-content: space-between; }
@@ -67,22 +66,37 @@
 
     /* 3. COMUNIDAD E INTERCOMUNICADOR */
     #communityOverlay { padding: 20px; overflow-y: auto; }
-    .overlay-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .overlay-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
     .close-btn { background: var(--card); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
-    .intercom-box { background: var(--card); border-radius: 20px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
-    .channel-selector { display: flex; gap: 10px; justify-content: center; margin: 15px 0; }
-    .channel-btn { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); padding: 10px 16px; border-radius: 10px; color: var(--text-dim); cursor: pointer; }
+    
+    .intercom-box { background: var(--card); border-radius: 20px; padding: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
+    .channel-selector { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
+    .channel-btn { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 10px; color: var(--text-dim); cursor: pointer; }
     .channel-btn.active { border-color: var(--accent); color: var(--accent); font-weight: bold; }
     .ptt-btn {
-      width: 100px; height: 100px; border-radius: 50%; background: var(--accent-danger); border: 4px solid rgba(255,255,255,0.2);
-      color: #fff; font-weight: bold; font-size: 1.2rem; margin: 10px auto; display: flex; align-items: center; justify-content: center;
+      width: 90px; height: 90px; border-radius: 50%; background: var(--accent-danger); border: 4px solid rgba(255,255,255,0.2);
+      color: #fff; font-weight: bold; font-size: 1.1rem; margin: 10px auto; display: flex; align-items: center; justify-content: center;
       box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); cursor: pointer; user-select: none;
     }
     .ptt-btn:active { transform: scale(0.95); background: #dc2626; }
-    .chat-box { background: var(--card); border-radius: 20px; padding: 15px; height: 200px; display: flex; flex-direction: column; }
-    .chat-messages { flex: 1; overflow-y: auto; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px; }
-    .chat-msg { background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; }
-    .chat-msg span { font-weight: bold; color: var(--accent); }
+
+    /* SECCIÓN OPINIONES Y CATEGORÍAS DE MOTOS */
+    .section-title { font-size: 1.1rem; font-weight: bold; margin: 15px 0 10px 0; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .categories-pills { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
+    .pill { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: var(--text-dim); }
+    .pill.active { background: var(--accent); color: #000; font-weight: bold; border-color: var(--accent); }
+
+    .reviews-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .review-card { background: var(--card); border-radius: 14px; padding: 14px; border: 1px solid rgba(255,255,255,0.05); }
+    .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .bike-tag { font-size: 0.75rem; background: rgba(245, 158, 11, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 6px; font-weight: bold; }
+    .stars { color: var(--accent); font-size: 0.85rem; }
+
+    /* FEED DE COMUNIDAD */
+    .feed-list { display: flex; flex-direction: column; gap: 12px; }
+    .post-card { background: var(--card); border-radius: 14px; padding: 14px; border: 1px solid rgba(255,255,255,0.05); }
+    .post-user { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .post-avatar { width: 32px; height: 32px; border-radius: 50%; background: #3b82f6; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
 
     /* ALERTA SOS OVERLAY */
     #sosModal {
@@ -105,7 +119,6 @@
     .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
     .btn { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 14px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .btn-accent { background: var(--accent); color: #000; border: none; }
-    .btn-accent:hover { background: var(--accent-hover); }
     .btn-full { grid-column: span 2; }
     
     .sos-config { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; margin-top: 10px; display: flex; gap: 8px; align-items: center; }
@@ -149,16 +162,17 @@
     </div>
   </div>
 
-  <!-- 3. OVERLAY COMUNIDAD E INTERCOMUNICADOR -->
+  <!-- 3. OVERLAY COMUNIDAD, INTERCOMUNICADOR Y OPINIONES MOTOS -->
   <div id="communityOverlay" class="screen-overlay">
     <div class="overlay-header">
-      <h2>📻 Comunidad & PTT</h2>
+      <h2>📻 Comunidad & Opiniones</h2>
       <button class="close-btn" id="closeCommunityBtn">✕</button>
     </div>
 
+    <!-- INTERCOMUNICADOR PTT -->
     <div class="intercom-box">
       <h3>Intercomunicador de Grupo</h3>
-      <p style="font-size:0.8rem; color: var(--text-dim); margin-top:4px;">Canal de voz sobre datos en tiempo real</p>
+      <p style="font-size:0.8rem; color: var(--text-dim); margin-top:2px;">Canal de voz en tiempo real</p>
       <div class="channel-selector">
         <button class="channel-btn active">Canal 1</button>
         <button class="channel-btn">Canal 2</button>
@@ -168,10 +182,43 @@
       <span style="font-size: 0.75rem; color: var(--text-dim);">Mantén pulsado para hablar</span>
     </div>
 
-    <div class="chat-box">
-      <div class="chat-messages" id="chatMessages">
-        <div class="chat-msg"><span>Carlos (GS1250):</span> ¿Cómo va ese asfalto por arriba?</div>
-        <div class="chat-msg"><span>Ana (Z900):</span> Todo limpio, cuidado en la paella de la ermita.</div>
+    <!-- SECCIÓN DE OPINIONES POR ESTILO DE MOTO -->
+    <div class="section-title">⭐ Valoraciones de Motos</div>
+    <div class="categories-pills" id="categoryPills">
+      <div class="pill active" data-cat="all">Todas</div>
+      <div class="pill" data-cat="naked">Naked</div>
+      <div class="pill" data-cat="trail">Trail</div>
+      <div class="pill" data-cat="adventure">Adventure</div>
+      <div class="pill" data-cat="r">Deportivas</div>
+    </div>
+
+    <div class="reviews-list" id="reviewsContainer">
+      <!-- Se puebla dinámicamente con JS -->
+    </div>
+
+    <!-- FEED SOCIAL DE LA COMUNIDAD -->
+    <div class="section-title">💬 Feed de Ruta</div>
+    <div class="feed-list">
+      <div class="post-card">
+        <div class="post-user">
+          <div class="post-avatar">M</div>
+          <div>
+            <div style="font-weight:bold; font-size:0.85rem;">Marcos GS</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);">BMW R1250GS • Hace 20 min</div>
+          </div>
+        </div>
+        <p style="font-size:0.85rem;">Asfalto perfecto subiendo al puerto. Nada de niebla hoy. ¡Disfrutad los giros!</p>
+      </div>
+
+      <div class="post-card">
+        <div class="post-user">
+          <div class="post-avatar" style="background:#10b981;">L</div>
+          <div>
+            <div style="font-weight:bold; font-size:0.85rem;">Laura MT</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);">Yamaha MT-09 • Hace 1 hora</div>
+          </div>
+        </div>
+        <p style="font-size:0.85rem;">Ojo con la gravilla en la bajada del kilómetro 14. Peligroso para las Naked.</p>
       </div>
     </div>
   </div>
@@ -194,7 +241,7 @@
           <div style="font-size:0.75rem; color:var(--text-dim);" id="displayBike">Moto</div>
         </div>
       </div>
-      <button class="btn" id="openCommunityBtn" style="padding: 8px 12px;">📻 Grupo</button>
+      <button class="btn" id="openCommunityBtn" style="padding: 8px 12px;">📻 Comunidad</button>
     </div>
 
     <div class="map-wrap">
@@ -221,13 +268,22 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <script>
-    // Configuración OSRM Pública (Demo)
     const OSRM = "https://router.project-osrm.org/route/v1/driving/";
     const $ = id => document.getElementById(id);
     const log = msg => { $("log").textContent = `[${new Date().toLocaleTimeString()}] ${msg}`; };
 
     let map, userPos = null, lastRoute = null, watchId = null;
     let currentStepIdx = 0, routeSteps = [];
+
+    // BASE DE DATOS DE OPINIONES DE MOTOS
+    const bikeReviews = [
+      { bike: "Yamaha MT-07", category: "naked", stars: "★★★★★", comment: "Agilidad increíble para curvas ratoneras. El motor CP2 empuja de maravilla." },
+      { bike: "BMW R1250GS", category: "adventure", stars: "★★★★★", comment: "La reina de las rutas largas. El motor bóxer da una estabilidad envidiable." },
+      { bike: "Honda CB500X", category: "trail", stars: "★★★★☆", comment: "Ligera, económica y perfecta para tramos mixtos de asfalto y pista." },
+      { bike: "Kawasaki Z900", category: "naked", stars: "★★★★☆", comment: "Potencia tetra-cilíndrica pura. Fiel en curvas rápidas." },
+      { bike: "KTM 890 Adventure", category: "adventure", stars: "★★★★★", comment: "Capacidad off-road brutal sin perder prestaciones en tramos revirados." },
+      { bike: "Yamaha Tenere 700", category: "trail", stars: "★★★★★", comment: "Pura filosofía Trail tradicional. Ligera, robusta e indestructible." }
+    ];
 
     // Sintetizador de Voz para Navegación
     const voice = {
@@ -256,6 +312,7 @@
       }
       initMap();
       initFallDetection();
+      renderReviews('all');
     });
 
     $("authForm").addEventListener('submit', (e) => {
@@ -275,7 +332,39 @@
       $("avatarLetter").textContent = user.name.charAt(0).toUpperCase();
     }
 
-    // --- 2. INICIALIZACIÓN DEL MAPA Y GEOLOCALIZACIÓN ---
+    // --- 2. RENDERIZADO DE OPINIONES DE MOTOS ---
+    function renderReviews(filterCat) {
+      const container = $("reviewsContainer");
+      container.innerHTML = "";
+      
+      const filtered = filterCat === 'all' 
+        ? bikeReviews 
+        : bikeReviews.filter(r => r.category === filterCat);
+
+      filtered.forEach(r => {
+        const card = document.createElement("div");
+        card.className = "review-card";
+        card.innerHTML = `
+          <div class="review-header">
+            <span class="bike-tag">${r.bike}</span>
+            <span class="stars">${r.stars}</span>
+          </div>
+          <p style="font-size:0.85rem;">${r.comment}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Filtros de categoría pill
+    document.querySelectorAll(".pill").forEach(pill => {
+      pill.addEventListener("click", (e) => {
+        document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+        e.target.classList.add("active");
+        renderReviews(e.target.dataset.cat);
+      });
+    });
+
+    // --- 3. INICIALIZACIÓN DEL MAPA Y GEOLOCALIZACIÓN ---
     function initMap() {
       map = L.map('map', { zoomControl: false }).setView([40.4167, -3.7037], 12);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -292,7 +381,7 @@
       }
     }
 
-    // --- 3. MOTOR DE RUTAS OSRM ---
+    // --- 4. MOTOR DE RUTAS OSRM ---
     function distanceBetween(p1, p2) {
       const R = 6371;
       const dLat = (p2.lat - p1.lat) * Math.PI / 180;
@@ -303,7 +392,7 @@
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
-    function generateCurvyWaypoints(start, radiusKm = 15, count = 3) {
+    function generateCurvyWaypoints(start, radiusKm = 12, count = 3) {
       const points = [];
       const angleStep = (Math.PI * 2) / count;
       const randomOffset = Math.random() * Math.PI;
@@ -323,7 +412,6 @@
       log("Calculando ruta con giros...");
 
       const waypoints = generateCurvyWaypoints(userPos, 12, 3);
-      // Añadir waypoint intermedio cercano para evitar cierre prematuro
       const firstLegWay = {
         lat: userPos.lat + (waypoints[0].lat - userPos.lat) * 0.2,
         lng: userPos.lng + (waypoints[0].lng - userPos.lng) * 0.2
@@ -340,7 +428,6 @@
         
         lastRoute = data.routes[0];
         
-        // Dibujar en el mapa
         L.geoJSON(lastRoute.geometry, { style: { color: '#f59e0b', weight: 6, opacity: 0.8 } }).addTo(map);
         log(`Ruta lista: ${(lastRoute.distance/1000).toFixed(1)} km`);
 
@@ -349,7 +436,7 @@
       }
     });
 
-    // --- 4. NAVEGACIÓN GPS MANILLAR (EN APP) ---
+    // --- 5. NAVEGACIÓN GPS MANILLAR ---
     $("startCockpitBtn").addEventListener("click", () => {
       if (!lastRoute) return alert("Genera una ruta primero.");
 
@@ -420,7 +507,7 @@
       setTimeout(() => map.invalidateSize(), 300);
     });
 
-    // --- 5. EXPORTACIONES (GOOGLE MAPS Y GPX) ---
+    // --- 6. EXPORTACIONES ---
     $("gmapsBtn").addEventListener("click", () => {
       if (!lastRoute) return alert("Genera una ruta primero.");
       const coords = lastRoute.geometry.coordinates;
@@ -449,7 +536,7 @@
       a.click();
     });
 
-    // --- 6. DETECCIÓN DE CAÍDAS (SOS ACCELEROMETER) ---
+    // --- 7. DETECCIÓN DE CAÍDAS (SOS ACCELEROMETER) ---
     let sosTimer = null;
     let sosCountdownVal = 15;
 
@@ -459,7 +546,6 @@
           const acc = e.accelerationIncludingGravity;
           if (!acc) return;
           const totalAcc = Math.sqrt(acc.x*acc.x + acc.y*acc.y + acc.z*acc.z);
-          // Impacto fuerte (> 4G)
           if (totalAcc > 40) triggerSosAlert();
         });
       }
@@ -494,7 +580,7 @@
       $("sosModal").classList.remove("active");
     });
 
-    // --- 7. COMUNIDAD E INTERCOMUNICADOR PTT ---
+    // --- 8. COMUNIDAD E INTERCOMUNICADOR ---
     $("openCommunityBtn").addEventListener("click", () => $("communityOverlay").classList.add("active"));
     $("closeCommunityBtn").addEventListener("click", () => $("communityOverlay").classList.remove("active"));
 
