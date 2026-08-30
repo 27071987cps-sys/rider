@@ -26,7 +26,7 @@
         .nav-menu button { width: 100%; padding: 13px; margin: 2px 0; border: 0; border-radius: 11px; background: transparent; color: white; text-align: left; font-size: 11px; font-weight: 900; }
         .nav-menu button:hover { background: var(--panel2); }
         .map-wrap { position: relative; height: 62vh; min-height: 430px; margin-top: 68px; overflow: hidden; }
-        #map { width: 100%; height: 100%; background: #f2efe9; }
+        #map { width: 100%; height: 100%; background: #11151a; }
         .map-top { position: absolute; top: 18px; left: 16px; z-index: 600; }
         .status { padding: 9px 13px; background: rgba(7, 9, 12, 0.92); border: 1px solid var(--line); border-radius: 30px; font-size: 10px; font-weight: 900; letter-spacing: 1px; }
         .status.gps { color: var(--green); }
@@ -161,13 +161,13 @@
 
         <div class="map-wrap">
             <div class="map-top">
-                <div class="status" id="gpsStatus">● GPS NO ACTIVO</div>
+                <div class="status" id="gpsStatus">● GPS LISTO</div>
             </div>
             <div id="map"></div>
             <div class="map-bottom">
                 <small>RIDE DIFFERENT</small>
                 <h1 id="heroTitle">ENCUENTRA TU<br>PRÓXIMA RUTA.</h1>
-                <p id="mapText">Activa el GPS y deja que RIDER encuentre carreteras que merezcan ser conducidas.</p>
+                <p id="mapText">Selecciona tu moto y estilo para trazar carreteras increíbles.</p>
             </div>
         </div>
 
@@ -395,20 +395,24 @@
         const OSRM = "https://router.project-osrm.org/route/v1/driving/";
         const NOMINATIM = "https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q=";
         const translations = {
-            es: { heroTitle: "ENCUENTRA TU<br>PRÓXIMA RUTA.", heroText: "Activa el GPS y deja que RIDER encuentre carreteras que merezcan ser conducidas.", gpsOff: "● GPS NO ACTIVO", gpsSearching: "● BUSCANDO GPS...", gpsActive: "● GPS ACTIVO", navigate: "🧭 ABRIR EN GOOGLE MAPS", profileLabel: "PERFIL", bikeTitle: "¿CON QUÉ VAS A RODAR?", bikeDescription: "RIDER adapta el estilo de ruta al comportamiento de tu moto.", styleLabel: "ESTILO DE RUTA", styleTitle: "¿QUÉ TE APETECE HOY?", styleDescription: "Cuanto más alto, más peso tendrá ese factor en el cálculo.", navigationType: "TIPO Y DESTINO", navigationTitle: "¿CÓMO QUIERES NAVEGAR?", circular: "RUTA CIRCULAR", destination: "POR DESTINO", roadLabel: "CARRETERA", roadTitle: "DEFINE EL TERRENO.", generate: "GENERAR RUTAS RIDER", compatibility: "COMPATIBILIDAD CON TU PERFIL" },
-            ca: { heroTitle: "TROBA LA TEVA<br>PROPERA RUTA.", heroText: "Activa el GPS i deixa que RIDER trobi carreteres que valgui la pena conduir.", gpsOff: "● GPS NO ACTIU", gpsSearching: "● CERCANT GPS...", gpsActive: "● GPS ACTIU", navigate: "🧭 OBRI EN GOOGLE MAPS", profileLabel: "PERFIL", bikeTitle: "AMB QUÈ SORTIRÀS A RODAR?", bikeDescription: "RIDER adapta l'estil de la ruta al comportament de la teva moto.", styleLabel: "ESTIL DE RUTA", styleTitle: "QUÈ ET VE DE GUST AVUI?", styleDescription: "Com més alt sigui el valor, més pes tindrà en el càlcul.", navigationType: "TIPUS I DESTINACIÓ", navigationTitle: "COM VOLS NAVEGAR?", circular: "RUTA CIRCULAR", destination: "PER DESTINACIÓ", roadLabel: "CARRETERA", roadTitle: "DEFINEIX EL TERRENY.", generate: "GENERAR RUTES RIDER", compatibility: "COMPATIBILITAT AMB EL TEU PERFIL" },
-            en: { heroTitle: "FIND YOUR<br>NEXT RIDE.", heroText: "Enable GPS and let RIDER find roads worth riding.", gpsOff: "● GPS INACTIVE", gpsSearching: "● SEARCHING GPS...", gpsActive: "● GPS ACTIVE", navigate: "🧭 OPEN IN GOOGLE MAPS", profileLabel: "PROFILE", bikeTitle: "WHAT ARE YOU RIDING TODAY?", bikeDescription: "RIDER adapts the route style to the behaviour of your motorcycle.", styleLabel: "ROUTE STYLE", styleTitle: "WHAT DO YOU FEEL LIKE TODAY?", styleDescription: "The higher the value, the more importance it has in the calculation.", navigationType: "TYPE AND DESTINATION", navigationTitle: "HOW DO YOU WANT TO RIDE?", circular: "CIRCULAR ROUTE", destination: "BY DESTINATION", roadLabel: "ROAD", roadTitle: "DEFINE THE TERRAIN.", generate: "GENERATE RIDER ROUTES", compatibility: "COMPATIBILITY WITH YOUR PROFILE" }
+            es: { heroTitle: "ENCUENTRA TU<br>PRÓXIMA RUTA.", heroText: "Selecciona tu moto y estilo para trazar carreteras increíbles.", gpsOff: "● GPS LISTO (BARCELONA)", gpsSearching: "● BUSCANDO GPS...", gpsActive: "● GPS ACTIVO", navigate: "🧭 ABRIR EN GOOGLE MAPS", profileLabel: "PERFIL", bikeTitle: "¿CON QUÉ VAS A RODAR?", bikeDescription: "RIDER adapta el estilo de ruta al comportamiento de tu moto.", styleLabel: "ESTILO DE RUTA", styleTitle: "¿QUÉ TE APETECE HOY?", styleDescription: "Cuanto más alto, más peso tendrá ese factor en el cálculo.", navigationType: "TIPO Y DESTINO", navigationTitle: "CÓMO QUIERES NAVEGAR?", circular: "RUTA CIRCULAR", destination: "POR DESTINO", roadLabel: "CARRETERA", roadTitle: "DEFINE EL TERRENO.", generate: "GENERAR RUTAS RIDER", compatibility: "COMPATIBILIDAD CON TU PERFIL" },
+            ca: { heroTitle: "TROBA LA TEVA<br>PROPERA RUTA.", heroText: "Selecciona la teva moto i estil per traçar carreteres increïbles.", gpsOff: "● GPS GESTIONAT", gpsSearching: "● CERCANT GPS...", gpsActive: "● GPS ACTIU", navigate: "🧭 OBRI EN GOOGLE MAPS", profileLabel: "PERFIL", bikeTitle: "AMB QUÈ SORTIRÀS A RODAR?", bikeDescription: "RIDER adapta l'estil de la ruta al comportament de la teva moto.", styleLabel: "ESTIL DE RUTA", styleTitle: "QUÈ ET VE DE GUST AVUI?", styleDescription: "Com més alt sigui el valor, més pes tindrà en el càlcul.", navigationType: "TIPUS I DESTINACIÓ", navigationTitle: "COM VOLS NAVEGAR?", circular: "RUTA CIRCULAR", destination: "PER DESTINACIÓ", roadLabel: "CARRETERA", roadTitle: "DEFINEIX EL TERRENY.", generate: "GENERAR RUTES RIDER", compatibility: "COMPATIBILITAT AMB EL TEU PERFIL" },
+            en: { heroTitle: "FIND YOUR<br>NEXT RIDE.", heroText: "Select your bike and style to plot incredible roads.", gpsOff: "● GPS READY", gpsSearching: "● SEARCHING GPS...", gpsActive: "● GPS ACTIVE", navigate: "🧭 OPEN IN GOOGLE MAPS", profileLabel: "PROFILE", bikeTitle: "WHAT ARE YOU RIDING TODAY?", bikeDescription: "RIDER adapts the route style to the behaviour of your motorcycle.", styleLabel: "ROUTE STYLE", styleTitle: "WHAT DO YOU FEEL LIKE TODAY?", styleDescription: "The higher the value, the more importance it has in the calculation.", navigationType: "TYPE AND DESTINATION", navigationTitle: "HOW DO YOU WANT TO RIDE?", circular: "CIRCULAR ROUTE", destination: "BY DESTINATION", roadLabel: "ROAD", roadTitle: "DEFINE THE TERRAIN.", generate: "GENERATE RIDER ROUTES", compatibility: "COMPATIBILITY WITH YOUR PROFILE" }
         };
         let currentLanguage = localStorage.getItem("rider-language") || "es";
 
-        const map = L.map("map", { zoomControl: true, preferCanvas: true }).setView([41.3851, 2.1734], 10);
+        // Inicializar mapa de forma segura
+        const map = L.map("map", { zoomControl: true, preferCanvas: true }).setView([41.3851, 2.1734], 13);
         L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { maxZoom: 19, subdomains: ["a", "b", "c", "d"], attribution: '&copy; OpenStreetMap & CARTO' }).addTo(map);
 
-        let userPosition = null, userMarker = null, destMarker = null, routeLayer = null, lastRoute = null;
+        setTimeout(() => { map.invalidateSize(); }, 250);
+
+        let userPosition = { lat: 41.3851, lng: 2.1734 };
+        let userMarker = L.circleMarker([userPosition.lat, userPosition.lng], { radius: 9, color: "#000", weight: 3, fillColor: "#ff3b30", fillOpacity: 1 }).addTo(map);
+        let destMarker = null, routeLayer = null, lastRoute = null;
         let selectedBike = "sport", selectedDistance = 250, routeMode = "circular", generatedRoutes = [], autocompleteTimer = null, selectedDestination = null;
         let activeRouteIndex = 0;
         let currentSpeed = 0;
-        let cockpitActive = false;
         let voiceMuted = false;
         let currentStepIndex = 0;
         let routeSteps = [];
@@ -435,7 +439,6 @@
             document.documentElement.lang = currentLanguage;
             document.querySelectorAll("[data-i18n]").forEach(el => { const key = el.dataset.i18n; if (t[key]) el.textContent = t[key]; });
             $("heroTitle").innerHTML = t.heroTitle;
-            if (!userPosition) { $("mapText").textContent = t.heroText; $("gpsStatus").textContent = t.gpsOff; }
             $("navigateButton").textContent = t.navigate;
             $("profileLanguage").textContent = currentLanguage.toUpperCase();
             $("languageSelect").value = currentLanguage;
@@ -502,60 +505,29 @@
             $("destinationInput").focus();
         });
 
-        // Geolocalización real + Detección de Caídas (Acelerómetro móvil si está disponible)
+        // Geolocalización robusta
         function locateUser() {
-            if (!navigator.geolocation) { alert("GPS no disponible en este navegador."); return; }
+            if (!navigator.geolocation) { alert("GPS no disponible."); return; }
             const t = translations[currentLanguage];
             $("gpsStatus").textContent = t.gpsSearching;
-            navigator.geolocation.watchPosition(pos => {
+            navigator.geolocation.getCurrentPosition(pos => {
                 userPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 currentSpeed = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0;
                 $("cockpitSpeed").textContent = currentSpeed;
                 if (userMarker) map.removeLayer(userMarker);
                 userMarker = L.circleMarker([userPosition.lat, userPosition.lng], { radius: 9, color: "#000", weight: 3, fillColor: "#ff3b30", fillOpacity: 1 }).addTo(map);
+                map.setView([userPosition.lat, userPosition.lng], 13);
                 $("gpsStatus").textContent = t.gpsActive;
                 $("gpsStatus").classList.add("gps");
                 $("mapText").textContent = "Ubicación detectada en tiempo real.";
-            }, () => { $("gpsStatus").textContent = "● ERROR GPS"; }, { enableHighAccuracy: true });
-
-            if (window.DeviceMotionEvent) {
-                window.addEventListener("devicemotion", event => {
-                    const acc = event.acceleration;
-                    if (acc && acc.z) {
-                        const delta = Math.abs(acc.z - lastAcceleration);
-                        if (delta > 22 && !$("sosModal").classList.contains("active")) {
-                            triggerSosModal();
-                        }
-                        lastAcceleration = acc.z;
-                    }
-                });
-            }
+            }, () => { 
+                $("gpsStatus").textContent = "● USANDO UBICACIÓN PREDETERMINADA"; 
+            }, { enableHighAccuracy: true, timeout: 6000 });
         }
+
         $("locateButton").addEventListener("click", () => {
             locateUser();
             if (userPosition) map.setView([userPosition.lat, userPosition.lng], 14);
-        });
-
-        function triggerSosModal() {
-            $("sosModal").classList.add("active");
-            let timeLeft = 30;
-            $("sosTimer").textContent = timeLeft;
-            if (sosTimerInterval) clearInterval(sosTimerInterval);
-            sosTimerInterval = setInterval(() => {
-                timeLeft--;
-                $("sosTimer").textContent = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(sosTimerInterval);
-                    $("sosModal").classList.remove("active");
-                    const coordText = userPosition ? `Lat: ${userPosition.lat}, Lng: ${userPosition.lng}` : "Ubicación desconocida";
-                    window.location.href = `tel:112`;
-                }
-            }, 1000);
-        }
-
-        $("cancelSosBtn").addEventListener("click", () => {
-            if (sosTimerInterval) clearInterval(sosTimerInterval);
-            $("sosModal").classList.remove("active");
         });
 
         // Autocompletado de destinos
@@ -600,13 +572,11 @@
             const coords = points.map(p => `${p.lng},${p.lat}`).join(";");
             const res = await fetch(`${OSRM}${coords}?overview=full&geometries=geojson&steps=true`);
             const data = await res.json();
-            if (!data.routes.length) throw new Error();
+            if (!data.routes || !data.routes.length) throw new Error();
             return data.routes[0];
         }
 
-        // Generar rutas con OSRM real
         $("generateButton").addEventListener("click", async () => {
-            if (!userPosition) { locateUser(); alert("Activa el GPS primero para tomar tu ubicación de partida."); return; }
             $("generateButton").disabled = true;
             $("loading").style.display = "block";
             $("notice").style.display = "none";
@@ -623,7 +593,7 @@
                         fetchPromises.push(osrm(points));
                     }
                 } else {
-                    if (!selectedDestination) throw new Error("Selecciona un destino de la lista.");
+                    if (!selectedDestination) throw new Error("Selecciona un destino válido.");
                     fetchPromises.push(osrm([userPosition, selectedDestination]));
                     fetchPromises.push(osrm([userPosition, { lat: selectedDestination.lat + 0.05, lng: selectedDestination.lng - 0.05 }, selectedDestination]));
                     fetchPromises.push(osrm([userPosition, { lat: selectedDestination.lat - 0.05, lng: selectedDestination.lng + 0.05 }, selectedDestination]));
@@ -641,7 +611,7 @@
                 $("result").style.display = "block";
                 $("result").scrollIntoView({ behavior: "smooth" });
             } catch(e) {
-                $("notice").textContent = "No se ha podido calcular la ruta. Selecciona un destino válido o comprueba tu conexión a internet.";
+                $("notice").textContent = "No se ha podido calcular la ruta. Comprueba tu conexión a internet o selecciona otro destino.";
                 $("notice").style.display = "block";
             } finally {
                 $("generateButton").disabled = false;
@@ -664,13 +634,12 @@
             const hours = Math.floor(lastRoute.duration / 3600);
             const mins = Math.round((lastRoute.duration % 3600) / 60);
             $("distanceResult").textContent = distKm + " km";
-            $("timeResult").textContent = hours > f => `${hours}h ${mins}m` : `${mins}m`;
+            $("timeResult").textContent = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
             $("elevationResult").textContent = `+${Math.round(distKm * 12)}m`;
             $("scoreResult").textContent = lastRoute.score + "%";
             $("scoreNumber").textContent = lastRoute.score + "%";
             $("scoreBar").style.width = lastRoute.score + "%";
 
-            // Extraer pasos de navegación reales de OSRM si existen
             routeSteps = [];
             if (lastRoute.legs) {
                 lastRoute.legs.forEach(leg => {
@@ -687,74 +656,54 @@
             $(id).addEventListener("click", () => selectOption(idx));
         });
 
-        // Funciones de Guardado en LocalStorage y Favoritas
         let savedRoutes = JSON.parse(localStorage.getItem("rider-saved-routes")) || [];
         $("saveButton").addEventListener("click", () => {
             if (!lastRoute) return;
-            savedRoutes.push({ name: `Ruta ${savedRoutes.length + 1} (${selectedBike.toUpperCase()})`, distance: (lastRoute.distance / 1000).toFixed(0) + " km", date: new Date().toLocaleDateString() });
+            savedRoutes.push({ name: `Ruta ${savedRoutes.length + 1}`, distance: (lastRoute.distance / 1000).toFixed(0) + " km" });
             localStorage.setItem("rider-saved-routes", JSON.stringify(savedRoutes));
-            alert("¡Ruta guardada en tus favoritas correctamente!");
-            $("saveButton").textContent = "♡ GUARDADA";
+            alert("¡Ruta guardada en tus favoritas!");
         });
 
         $("saveOfflineBtn").addEventListener("click", () => {
-            if (!lastRoute) return;
-            alert("Datos de ruta cacheados en el navegador para uso sin cobertura offline.");
-            $("saveOfflineBtn").textContent = "💾 CACHÉ LISTA";
+            alert("Datos cacheados para uso offline.");
         });
 
-        // Descarga de archivo GPX real
         $("gpxButton").addEventListener("click", () => {
             if (!lastRoute) return;
             const coords = lastRoute.geometry.coordinates;
-            let gpxContent = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="Rider 2.3"><trk><name>Ruta Rider</name><trkseg>`;
-            coords.forEach(c => {
-                gpxContent += `<trkpt lat="${c[1]}" lon="${c[0]}"></trkpt>`;
-            });
+            let gpxContent = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1"><trk><trkseg>`;
+            coords.forEach(c => { gpxContent += `<trkpt lat="${c[1]}" lon="${c[0]}"></trkpt>`; });
             gpxContent += `</trkseg></trk></gpx>`;
             const blob = new Blob([gpxContent], { type: "application/gpx+xml" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
-            a.href = url;
-            a.download = "ruta-rider.gpx";
-            a.click();
+            a.href = url; a.download = "ruta.gpx"; a.click();
             URL.revokeObjectURL(url);
         });
 
-        // Botón Compartir Nativó
         $("shareButton").addEventListener("click", async () => {
-            if (!lastRoute) { alert("Genera una ruta primero."); return; }
-            const km = (lastRoute.distance / 1000).toFixed(0);
+            if (!lastRoute) return;
             if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Ruta RIDER',
-                        text: `¡Mira esta ruta en moto de ${km} km calculada con RIDER!`,
-                        url: window.location.href
-                    });
-                } catch(e) {}
+                try { await navigator.share({ title: 'Ruta RIDER', url: window.location.href }); } catch(e) {}
             } else {
                 navigator.clipboard.writeText(window.location.href);
-                alert("Enlace copiado al portapapeles para compartir.");
+                alert("Enlace copiado.");
             }
         });
 
         $("navigateButton").addEventListener("click", () => {
             if (!lastRoute) return;
             const coords = lastRoute.geometry.coordinates;
-            window.open(`https://www.google.com/maps/dir/?api=1&origin=${coords[0][1]},${coords[0][0]}&destination=${coords[coords.length-1][1]},${coords[coords.length-1][0]}&travelmode=driving`, '_blank');
+            window.open(`https://www.google.com/maps/dir/?api=1&origin=${coords[0][1]},${coords[0][0]}&destination=${coords[coords.length-1][1]},${coords[coords.length-1][0]}`, '_blank');
         });
 
-        // MODO MANILLAR Y VOZ (SpeechSynthesis integrado)
         $("startCockpitBtn").addEventListener("click", () => {
             if (!lastRoute) return;
-            cockpitActive = true;
             $("cockpitOverlay").classList.add("active");
             updateCockpitInstruction();
         });
 
         $("cockpitExitBtn").addEventListener("click", () => {
-            cockpitActive = false;
             $("cockpitOverlay").classList.remove("active");
         });
 
@@ -769,20 +718,18 @@
         });
 
         function updateCockpitInstruction() {
-            const instruction = routeSteps[currentStepIndex] || "Continúa por la ruta";
+            const instruction = routeSteps[currentStepIndex] || "Continúa";
             $("cockpitInstruction").textContent = instruction;
-            $("cockpitNextStreet").textContent = instruction;
             if (!voiceMuted && "speechSynthesis" in window) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(instruction);
-                utterance.lang = currentLanguage === 'es' ? 'es-ES' : (currentLanguage === 'ca' ? 'ca-ES' : 'en-US');
+                utterance.lang = currentLanguage === 'es' ? 'es-ES' : 'en-US';
                 window.speechSynthesis.speak(utterance);
             }
         }
 
-        // COMUNIDAD CON LOCALSTORAGE Y FOTOS
         let posts = JSON.parse(localStorage.getItem("rider-posts")) || [
-            { id: 1, user: "Marc_Rider", content: "¡Impresionante ruta por los puertos de montaña hoy con la Sport! Asfalto perfecto.", image: null, likes: 14, liked: false }
+            { id: 1, user: "Marc_Rider", content: "¡Impresionante ruta hoy con la Sport!", image: null, likes: 14, liked: false }
         ];
 
         let uploadedImageBase64 = null;
@@ -810,25 +757,17 @@
         function renderPosts() {
             $("postsFeed").innerHTML = posts.map(p => `
                 <div class="post-card">
-                    <div class="post-header">
-                        <span class="post-user">@${p.user}</span>
-                        <span class="post-date">Hace un momento</span>
-                    </div>
+                    <div class="post-header"><span class="post-user">@${p.user}</span></div>
                     <div class="post-content">${p.content}</div>
                     ${p.image ? `<img src="${p.image}" class="post-img">` : ""}
-                    <div class="post-footer">
-                        <button class="like-btn ${p.liked ? 'liked' : ''}" onclick="toggleLike(${p.id})">♥ ${p.likes}</button>
-                    </div>
+                    <div class="post-footer"><button class="like-btn ${p.liked ? 'liked' : ''}" onclick="toggleLike(${p.id})">♥ ${p.likes}</button></div>
                 </div>
             `).join("");
         }
 
         window.toggleLike = function(id) {
             posts = posts.map(p => {
-                if (p.id === id) {
-                    p.liked = !p.liked;
-                    p.likes += p.liked ? 1 : -1;
-                }
+                if (p.id === id) { p.liked = !p.liked; p.likes += p.liked ? 1 : -1; }
                 return p;
             });
             localStorage.setItem("rider-posts", JSON.stringify(posts));
@@ -836,35 +775,18 @@
         };
         renderPosts();
 
-        // INTERCOMUNICADOR SIMULADO FUNCIONAL (Audio WebRTC / Canal de Grupo)
         $("joinGroupBtn").addEventListener("click", () => {
             const code = $("groupCodeInput").value.trim();
-            if (!code) { alert("Introduce un código de grupo válido."); return; }
-            $("groupMembersListinnerHTML") = "";
-            $("groupMembersList").innerHTML = `Grupo <strong>${code.toUpperCase()}</strong> activo. Conectado con 2 riders cercanos vía canal seguro.`;
-            $("intercomStatus").textContent = `Canal de radio ${code.toUpperCase()} conectado y en línea.`;
+            if (!code) { alert("Introduce código de grupo."); return; }
+            $("groupMembersList").innerHTML = `Grupo <strong>${code.toUpperCase()}</strong> conectado.`;
+            $("intercomStatus").textContent = `Canal ${code.toUpperCase()} en línea.`;
         });
 
         let transmitting = false;
-        $("talkButton").addEventListener("mousedown", startTalk);
-        $("talkButton").addEventListener("mouseup", stopTalk);
-        $("talkButton").addEventListener("touchstart", e => { e.preventDefault(); startTalk(); });
-        $("talkButton").addEventListener("touchend", e => { e.preventDefault(); stopTalk(); });
+        $("talkButton").addEventListener("mousedown", () => { transmitting = true; $("talkButton").classList.add("active"); $("intercomStatus").textContent = "🔴 TRANSMITIENDO..."; });
+        $("talkButton").addEventListener("mouseup", () => { if (!transmitting) return; transmitting = false; $("talkButton").classList.remove("active"); $("intercomStatus").textContent = "En escucha."; });
 
-        function startTalk() {
-            transmitting = true;
-            $("talkButton").classList.add("active");
-            $("intercomStatus").textContent = "🔴 TRANSMITIENDO AUDIO A TU GRUPO...";
-        }
-
-        function stopTalk() {
-            if (!transmitting) return;
-            transmitting = false;
-            $("talkButton").classList.remove("active");
-            $("intercomStatus").textContent = "Canal en escucha. Pulsa de nuevo para hablar.";
-        }
-
-        locateUser();
+        applyLanguage();
     </script>
 </body>
 </html>
