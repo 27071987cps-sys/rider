@@ -1,577 +1,1677 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RIDER 3.0 — Professional Motorcycle Routes</title>
-    
-    <!-- PWA Manifest & Meta -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#07090c">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="assets/icon-192.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<title>RIDER 3.0 — Ride Different</title>
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        rider: {
-                            bg: '#07090c',
-                            panel: '#101318',
-                            panel2: '#171b21',
-                            line: 'rgba(255, 255, 255, 0.08)',
-                            red: '#ff3b30',
-                            red2: '#ff5a36',
-                            green: '#57e389',
-                            blue: '#3d9cff',
-                            muted: '#858d98'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { background-color: #07090c; color: #f6f7f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow-x: hidden; }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: #07090c; }
-        ::-webkit-scrollbar-thumb { background: #2a2f36; border-radius: 2px; }
-    </style>
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+:root{
+  --bg:#080808;
+  --panel:#111;
+  --panel2:#181818;
+  --line:#292929;
+  --text:#f4f4f4;
+  --muted:#8d8d8d;
+  --red:#e52323;
+  --red2:#ff3939;
+  --green:#35d07f;
+  --yellow:#ffc107;
+}
+
+*{box-sizing:border-box}
+
+html{scroll-behavior:smooth}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+button,input,select{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  background:rgba(8,8,8,.96);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+
+.top{
+  max-width:1200px;
+  margin:auto;
+  padding:18px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+}
+
+.logo{
+  font-size:28px;
+  font-weight:1000;
+  letter-spacing:-2px;
+}
+
+.logo span{color:var(--red)}
+
+.nav{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.nav button{
+  background:none;
+  border:0;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  padding:10px;
+}
+
+.nav button:hover{color:white}
+
+.container{
+  width:min(1100px,92%);
+  margin:auto;
+}
+
+.hero{
+  padding:70px 0 45px;
+}
+
+.gps-status{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:11px;
+  font-weight:bold;
+  color:var(--muted);
+}
+
+.dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--red);
+}
+
+.dot.active{
+  background:var(--green);
+  box-shadow:0 0 15px var(--green);
+}
+
+.kicker{
+  color:var(--red);
+  font-size:11px;
+  letter-spacing:3px;
+  font-weight:bold;
+  margin-top:30px;
+}
+
+h1{
+  font-size:clamp(38px,7vw,76px);
+  line-height:.9;
+  margin:15px 0;
+  letter-spacing:-4px;
+  max-width:700px;
+}
+
+.hero p{
+  max-width:650px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.section{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:28px;
+  margin:22px 0;
+}
+
+.eyebrow{
+  color:var(--red);
+  font-size:11px;
+  letter-spacing:2px;
+  font-weight:bold;
+}
+
+h2{
+  font-size:28px;
+  margin:10px 0;
+}
+
+.description{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.6;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;
+  margin-top:20px;
+}
+
+.card{
+  background:var(--panel2);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px;
+}
+
+.bike{
+  background:var(--panel2);
+  border:1px solid var(--line);
+  color:white;
+  padding:20px;
+  border-radius:16px;
+  text-align:left;
+  transition:.2s;
+}
+
+.bike:hover,
+.bike.active{
+  border-color:var(--red);
+  background:#1c1010;
+}
+
+.bike-icon{
+  font-size:30px;
+  display:block;
+  margin-bottom:12px;
+}
+
+.bike small{
+  display:block;
+  color:var(--muted);
+  margin-top:5px;
+}
+
+.control{
+  margin:22px 0;
+}
+
+.control-header{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
+
+input[type="range"]{
+  width:100%;
+  accent-color:var(--red);
+}
+
+.value{
+  color:var(--red);
+  font-weight:bold;
+}
+
+.mode-selector,
+.distance,
+.result-buttons{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:18px;
+}
+
+.mode-btn,
+.distance button,
+.action{
+  background:var(--panel2);
+  border:1px solid var(--line);
+  color:white;
+  border-radius:12px;
+  padding:13px 16px;
+  font-weight:bold;
+}
+
+.mode-btn.active,
+.distance button.active{
+  border-color:var(--red);
+  background:#321010;
+}
+
+.dest-input,
+.text-input,
+select{
+  width:100%;
+  margin-top:15px;
+  padding:15px;
+  background:var(--panel2);
+  color:white;
+  border:1px solid var(--line);
+  border-radius:12px;
+}
+
+.option{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.option:last-child{border:0}
+
+.option-title{font-weight:bold}
+.option-description{font-size:12px;color:var(--muted);margin-top:4px}
+
+.switch{
+  width:45px;
+  height:24px;
+  background:#333;
+  border-radius:20px;
+  position:relative;
+  cursor:pointer;
+}
+
+.switch:after{
+  content:"";
+  width:18px;
+  height:18px;
+  background:white;
+  position:absolute;
+  border-radius:50%;
+  top:3px;
+  left:4px;
+  transition:.2s;
+}
+
+.switch.active{
+  background:var(--red);
+}
+
+.switch.active:after{
+  left:23px;
+}
+
+.generate{
+  width:100%;
+  padding:22px;
+  background:var(--red);
+  color:white;
+  border:0;
+  border-radius:16px;
+  font-size:15px;
+  font-weight:1000;
+  margin:20px 0;
+}
+
+.generate:hover{background:var(--red2)}
+
+.loading{
+  display:none;
+  text-align:center;
+  padding:30px;
+  color:var(--muted);
+}
+
+.result{
+  display:none;
+  background:#0d0d0d;
+  border:1px solid var(--red);
+  border-radius:22px;
+  padding:25px;
+  margin:20px 0;
+}
+
+.route-selector{
+  display:flex;
+  gap:8px;
+  margin:20px 0;
+}
+
+.route-opt{
+  flex:1;
+  padding:14px;
+  background:var(--panel2);
+  border:1px solid var(--line);
+  color:white;
+  border-radius:10px;
+  font-weight:bold;
+}
+
+.route-opt.active{
+  border-color:var(--red);
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+
+.stat{
+  background:var(--panel2);
+  padding:16px;
+  border-radius:12px;
+}
+
+.stat strong{
+  display:block;
+  font-size:20px;
+}
+
+.stat span{
+  color:var(--muted);
+  font-size:11px;
+}
+
+.bar{
+  height:10px;
+  background:#222;
+  border-radius:10px;
+  overflow:hidden;
+  margin:20px 0;
+}
+
+.bar div{
+  height:100%;
+  width:0;
+  background:var(--red);
+  transition:1s;
+}
+
+#map{
+  height:450px;
+  border-radius:18px;
+  margin-top:20px;
+  overflow:hidden;
+}
+
+#cockpit{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:5000;
+  background:#000;
+}
+
+#cockpitMap{
+  width:100%;
+  height:100%;
+}
+
+.cockpit-top{
+  position:absolute;
+  top:20px;
+  left:20px;
+  right:20px;
+  z-index:5001;
+  background:rgba(0,0,0,.8);
+  border:1px solid #333;
+  border-radius:18px;
+  padding:18px;
+}
+
+.instruction{
+  color:white;
+  font-size:20px;
+  font-weight:bold;
+}
+
+.distance-next{
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:8px;
+}
+
+.speedometer{
+  position:absolute;
+  bottom:35px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:5001;
+  width:190px;
+  height:190px;
+  border-radius:50%;
+  background:rgba(0,0,0,.9);
+  border:4px solid var(--red);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+.speed{
+  font-size:58px;
+  font-weight:bold;
+}
+
+.kmh{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.cockpit-buttons{
+  position:absolute;
+  bottom:25px;
+  right:20px;
+  z-index:5002;
+  display:flex;
+  gap:8px;
+}
+
+.voice-status{
+  position:absolute;
+  bottom:25px;
+  left:20px;
+  z-index:5002;
+  background:rgba(0,0,0,.8);
+  padding:12px;
+  border-radius:10px;
+  color:var(--green);
+  font-size:11px;
+  font-weight:bold;
+}
+
+.saved-list{
+  display:grid;
+  gap:10px;
+  margin-top:15px;
+}
+
+.saved-item{
+  padding:15px;
+  background:var(--panel2);
+  border-radius:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.fuel-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;
+  margin-top:15px;
+}
+
+.big-number{
+  font-size:35px;
+  color:var(--red);
+  font-weight:bold;
+}
+
+footer{
+  text-align:center;
+  padding:50px 20px;
+  color:var(--muted);
+  font-size:11px;
+}
+
+@media(max-width:650px){
+  .top{padding:14px}
+  .nav{display:none}
+  .section{padding:20px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  h1{letter-spacing:-2px}
+  #map{height:350px}
+}
+</style>
 </head>
-<body class="bg-rider-bg text-rider-text antialiased selection:bg-rider-red selection:text-white">
 
-    <!-- APP CONTAINER -->
-    <div id="app" class="w-full max-w-7xl mx-auto min-h-screen flex flex-col relative pb-24">
+<body>
 
-        <!-- HEADER -->
-        <header class="h-16 flex items-center justify-between px-4 fixed top-0 left-0 right-0 z-40 bg-rider-bg/95 backdrop-blur-md border-b border-rider-line">
-            <div class="text-2xl font-black italic tracking-widest uppercase">
-                RIDER<span class="text-rider-red">.3</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <select id="languageSelect" class="h-10 px-2 rounded-xl border border-rider-line bg-rider-panel2 text-white text-xs font-bold focus:outline-none">
-                    <option value="es">🇪🇸 ES</option>
-                    <option value="ca">🏴 CA</option>
-                    <option value="en">🇬🇧 EN</option>
-                </select>
-                <button id="menuButton" class="w-10 h-10 rounded-full border border-rider-line bg-rider-panel2 flex items-center justify-center text-lg active:scale-95 transition">
-                    ☰
-                </button>
-            </div>
-        </header>
+<header>
+  <div class="top">
+    <div class="logo">RIDER<span>.</span></div>
 
-        <!-- NAV DROPDOWN MENU -->
-        <nav id="navMenu" class="hidden fixed top-20 right-4 z-50 w-56 p-2 border border-rider-line rounded-2xl bg-rider-panel/98 shadow-2xl backdrop-blur-xl">
-            <button data-scroll="routeSection" class="w-full p-3 rounded-xl text-left text-xs font-bold hover:bg-rider-panel2 transition">🏍️ Crear Ruta</button>
-            <button data-scroll="communitySection" class="w-full p-3 rounded-xl text-left text-xs font-bold hover:bg-rider-panel2 transition">👥 Comunidad</button>
-            <button data-scroll="intercomSection" class="w-full p-3 rounded-xl text-left text-xs font-bold hover:bg-rider-panel2 transition">🎙️ Intercom & Grupo</button>
-            <button data-scroll="profileInfoSection" class="w-full p-3 rounded-xl text-left text-xs font-bold hover:bg-rider-panel2 transition">⚙️ Mi Perfil</button>
-            <button id="installPwaBtn" class="w-full p-3 rounded-xl text-left text-xs font-bold text-rider-green hover:bg-rider-panel2 transition hidden">📲 Instalar App</button>
-        </nav>
+    <nav class="nav">
+      <button onclick="go('routes')">🏍️ Crear ruta</button>
+      <button onclick="go('explore')">🔎 Explorar</button>
+      <button onclick="go('garage')">🏍️ Garaje</button>
+      <button onclick="go('profile')">👤 Mi perfil</button>
+      <button onclick="go('preferences')">⚙️ Preferencias</button>
+    </nav>
 
-        <!-- MAP WRAPPER -->
-        <div class="relative h-[55vh] min-h-[380px] mt-16 z-10 border-b border-rider-line">
-            <div id="map" class="w-full h-full bg-[#12161c]"></div>
-            <div class="absolute top-4 left-4 z-20">
-                <span id="gpsStatus" class="px-3 py-2 bg-rider-bg/90 border border-rider-line rounded-full text-[10px] font-black tracking-wider text-rider-muted shadow-lg">
-                    ● GPS INICIALIZANDO...
-                </span>
-            </div>
-            <div class="absolute bottom-4 left-4 right-4 z-20 p-4 border border-rider-line rounded-2xl bg-rider-bg/90 backdrop-blur-md shadow-2xl">
-                <span class="text-rider-red text-[9px] font-black tracking-widest uppercase">RIDE DIFFERENT</span>
-                <h1 id="heroTitle" class="text-xl italic font-black mt-1">ENCUENTRA TU PRÓXIMA RUTA</h1>
-                <p id="heroText" class="text-rider-muted text-xs mt-1 leading-relaxed">Selecciona tu montura y ajusta los parámetros para trazar curvas reales de montaña.</p>
-            </div>
-        </div>
+    <button class="action" onclick="activateGPS()">📍 GPS</button>
+  </div>
+</header>
 
-        <!-- MAIN SECTIONS CONTENT -->
-        <main class="p-4 sm:p-6 space-y-8">
+<main class="container">
 
-            <!-- 01 — PERFIL DE MOTO -->
-            <section id="bikeSection" class="space-y-4">
-                <div class="text-rider-red text-[9px] font-black tracking-widest">01 — PERFIL</div>
-                <h2 class="text-2xl italic font-black">¿CON QUÉ VAS A RODAR?</h2>
-                <p class="text-rider-muted text-xs">El motor ajustará la severidad de las curvas y la altitud según tu montura.</p>
-                <div id="bikesGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <!-- Inyectado dinámicamente o por marcado estático seguro -->
-                    <button class="bike active p-3 rounded-2xl bg-rider-panel border border-rider-line text-left transition active:scale-95 flex flex-col justify-between" data-bike="sport">
-                        <span class="text-2xl mb-2">🏁</span>
-                        <div><strong>SPORT</strong><small class="text-rider-muted block text-[10px]">Curvas exigentes</small></div>
-                    </button>
-                    <button class="bike p-3 rounded-2xl bg-rider-panel border border-rider-line text-left transition active:scale-95 flex flex-col justify-between" data-bike="naked">
-                        <span class="text-2xl mb-2">🏍️</span>
-                        <div><strong>NAKED</strong><small class="text-rider-muted block text-[10px]">Equilibrada</small></div>
-                    </button>
-                    <button class="bike p-3 rounded-2xl bg-rider-panel border border-rider-line text-left transition active:scale-95 flex flex-col justify-between" data-bike="trail">
-                        <span class="text-2xl mb-2">🧭</span>
-                        <div><strong>TRAIL</strong><small class="text-rider-muted block text-[10px]">Aventura total</small></div>
-                    </button>
-                    <button class="bike p-3 rounded-2xl bg-rider-panel border border-rider-line text-left transition active:scale-95 flex flex-col justify-between" data-bike="touring">
-                        <span class="text-2xl mb-2">🛣️</span>
-                        <div><strong>TOURING</strong><small class="text-rider-muted block text-[10px]">Larga distancia</small></div>
-                    </button>
-                </div>
-            </section>
+<section class="hero">
+  <div class="gps-status">
+    <span class="dot" id="gpsDot"></span>
+    <span id="gpsStatus">GPS NO ACTIVO</span>
+  </div>
 
-            <!-- 02 — ESTILO DE RUTA -->
-            <section id="routeSection" class="space-y-4 pt-4">
-                <div class="text-rider-red text-[9px] font-black tracking-widest">02 — ESTILO DE RUTA</div>
-                <h2 class="text-2xl italic font-black">¿QUÉ TE APETECE HOY?</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="p-4 rounded-2xl bg-rider-panel border border-rider-line space-y-3">
-                        <div class="flex justify-between text-xs font-black">
-                            <span>🔥 CURVAS TÉCNICAS</span>
-                            <span id="curvesValue" class="text-rider-red">9</span>
-                        </div>
-                        <input id="curves" type="range" min="0" max="10" value="9" class="w-full accent-rider-red bg-rider-panel2 h-1 rounded-lg">
-                    </div>
-                    <div class="p-4 rounded-2xl bg-rider-panel border border-rider-line space-y-3">
-                        <div class="flex justify-between text-xs font-black">
-                            <span>⛰️ PUERTOS DE MONTAÑA</span>
-                            <span id="mountainValue" class="text-rider-red">8</span>
-                        </div>
-                        <input id="mountain" type="range" min="0" max="10" value="8" class="w-full accent-rider-red bg-rider-panel2 h-1 rounded-lg">
-                    </div>
-                </div>
-            </section>
+  <div class="kicker">RIDE DIFFERENT</div>
 
-            <!-- 03 — TIPO Y DISTANCIA -->
-            <section class="space-y-4 pt-4">
-                <div class="text-rider-red text-[9px] font-black tracking-widest">03 — NAVEGACIÓN</div>
-                <h2 class="text-2xl italic font-black">¿CÓMO QUIERES RODARES?</h2>
-                <div class="grid grid-cols-2 gap-3">
-                    <button id="modeCircular" class="p-3 rounded-xl border border-rider-line bg-rider-red text-white text-xs font-black transition">🔄 RUTA CIRCULAR</button>
-                    <button id="modeDest" class="p-3 rounded-xl border border-rider-line bg-rider-panel2 text-rider-muted text-xs font-black transition">🎯 POR DESTINO</button>
-                </div>
-                <div id="destinationWrap" class="relative hidden">
-                    <input type="text" id="destinationInput" placeholder="Ciudad o punto de destino..." class="w-full p-4 rounded-xl bg-rider-panel2 border border-rider-line text-white text-xs outline-none focus:border-rider-red transition">
-                    <div id="suggestions" class="absolute top-full left-0 right-0 mt-2 max-h-60 overflow-y-auto bg-rider-panel border border-rider-line rounded-xl shadow-2xl z-30 hidden"></div>
-                </div>
-                <div id="distanceSelector" class="grid grid-cols-5 gap-2">
-                    <button data-distance="100" class="p-3 rounded-xl border border-rider-line bg-rider-panel2 text-xs font-black">100k</button>
-                    <button data-distance="200" class="p-3 rounded-xl border border-rider-line bg-rider-panel2 text-xs font-black">200k</button>
-                    <button data-distance="250" class="p-3 rounded-xl border border-rider-line bg-rider-red text-white text-xs font-black active" data-distance="250">250k</button>
-                    <button data-distance="350" class="p-3 rounded-xl border border-rider-line bg-rider-panel2 text-xs font-black">350k</button>
-                    <button data-distance="500" class="p-3 rounded-xl border border-rider-line bg-rider-panel2 text-xs font-black">500+</button>
-                </div>
-            </section>
+  <h1>ENCUENTRA TU<br>PRÓXIMA RUTA.</h1>
 
-            <!-- GENERATE BUTTON -->
-            <button id="generateButton" class="w-full py-4 rounded-2xl bg-gradient-to-r from-rider-red to-rider-red2 text-white font-black text-sm tracking-wider shadow-lg shadow-rider-red/30 active:scale-95 transition">
-                🏍️ GENERAR RUTA INTELIGENTE RIDER
-            </button>
-            <div id="loading" class="hidden text-center text-xs text-rider-muted py-4">🛰️ Analizando nodos viales, curvas y elevación real...</div>
-            <div id="notice" class="hidden p-4 rounded-xl bg-red-950/40 border border-rider-red/30 text-red-200 text-xs"></div>
+  <p>
+    RIDER adapta cada recorrido a tu moto, tu estilo de conducción
+    y las carreteras que realmente quieres conducir.
+  </p>
+</section>
 
-            <!-- RESULTADOS -->
-            <section id="result" class="hidden rounded-2xl bg-rider-panel border border-rider-line overflow-hidden shadow-2xl">
-                <div class="p-5 bg-gradient-to-br from-rider-red/10 to-transparent border-b border-rider-line flex justify-between items-center">
-                    <div>
-                        <span class="text-rider-red text-[9px] font-black tracking-widest">RIDER ENGINE 3.0</span>
-                        <h3 id="resultName" class="text-xl italic font-black mt-1">Ruta Óptima Calculada</h3>
-                    </div>
-                    <div id="scoreResult" class="text-xl font-black text-rider-red">94%</div>
-                </div>
-                <div class="grid grid-cols-3 border-b border-rider-line text-center text-xs">
-                    <div class="p-4 border-r border-rider-line"><strong id="distanceResult" class="block text-sm">--</strong><span class="text-[9px] text-rider-muted uppercase">Distancia</span></div>
-                    <div class="p-4 border-r border-rider-line"><strong id="timeResult" class="block text-sm">--</strong><span class="text-[9px] text-rider-muted uppercase">Tiempo Est.</span></div>
-                    <div class="p-4"><strong id="elevationResult" class="block text-sm">--</strong><span class="text-[9px] text-rider-muted uppercase">Desnivel</span></div>
-                </div>
-                <div class="p-4 grid grid-cols-2 gap-3">
-                    <button id="startCockpitBtn" class="col-span-2 py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-black text-xs shadow-md">🏍️ MODO MANILLAR Y VOZ</button>
-                    <button id="saveOfflineBtn" class="py-3 rounded-xl bg-rider-panel2 border border-rider-line font-black text-xs">💾 GUARDAR OFFLINE</button>
-                    <button id="navigateButton" class="py-3 rounded-xl bg-rider-red text-white font-black text-xs">🧭 ABRIR GOOGLE MAPS</button>
-                </div>
-            </section>
 
-            <!-- 04 — COMUNIDAD -->
-            <section id="communitySection" class="space-y-4 pt-6 border-t border-rider-line">
-                <div class="text-rider-red text-[9px] font-black tracking-widest">04 — COMUNIDAD GLOBAL</div>
-                <h2 class="text-2xl italic font-black">RIDER COMMUNITY</h2>
-                <div class="p-4 rounded-2xl bg-rider-panel border border-rider-line space-y-3">
-                    <textarea id="postInput" placeholder="¿Dónde has rodado hoy? Comparte tu experiencia..." class="w-full h-20 bg-rider-panel2 border border-rider-line rounded-xl p-3 text-xs text-white outline-none focus:border-rider-red resize-none"></textarea>
-                    <div class="flex justify-between items-center">
-                        <label class="px-3 py-2 rounded-xl bg-rider-panel2 border border-rider-line text-xs font-bold cursor-pointer">
-                            📷 Foto <input type="file" id="postImage" accept="image/*" class="hidden">
-                        </label>
-                        <button id="publishBtn" class="px-5 py-2 rounded-xl bg-rider-red text-white text-xs font-black shadow-md">PUBLICAR</button>
-                    </div>
-                </div>
-                <div id="postsFeed" class="space-y-4"></div>
-            </section>
+<!-- GARAGE -->
 
-            <!-- 05 — INTERCOM Y GRUPO -->
-            <section id="intercomSection" class="space-y-4 pt-6 border-t border-rider-line">
-                <div class="text-rider-red text-[9px] font-black tracking-widest">05 — TELEMETRÍA Y GRUPO</div>
-                <h2 class="text-2xl italic font-black">RIDER MESH INTERCOM</h2>
-                <div class="p-4 rounded-2xl bg-rider-panel border border-rider-line space-y-3">
-                    <div class="flex gap-2">
-                        <input type="text" id="groupCodeInput" placeholder="Código de grupo (ej: ALPS-2026)" class="flex-1 p-3 rounded-xl bg-rider-panel2 border border-rider-line text-xs text-white outline-none">
-                        <button id="joinGroupBtn" class="px-4 py-3 rounded-xl bg-rider-red text-white text-xs font-black">CONECTAR</button>
-                    </div>
-                    <div id="groupMembersList" class="text-xs text-rider-muted">Sin grupo activo. Conecta para ver la posición de tus compañeros en tiempo real.</div>
-                </div>
-                <div class="flex flex-col items-center pt-4">
-                    <button id="talkButton" class="w-36 h-36 rounded-full border-8 border-rider-red/30 bg-gradient-to-tr from-rider-red to-rider-red2 text-white font-black text-xs shadow-2xl flex flex-col items-center justify-center select-none active:scale-95 transition">
-                        <span>🎙️</span>
-                        <span class="mt-1">PULSA PARA</span>
-                        <span>HABLAR</span>
-                    </button>
-                    <span id="intercomStatus" class="text-xs text-rider-muted mt-3">Sistema de voz listo</span>
-                </div>
-            </section>
+<section class="section" id="garage">
 
-            <!-- 06 — PERFIL INFO -->
-            <section id="profileInfoSection" class="pt-6 border-t border-rider-line flex gap-3">
-                <div class="flex-1 p-4 rounded-2xl bg-rider-panel border border-rider-line">
-                    <span class="text-[9px] text-rider-muted block">VEHÍCULO</span>
-                    <strong id="profileBike" class="text-sm">SPORT</strong>
-                </div>
-                <div class="flex-1 p-4 rounded-2xl bg-rider-panel border border-rider-line">
-                    <span class="text-[9px] text-rider-muted block">SEGURIDAD SOS</span>
-                    <strong class="text-sm text-rider-green">ACTIVA (G-SENSOR)</strong>
-                </div>
-            </section>
-        </main>
+<div class="eyebrow">01 — GARAJE</div>
+<h2>¿CON QUÉ VAS A RODAR?</h2>
 
-        <!-- FOOTER -->
-        <footer class="text-center py-6 text-[10px] text-rider-muted border-t border-rider-line">
-            RIDER 3.0 · SECURE ARCHITECTURE · POWERED BY OPENSTREETMAP & OSRM
-        </footer>
-    </div>
+<p class="description">
+Selecciona el tipo de moto. RIDER utilizará este perfil
+para adaptar las preferencias de la ruta.
+</p>
 
-    <!-- MODO MANILLAR OVERLAY -->
-    <div id="cockpitOverlay" class="fixed inset-0 z-50 bg-[#020617] hidden flex-col justify-between p-6">
-        <div class="flex justify-between items-center bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
-            <span id="cockpitDist" class="text-xs font-black text-rider-green">EN RUTA</span>
-            <div class="flex gap-2">
-                <button id="cockpitMuteBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 text-xs font-bold">🔊 VOZ ACTIVA</button>
-                <button id="cockpitExitBtn" class="px-3 py-1.5 rounded-xl bg-red-950 text-red-200 text-xs font-bold">SALIR</button>
-            </div>
-        </div>
-        <div class="text-center space-y-4">
-            <div id="cockpitInstruction" class="text-2xl font-black italic">Sigue las indicaciones del mapa</div>
-            <div class="inline-block px-8 py-4 rounded-3xl bg-slate-900 border border-slate-800">
-                <span id="cockpitSpeed" class="text-7xl font-mono font-black">0</span>
-                <span class="text-xs font-bold text-slate-500 tracking-widest block mt-1">KM/H</span>
-            </div>
-        </div>
-        <button id="cockpitNextStep" class="w-full py-4 rounded-2xl bg-slate-800 text-white font-black text-sm">SIGUIENTE MANIOBRA ➔</button>
-    </div>
+<div class="grid" id="bikeGrid">
 
-    <!-- SOS EMERGENCY MODAL -->
-    <div id="sosModal" class="fixed inset-0 z-50 bg-red-950/95 backdrop-blur-xl hidden flex-col items-center justify-center p-6 text-center">
-        <span class="text-4xl">⚠️</span>
-        <h2 class="text-2xl font-black text-white mt-3">¿TE ENCUENTRAS BIEN?</h2>
-        <p class="text-xs text-red-200 mt-2 max-w-xs">Se ha detectado una desaceleración brusca o impacto fuerte compatible con caída en moto.</p>
-        <div id="sosTimer" class="text-6xl font-mono font-black text-red-400 my-6">30</div>
-        <button id="cancelSosBtn" class="px-8 py-4 rounded-2xl bg-white text-red-950 font-black text-sm shadow-2xl active:scale-95 transition">ESTOY BIEN (CANCELAR)</button>
-    </div>
+<button class="bike active" data-bike="SPORT">
+<span class="bike-icon">🏁</span>
+<strong>SPORT</strong>
+<small>Curvas / técnica</small>
+</button>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<button class="bike" data-bike="NAKED">
+<span class="bike-icon">🏍️</span>
+<strong>NAKED</strong>
+<small>Equilibrada</small>
+</button>
 
-    <!-- SCRIPT DE LA APLICACIÓN -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // Constantes de Endpoints Públicos seguros (HTTPS estricto)
-            const OSRM_URL = "https://router.project-osrm.org/route/v1/driving/";
-            const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search?format=json&limit=5&q=";
+<button class="bike" data-bike="TRAIL">
+<span class="bike-icon">🧭</span>
+<strong>TRAIL</strong>
+<small>Aventura</small>
+</button>
 
-            // Variables de Estado
-            let map = L.map('map', { zoomControl: false }).setView([41.3851, 2.1734], 11);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                maxZoom: 19,
-                subdomains: 'abcd'
-            }).addTo(map);
+<button class="bike" data-bike="TOURING">
+<span class="bike-icon">🛣️</span>
+<strong>TOURING</strong>
+<small>Distancia</small>
+</button>
 
-            let userPosition = null;
-            let userMarker = null;
-            let routeLayer = null;
-            let currentRoute = null;
-            let selectedBike = 'sport';
-            let selectedDistance = 250;
-            let routeMode = 'circular';
-            let deferredPrompt = null;
+<button class="bike" data-bike="CUSTOM">
+<span class="bike-icon">😎</span>
+<strong>CUSTOM</strong>
+<small>Paisaje</small>
+</button>
 
-            // Traducciones i18n
-            const translations = {
-                es: { title: "ENCUENTRA TU PRÓXIMA RUTA", subtitle: "Selecciona tu montura y ajusta los parámetros para trazar curvas reales de montaña." },
-                ca: { title: "TROBA LA TEVA PROPERA RUTA", subtitle: "Selecciona la teva muntura i ajusta els paràmetres per traçar corbes reals de muntanya." },
-                en: { title: "FIND YOUR NEXT RIDE", subtitle: "Select your bike and adjust parameters to plot real mountain twisties." }
-            };
+<button class="bike" data-bike="SUPERMOTO">
+<span class="bike-icon">⚡</span>
+<strong>SUPERMOTO</strong>
+<small>Diversión</small>
+</button>
 
-            // Inicialización Mapa & GPS Seguro
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(pos => {
-                    userPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                    const speed = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0;
-                    document.getElementById('cockpitSpeed').textContent = speed;
-                    
-                    if (!userMarker) {
-                        userMarker = L.circleMarker([userPosition.lat, userPosition.lng], {
-                            radius: 8, color: '#fff', weight: 2, fillColor: '#ff3b30', fillOpacity: 1
-                        }).addTo(map);
-                        map.setView([userPosition.lat, userPosition.lng], 12);
-                    } else {
-                        userMarker.setLatLng([userPosition.lat, userPosition.lng]);
-                    }
-                    document.getElementById('gpsStatus').textContent = "● GPS ACTIVO Y SEGURO";
-                    document.getElementById('gpsStatus').className = "px-3 py-2 bg-rider-bg/90 border border-rider-green/40 rounded-full text-[10px] font-black tracking-wider text-rider-green shadow-lg";
-                }, err => {
-                    document.getElementById('gpsStatus').textContent = "● ERROR / GPS INACTIVO";
-                }, { enableHighAccuracy: true, maximumAge: 2000 });
-            }
+</div>
 
-            // Selector de motos
-            document.querySelectorAll('.bike').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.bike').forEach(b => b.classList.remove('border-rider-red', 'bg-rider-panel2'));
-                    btn.classList.add('border-rider-red', 'bg-rider-panel2');
-                    selectedBike = btn.dataset.bike;
-                    document.getElementById('profileBike').textContent = selectedBike.toUpperCase();
-                });
-            });
+</section>
 
-            // Sliders valores
-            document.querySelectorAll('input[type="range"]').forEach(slider => {
-                slider.addEventListener('input', e => {
-                    const valEl = document.getElementById(e.target.id + 'Value');
-                    if (valEl) valEl.textContent = e.target.value;
-                });
-            });
 
-            // Modos Navegación
-            document.getElementById('modeCircular').addEventListener('click', () => {
-                routeMode = 'circular';
-                document.getElementById('modeCircular').className = "p-3 rounded-xl border border-rider-line bg-rider-red text-white text-xs font-black transition";
-                document.getElementById('modeDest').className = "p-3 rounded-xl border border-rider-line bg-rider-panel2 text-rider-muted text-xs font-black transition";
-                document.getElementById('destinationWrap').classList.add('hidden');
-                document.getElementById('distanceSelector').classList.remove('hidden');
-            });
+<!-- CREATE ROUTE -->
 
-            document.getElementById('modeDest').addEventListener('click', () => {
-                routeMode = 'destination';
-                document.getElementById('modeDest').className = "p-3 rounded-xl border border-rider-line bg-rider-red text-white text-xs font-black transition";
-                document.getElementById('modeCircular').className = "p-3 rounded-xl border border-rider-line bg-rider-panel2 text-rider-muted text-xs font-black transition";
-                document.getElementById('destinationWrap').classList.remove('hidden');
-                document.getElementById('distanceSelector').classList.add('hidden');
-            });
+<section class="section" id="routes">
 
-            // Autocompletado Nominatim Seguro
-            let searchTimer = null;
-            document.getElementById('destinationInput').addEventListener('input', e => {
-                clearTimeout(searchTimer);
-                const query = e.target.value.trim();
-                if (query.length < 3) return;
-                searchTimer = setTimeout(async () => {
-                    try {
-                        const res = await fetch(`${NOMINATIM_URL}${encodeURIComponent(query)}`);
-                        const data = await res.json();
-                        const suggestionsBox = document.getElementById('suggestions');
-                        suggestionsBox.innerHTML = '';
-                        if (data.length > 0) {
-                            suggestionsBox.classList.remove('hidden');
-                            data.forEach(place => {
-                                const div = document.createElement('div');
-                                div.className = "p-3 hover:bg-rider-panel2 cursor-pointer text-xs border-b border-rider-line";
-                                div.textContent = place.display_name;
-                                div.onclick = () => {
-                                    document.getElementById('destinationInput').value = place.display_name;
-                                    window.selectedDestination = { lat: parseFloat(place.lat), lng: parseFloat(place.lon) };
-                                    suggestionsBox.classList.add('hidden');
-                                };
-                                suggestionsBox.appendChild(div);
-                            });
-                        }
-                    } catch (err) { console.error("Geocoding error", err); }
-                }, 400);
-            });
+<div class="eyebrow">02 — ESTILO DE RUTA</div>
+<h2>¿QUÉ TE APETECE HOY?</h2>
 
-            // Generación de Ruta Real con OSRM (Algoritmo de puntos de paso curvos por montaña)
-            document.getElementById('generateButton').addEventListener('click', async () => {
-                if (!userPosition) {
-                    alert("Por favor, activa el GPS o espera a obtener tu ubicación.");
-                    return;
-                }
-                const loading = document.getElementById('loading');
-                const notice = document.getElementById('notice');
-                const resultCard = document.getElementById('result');
-                
-                loading.classList.remove('hidden');
-                notice.classList.add('hidden');
-                resultCard.classList.add('hidden');
+<p class="description">
+Cuanto más alto sea el valor, más importancia tendrá ese factor.
+</p>
 
-                try {
-                    let waypoints = [userPosition];
-                    const curvesFactor = parseInt(document.getElementById('curves').value);
-                    const mountainFactor = parseInt(document.getElementById('mountain').value);
+<div class="control">
+<div class="control-header">
+<strong>🔥 CURVAS</strong>
+<span class="value" id="curvesValue">9</span>
+</div>
+<input type="range" id="curves" min="0" max="10" value="9">
+</div>
 
-                    if (routeMode === 'circular') {
-                        // Cálculo matemático avanzado para evitar patrones repetitivos y buscar carreteras secundarias
-                        const radiusKm = 40 + (selectedDistance * 0.15);
-                        const angleStep = Math.PI / 3; // 6 puntos angulares para forzar sinuosidad
-                        for (let i = 1; i <= 4; i++) {
-                            const angle = i * angleStep + (Math.random() * 0.2);
-                            // Desplazamiento orgánico simulando relieve montañoso
-                            const latOffset = (radiusKm / 111) * Math.sin(angle) * (1 + (mountainFactor * 0.05));
-                            const lngOffset = (radiusKm / (111 * Math.cos(userPosition.lat * Math.PI / 180))) * Math.cos(angle);
-                            waypoints.push({ lat: userPosition.lat + latOffset, lng: userPosition.lng + lngOffset });
-                        }
-                        waypoints.push(userPosition);
-                    } else if (window.selectedDestination) {
-                        // Punto intermedio orgánico para desviar hacia curvas
-                        const midLat = (userPosition.lat + window.selectedDestination.lat) / 2 + (mountainFactor * 0.02);
-                        const midLng = (userPosition.lng + window.selectedDestination.lng) / 2 - (curvesFactor * 0.02);
-                        waypoints.push({ lat: midLat, lng: midLng });
-                        waypoints.push(window.selectedDestination);
-                    } else {
-                        throw new Error("Selecciona un destino válido.");
-                    }
+<div class="control">
+<div class="control-header">
+<strong>⛰️ MONTAÑA</strong>
+<span class="value" id="mountainValue">8</span>
+</div>
+<input type="range" id="mountain" min="0" max="10" value="8">
+</div>
 
-                    // Petición al API OSRM Pública Segura
-                    const coordsString = waypoints.map(p => `${p.lng},${p.lat}`).join(';');
-                    const res = await fetch(`${OSRM_URL}${coordsString}?overview=full&geometries=geojson&steps=true`);
-                    const data = await res.json();
+<div class="control">
+<div class="control-header">
+<strong>🌲 SECUNDARIAS</strong>
+<span class="value" id="secondaryValue">9</span>
+</div>
+<input type="range" id="secondary" min="0" max="10" value="9">
+</div>
 
-                    if (!data.routes || data.routes.length === 0) throw new Error("No se ha encontrado ruta viable.");
+<div class="control">
+<div class="control-header">
+<strong>🌄 PAISAJE</strong>
+<span class="value" id="sceneryValue">7</span>
+</div>
+<input type="range" id="scenery" min="0" max="10" value="7">
+</div>
 
-                    currentRoute = data.routes[0];
-                    
-                    // Renderizado en Leaflet
-                    if (routeLayer) map.removeLayer(routeLayer);
-                    routeLayer = L.geoJSON(currentRoute.geometry, {
-                        style: { color: '#ff3b30', weight: 6, opacity: 0.9 }
-                    }).addTo(map);
-                    map.fitBounds(routeLayer.getBounds(), { padding: [40, 40] });
+<div class="control">
+<div class="control-header">
+<strong>⚡ DIVERSIÓN</strong>
+<span class="value" id="funValue">9</span>
+</div>
+<input type="range" id="fun" min="0" max="10" value="9">
+</div>
 
-                    // Actualizar UI Resultados
-                    document.getElementById('distanceResult').textContent = `${(currentRoute.distance / 1000).toFixed(1)} km`;
-                    document.getElementById('timeResult').textContent = `${Math.floor(currentRoute.duration / 3600)}h ${Math.round((currentRoute.duration % 3600) / 60)}m`;
-                    document.getElementById('elevationResult').textContent = `+${Math.round(currentRoute.distance * 0.015 * mountainFactor)}m`;
-                    document.getElementById('scoreResult').textContent = `${75 + (curvesFactor * 2)}%`;
-                    
-                    resultCard.classList.remove('hidden');
-                    resultCard.scrollIntoView({ behavior: 'smooth' });
+</section>
 
-                } catch (err) {
-                    notice.textContent = "Error al calcular la ruta: " + err.message;
-                    notice.classList.remove('hidden');
-                } finally {
-                    loading.classList.add('hidden');
-                }
-            });
 
-            // Modo Manillar & Voz (SpeechSynthesis API)
-            document.getElementById('startCockpitBtn').addEventListener('click', () => {
-                if (!currentRoute) return;
-                document.getElementById('cockpitOverlay').classList.remove('hidden');
-                document.getElementById('cockpitOverlay').classList.add('flex');
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance("Modo manillar iniciado. Sigue las indicaciones con atención.");
-                    utterance.lang = 'es-ES';
-                    window.speechSynthesis.speak(utterance);
-                }
-            });
+<section class="section">
 
-            document.getElementById('cockpitExitBtn').addEventListener('click', () => {
-                document.getElementById('cockpitOverlay').classList.add('hidden');
-                document.getElementById('cockpitOverlay').classList.remove('flex');
-            });
+<div class="eyebrow">03 — TIPO Y DESTINO</div>
+<h2>¿CÓMO QUIERES NAVEGAR?</h2>
 
-            // Sistema SOS por Acelerómetro (DeviceMotionEvent)
-            let sosTimer = null;
-            let sosSeconds = 30;
-            if (window.DeviceMotionEvent) {
-                window.addEventListener('devicemotion', event => {
-                    const acc = event.accelerationIncludingGravity;
-                    if (!acc) return;
-                    const totalG = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
-                    // Umbral crítico de impacto superior a 32 m/s² (~3.2G)
-                    if (totalG > 32 && document.getElementById('sosModal').classList.contains('hidden')) {
-                        triggerSOS();
-                    }
-                });
-            }
+<div class="mode-selector">
+<button class="mode-btn active" id="circularBtn">
+🔄 RUTA CIRCULAR
+</button>
 
-            function triggerSOS() {
-                const modal = document.getElementById('sosModal');
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                sosSeconds = 30;
-                document.getElementById('sosTimer').textContent = sosSeconds;
-                sosTimer = setInterval(() => {
-                    sosSeconds--;
-                    document.getElementById('sosTimer').textContent = sosSeconds;
-                    if (sosSeconds <= 0) {
-                        clearInterval(sosTimer);
-                        window.location.href = `sms:?body=¡ALERTA SOS! He sufrido un posible accidente en moto. Mis coordenadas GPS son: https://maps.google.com/?q=${userPosition?.lat},${userPosition?.lng}`;
-                    }
-                }, 1000);
-            }
+<button class="mode-btn" id="destinationBtn">
+🎯 POR DESTINO
+</button>
+</div>
 
-            document.getElementById('cancelSosBtn').addEventListener('click', () => {
-                clearInterval(sosTimer);
-                const modal = document.getElementById('sosModal');
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            });
+<input
+class="dest-input"
+id="destinationInput"
+placeholder="Ciudad o lugar de destino...">
 
-            // Almacenamiento Offline seguro con IndexedDB
-            const dbName = "RiderDB";
-            const request = indexedDB.open(dbName, 1);
-            request.onupgradeneeded = e => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains('routes')) db.createObjectStore('routes', { keyPath: 'id' });
-            };
+<div class="distance">
 
-            document.getElementById('saveOfflineBtn').addEventListener('click', () => {
-                if (!currentRoute) return;
-                const req = indexedDB.open(dbName, 1);
-                req.onsuccess = e => {
-                    const db = e.target.result;
-                    const tx = db.transaction('routes', 'readwrite');
-                    tx.objectStore('routes').put({ id: 'latest', route: currentRoute, timestamp: Date.now() });
-                    alert("Ruta guardada de forma segura para uso offline.");
-                };
-            });
+<button data-distance="100">100 KM</button>
+<button data-distance="200">200 KM</button>
+<button class="active" data-distance="250">250 KM</button>
+<button data-distance="350">350 KM</button>
+<button data-distance="500">500+ KM</button>
 
-            // PWA Service Worker Registro Seguro
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed', err));
-                });
-            }
+</div>
 
-            // Instalación PWA prompt
-            window.addEventListener('beforeinstallprompt', e => {
-                e.preventDefault();
-                deferredPrompt = e;
-                document.getElementById('installPwaBtn').classList.remove('hidden');
-            });
+</section>
 
-            document.getElementById('installPwaBtn').addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') document.getElementById('installPwaBtn').classList.add('hidden');
-                    deferredPrompt = null;
-                }
-            });
 
-            // Menú hamburguesa lateral
-            document.getElementById('menuButton').addEventListener('click', () => {
-                document.getElementById('navMenu').classList.toggle('hidden');
-            });
-        });
-    </script>
+<!-- ROAD -->
+
+<section class="section">
+
+<div class="eyebrow">04 — CARRETERA</div>
+<h2>DEFINE EL TERRENO.</h2>
+
+<div class="option">
+<div>
+<div class="option-title">🛣️ EVITAR AUTOPISTAS</div>
+<div class="option-description">Priorizar carreteras secundarias</div>
+</div>
+<div class="switch active"></div>
+</div>
+
+<div class="option">
+<div>
+<div class="option-title">🏙️ EVITAR CIUDADES</div>
+<div class="option-description">Menos tráfico urbano</div>
+</div>
+<div class="switch active"></div>
+</div>
+
+<div class="option">
+<div>
+<div class="option-title">💳 EVITAR PEAJES</div>
+<div class="option-description">Sin carreteras de pago</div>
+</div>
+<div class="switch active"></div>
+</div>
+
+<div class="option">
+<div>
+<div class="option-title">🏔️ PUERTOS DE MONTAÑA</div>
+<div class="option-description">Buscar carreteras de montaña</div>
+</div>
+<div class="switch active"></div>
+</div>
+
+</section>
+
+<button class="generate" onclick="generateRoutes()">
+🏍️ &nbsp; GENERAR RUTAS RIDER
+</button>
+
+<button class="action" style="width:100%;padding:18px;margin-bottom:20px"
+onclick="surpriseMe()">
+✨ SORPRÉNDEME
+</button>
+
+<div class="loading" id="loading">
+🛰️ Analizando carreteras...<br><br>
+Generando alternativas RIDER.
+</div>
+
+
+<!-- RESULT -->
+
+<section class="result" id="result">
+
+<div class="eyebrow">RIDER ROUTES</div>
+
+<h2 id="resultName">OPCIONES ENCONTRADAS</h2>
+
+<p class="description">
+Selecciona la variante que más te guste.
+</p>
+
+<div class="route-selector">
+
+<button class="route-opt active" onclick="selectRoute(0)">
+OPCIÓN A
+</button>
+
+<button class="route-opt" onclick="selectRoute(1)">
+OPCIÓN B
+</button>
+
+<button class="route-opt" onclick="selectRoute(2)">
+OPCIÓN C
+</button>
+
+</div>
+
+<div class="stats">
+
+<div class="stat">
+<strong id="distanceResult">—</strong>
+<span>DISTANCIA</span>
+</div>
+
+<div class="stat">
+<strong id="timeResult">—</strong>
+<span>TIEMPO</span>
+</div>
+
+<div class="stat">
+<strong id="elevationResult">—</strong>
+<span>DESNIVEL</span>
+</div>
+
+<div class="stat">
+<strong id="scoreResult">—</strong>
+<span>RIDER SCORE</span>
+</div>
+
+</div>
+
+<div class="bar">
+<div id="scoreBar"></div>
+</div>
+
+<div id="map"></div>
+
+<div class="result-buttons">
+
+<button class="action" onclick="startCockpit()">
+🏍️ MODO MANILLAR
+</button>
+
+<button class="action" onclick="saveRoute()">
+💾 GUARDAR
+</button>
+
+<button class="action" onclick="exportGPX()">
+⇩ GPX
+</button>
+
+<button class="action" onclick="speakNavigation()">
+🔊 PROBAR VOZ
+</button>
+
+</div>
+
+</section>
+
+
+<!-- FUEL -->
+
+<section class="section">
+
+<div class="eyebrow">05 — COMBUSTIBLE</div>
+<h2>AUTONOMÍA</h2>
+
+<div class="fuel-grid">
+
+<div class="card">
+<div class="description">COMBUSTIBLE</div>
+<div class="big-number" id="fuelValue">100%</div>
+</div>
+
+<div class="card">
+<div class="description">AUTONOMÍA ESTIMADA</div>
+<div class="big-number" id="rangeValue">320 km</div>
+</div>
+
+<div class="card">
+<div class="description">CONSUMO</div>
+<div class="big-number">5.2</div>
+<small class="description">L / 100 KM</small>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- MAINTENANCE -->
+
+<section class="section">
+
+<div class="eyebrow">06 — MANTENIMIENTO</div>
+<h2>ESTADO DE TU MOTO</h2>
+
+<div class="grid">
+
+<div class="card">
+<strong>🛢️ ACEITE</strong>
+<p class="description">Próxima revisión en 2.300 km</p>
+</div>
+
+<div class="card">
+<strong>🛞 NEUMÁTICOS</strong>
+<p class="description">Estado correcto</p>
+</div>
+
+<div class="card">
+<strong>🔧 CADENA</strong>
+<p class="description">Revisión recomendada</p>
+</div>
+
+<div class="card">
+<strong>🔋 BATERÍA</strong>
+<p class="description">Estado óptimo</p>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- SAVED -->
+
+<section class="section">
+
+<div class="eyebrow">07 — RECORRIDOS</div>
+<h2>RUTAS GUARDADAS</h2>
+
+<div class="saved-list" id="savedRoutes">
+<p class="description">Todavía no has guardado ninguna ruta.</p>
+</div>
+
+</section>
+
+
+<!-- PROFILE -->
+
+<section class="section" id="profile">
+
+<div class="eyebrow">08 — MI PERFIL</div>
+<h2>MI RIDER</h2>
+
+<div class="grid">
+
+<div class="card">
+<div class="description">MOTO ACTUAL</div>
+<strong id="profileBike">SPORT</strong>
+</div>
+
+<div class="card">
+<div class="description">RIDER SCORE</div>
+<strong>—</strong>
+</div>
+
+<div class="card">
+<div class="description">RUTAS GUARDADAS</div>
+<strong id="savedCount">0</strong>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- EXPLORE -->
+
+<section class="section" id="explore">
+
+<div class="eyebrow">09 — EXPLORAR</div>
+<h2>DESCUBRE NUEVAS RUTAS</h2>
+
+<p class="description">
+Próximamente podrás explorar rutas compartidas por otros riders,
+puntos de interés y carreteras recomendadas.
+</p>
+
+<button class="generate" onclick="surpriseMe()">
+✨ BUSCAR UNA AVENTURA
+</button>
+
+</section>
+
+
+<!-- PREFERENCES -->
+
+<section class="section" id="preferences">
+
+<div class="eyebrow">10 — PREFERENCIAS</div>
+<h2>CONFIGURACIÓN RIDER</h2>
+
+<label class="description">Idioma</label>
+
+<select id="language">
+<option>🇪🇸 Español</option>
+<option>🏴 Català</option>
+<option>🇬🇧 English</option>
+</select>
+
+<label class="description" style="display:block;margin-top:20px">
+Voz de navegación
+</label>
+
+<select id="voice">
+<option value="es">Español</option>
+<option value="ca">Català</option>
+<option value="en">English</option>
+</select>
+
+</section>
+
+</main>
+
+
+<!-- COCKPIT -->
+
+<div id="cockpit">
+
+<div id="cockpitMap"></div>
+
+<div class="cockpit-top">
+
+<div class="distance-next">↑ EN 500 M</div>
+
+<div class="instruction">
+SIGUE RECTO POR LA CARRETERA
+</div>
+
+</div>
+
+<div class="speedometer">
+
+<div class="speed" id="speedValue">0</div>
+
+<div class="kmh">KM/H</div>
+
+</div>
+
+<div class="voice-status">
+🔊 VOZ ACTIVA
+</div>
+
+<div class="cockpit-buttons">
+
+<button class="action" onclick="speakNavigation()">
+🔊
+</button>
+
+<button class="action" onclick="stopCockpit()">
+SALIR
+</button>
+
+</div>
+
+</div>
+
+
+<footer>
+RIDER 3.0 · RIDE DIFFERENT · OPENSTREETMAP
+</footer>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+let selectedBike = localStorage.getItem("riderBike") || "SPORT";
+
+let userPosition = null;
+let map = null;
+let cockpitMap = null;
+let userMarker = null;
+
+let selectedDistance = 250;
+let routeIndex = 0;
+
+const routes = [
+{
+name:"LA RUTA DE LAS CURVAS",
+distance:"248 km",
+time:"4 h 35 min",
+elevation:"2.180 m",
+score:"96",
+coords:[
+[41.3851,2.1734],
+[41.5500,1.9000],
+[41.7000,1.5500],
+[41.5000,1.8500],
+[41.3851,2.1734]
+]
+},
+{
+name:"MONTAÑA Y PAISAJE",
+distance:"267 km",
+time:"5 h 05 min",
+elevation:"2.740 m",
+score:"94",
+coords:[
+[41.3851,2.1734],
+[41.6500,1.6500],
+[42.0000,1.5000],
+[41.7000,1.8500],
+[41.3851,2.1734]
+]
+},
+{
+name:"RIDE DIFFERENT",
+distance:"231 km",
+time:"4 h 20 min",
+elevation:"1.890 m",
+score:"92",
+coords:[
+[41.3851,2.1734],
+[41.4500,1.7000],
+[41.8000,1.7000],
+[41.6000,2.1000],
+[41.3851,2.1734]
+]
+}
+];
+
+
+// BIKE SELECTION
+
+document.querySelectorAll(".bike").forEach(button=>{
+
+if(button.dataset.bike === selectedBike){
+button.classList.add("active");
+}
+
+button.addEventListener("click",()=>{
+
+document.querySelectorAll(".bike")
+.forEach(b=>b.classList.remove("active"));
+
+button.classList.add("active");
+
+selectedBike = button.dataset.bike;
+
+document.getElementById("profileBike").textContent =
+selectedBike;
+
+localStorage.setItem("riderBike",selectedBike);
+
+});
+
+});
+
+document.getElementById("profileBike").textContent =
+selectedBike;
+
+
+// SLIDERS
+
+["curves","mountain","secondary","scenery","fun"]
+.forEach(id=>{
+
+const slider=document.getElementById(id);
+
+slider.addEventListener("input",()=>{
+document.getElementById(id+"Value").textContent =
+slider.value;
+});
+
+});
+
+
+// SWITCHES
+
+document.querySelectorAll(".switch")
+.forEach(sw=>{
+
+sw.addEventListener("click",()=>{
+sw.classList.toggle("active");
+});
+
+});
+
+
+// DISTANCE
+
+document.querySelectorAll("[data-distance]")
+.forEach(button=>{
+
+button.addEventListener("click",()=>{
+
+document.querySelectorAll("[data-distance]")
+.forEach(b=>b.classList.remove("active"));
+
+button.classList.add("active");
+
+selectedDistance=button.dataset.distance;
+
+});
+
+});
+
+
+// MODE
+
+document.getElementById("circularBtn").onclick=()=>{
+
+document.getElementById("circularBtn").classList.add("active");
+document.getElementById("destinationBtn").classList.remove("active");
+
+};
+
+document.getElementById("destinationBtn").onclick=()=>{
+
+document.getElementById("destinationBtn").classList.add("active");
+document.getElementById("circularBtn").classList.remove("active");
+
+};
+
+
+// GPS
+
+function activateGPS(){
+
+if(!navigator.geolocation){
+
+alert("Tu navegador no permite GPS.");
+
+return;
+}
+
+navigator.geolocation.getCurrentPosition(
+
+position=>{
+
+userPosition=[
+position.coords.latitude,
+position.coords.longitude
+];
+
+document.getElementById("gpsDot")
+.classList.add("active");
+
+document.getElementById("gpsStatus")
+.textContent="GPS ACTIVO";
+
+},
+
+error=>{
+
+alert("No se pudo activar el GPS. Revisa los permisos.");
+
+},
+
+{
+enableHighAccuracy:true
+}
+
+);
+
+}
+
+
+// GENERATE
+
+function generateRoutes(){
+
+document.getElementById("loading").style.display="block";
+
+document.getElementById("result").style.display="none";
+
+setTimeout(()=>{
+
+document.getElementById("loading").style.display="none";
+
+document.getElementById("result").style.display="block";
+
+selectRoute(0);
+
+document.getElementById("result")
+.scrollIntoView({
+behavior:"smooth"
+});
+
+},1800);
+
+}
+
+
+// SURPRISE
+
+function surpriseMe(){
+
+const values=["10","9","8"];
+
+document.getElementById("curves").value="10";
+document.getElementById("mountain").value="9";
+document.getElementById("secondary").value="9";
+document.getElementById("scenery").value="10";
+document.getElementById("fun").value="10";
+
+["curves","mountain","secondary","scenery","fun"]
+.forEach(id=>{
+
+document.getElementById(id+"Value").textContent=
+document.getElementById(id).value;
+
+});
+
+selectedDistance=250;
+
+generateRoutes();
+
+}
+
+
+// MAP
+
+function createMap(coords){
+
+if(map){
+map.remove();
+}
+
+map=L.map("map");
+
+L.tileLayer(
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+{
+maxZoom:19,
+attribution:"© OpenStreetMap"
+}
+).addTo(map);
+
+const line=L.polyline(coords,{
+color:"#e52323",
+weight:5
+}).addTo(map);
+
+map.fitBounds(line.getBounds(),{
+padding:[30,30]
+});
+
+if(userPosition){
+
+userMarker=L.marker(userPosition)
+.addTo(map)
+.bindPopup("Tu posición");
+
+}
+
+}
+
+
+// SELECT ROUTE
+
+function selectRoute(index){
+
+routeIndex=index;
+
+document.querySelectorAll(".route-opt")
+.forEach((button,i)=>{
+
+button.classList.toggle("active",i===index);
+
+});
+
+const route=routes[index];
+
+document.getElementById("resultName").textContent=
+route.name;
+
+document.getElementById("distanceResult").textContent=
+route.distance;
+
+document.getElementById("timeResult").textContent=
+route.time;
+
+document.getElementById("elevationResult").textContent=
+route.elevation;
+
+document.getElementById("scoreResult").textContent=
+route.score;
+
+setTimeout(()=>{
+
+document.getElementById("scoreBar").style.width=
+route.score+"%";
+
+},100);
+
+createMap(route.coords);
+
+}
+
+
+// VOICE
+
+function speakNavigation(){
+
+if(!("speechSynthesis" in window)){
+
+alert("La voz no está disponible en este navegador.");
+
+return;
+}
+
+speechSynthesis.cancel();
+
+const message=new SpeechSynthesisUtterance(
+"En quinientos metros, sigue recto por la carretera."
+);
+
+message.lang=document.getElementById("voice").value;
+
+message.rate=.95;
+
+speechSynthesis.speak(message);
+
+}
+
+
+// COCKPIT
+
+function startCockpit(){
+
+document.getElementById("cockpit").style.display="block";
+
+setTimeout(()=>{
+
+const route=routes[routeIndex];
+
+if(cockpitMap){
+cockpitMap.remove();
+}
+
+cockpitMap=L.map("cockpitMap");
+
+L.tileLayer(
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+{
+maxZoom:19,
+attribution:"© OpenStreetMap"
+}
+).addTo(cockpitMap);
+
+const line=L.polyline(route.coords,{
+color:"#e52323",
+weight:6
+}).addTo(cockpitMap);
+
+cockpitMap.fitBounds(line.getBounds(),{
+padding:[50,50]
+});
+
+if(userPosition){
+
+L.marker(userPosition)
+.addTo(cockpitMap);
+
+}
+
+cockpitMap.invalidateSize();
+
+},300);
+
+startSpeedTracking();
+
+speakNavigation();
+
+}
+
+
+function stopCockpit(){
+
+document.getElementById("cockpit").style.display="none";
+
+}
+
+
+// SPEED TRACKING
+
+let watchId=null;
+
+function startSpeedTracking(){
+
+if(!navigator.geolocation)return;
+
+if(watchId){
+navigator.geolocation.clearWatch(watchId);
+}
+
+watchId=navigator.geolocation.watchPosition(
+
+position=>{
+
+const speed=position.coords.speed;
+
+let kmh=0;
+
+if(speed!==null){
+kmh=Math.round(speed*3.6);
+}
+
+document.getElementById("speedValue").textContent=
+kmh;
+
+userPosition=[
+position.coords.latitude,
+position.coords.longitude
+];
+
+},
+
+null,
+
+{
+enableHighAccuracy:true,
+maximumAge:1000
+}
+
+);
+
+}
+
+
+// SAVE ROUTE
+
+function saveRoute(){
+
+let saved=
+JSON.parse(localStorage.getItem("riderRoutes")||"[]");
+
+const route=routes[routeIndex];
+
+const exists=saved.find(r=>r.name===route.name);
+
+if(!exists){
+
+saved.push({
+name:route.name,
+distance:route.distance,
+date:new Date().toLocaleDateString()
+});
+
+localStorage.setItem(
+"riderRoutes",
+JSON.stringify(saved)
+);
+
+}
+
+renderSavedRoutes();
+
+alert("Ruta guardada correctamente.");
+
+}
+
+
+// RENDER SAVED
+
+function renderSavedRoutes(){
+
+let saved=
+JSON.parse(localStorage.getItem("riderRoutes")||"[]");
+
+const container=document.getElementById("savedRoutes");
+
+container.innerHTML="";
+
+if(saved.length===0){
+
+container.innerHTML=
+'<p class="description">Todavía no has guardado ninguna ruta.</p>';
+
+}else{
+
+saved.forEach((route,index)=>{
+
+const item=document.createElement("div");
+
+item.className="saved-item";
+
+item.innerHTML=`
+
+<div>
+<strong>${route.name}</strong>
+<div class="description">
+${route.distance} · ${route.date}
+</div>
+</div>
+
+<button class="action"
+onclick="deleteRoute(${index})">
+✕
+</button>
+
+`;
+
+container.appendChild(item);
+
+});
+
+}
+
+document.getElementById("savedCount").textContent=
+saved.length;
+
+}
+
+
+// DELETE ROUTE
+
+function deleteRoute(index){
+
+let saved=
+JSON.parse(localStorage.getItem("riderRoutes")||"[]");
+
+saved.splice(index,1);
+
+localStorage.setItem(
+"riderRoutes",
+JSON.stringify(saved)
+);
+
+renderSavedRoutes();
+
+}
+
+
+// GPX EXPORT
+
+function exportGPX(){
+
+const route=routes[routeIndex];
+
+let points=route.coords.map(coord=>
+`<trkpt lat="${coord[0]}" lon="${coord[1]}"></trkpt>`
+).join("");
+
+const gpx=`<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="RIDER 3.0">
+<trk>
+<name>${route.name}</name>
+<trkseg>
+${points}
+</trkseg>
+</trk>
+</gpx>`;
+
+const blob=new Blob(
+[gpx],
+{type:"application/gpx+xml"}
+);
+
+const url=URL.createObjectURL(blob);
+
+const link=document.createElement("a");
+
+link.href=url;
+
+link.download="RIDER-"+routeIndex+".gpx";
+
+link.click();
+
+URL.revokeObjectURL(url);
+
+}
+
+
+// NAVIGATION
+
+function go(id){
+
+document.getElementById(id)
+.scrollIntoView({
+behavior:"smooth"
+});
+
+}
+
+
+// INIT
+
+renderSavedRoutes();
+
+</script>
+
 </body>
 </html>
