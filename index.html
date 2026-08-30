@@ -2,639 +2,899 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 
 <title>RIDER — Motorcycle Routes</title>
 
 <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+ rel="stylesheet"
+ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 />
 
 <style>
+
 :root{
-    --bg:#07090c;
-    --panel:#101318;
-    --panel2:#171b21;
-    --line:rgba(255,255,255,.09);
-    --text:#f6f7f8;
-    --muted:#858d98;
-    --red:#ff3b30;
-    --red2:#ff5a36;
-    --green:#57e389;
-    --blue:#3d9cff;
+--bg:#07090c;
+--panel:#101318;
+--panel2:#171b21;
+--line:rgba(255,255,255,.09);
+--text:#f6f7f8;
+--muted:#8b939e;
+--red:#ff3b30;
+--red2:#ff603d;
+--green:#57e389;
+--blue:#3d9cff;
 }
 
 *{
-    box-sizing:border-box;
-    -webkit-tap-highlight-color:transparent;
+box-sizing:border-box;
+-webkit-tap-highlight-color:transparent;
 }
 
 html,body{
-    margin:0;
-    padding:0;
-    background:var(--bg);
-    color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+margin:0;
+padding:0;
+background:var(--bg);
+color:var(--text);
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
 }
 
 body{
-    overflow-x:hidden;
+overflow-x:hidden;
 }
 
 button,input{
-    font-family:inherit;
+font-family:inherit;
 }
 
 button{
-    cursor:pointer;
+cursor:pointer;
 }
 
 header{
-    height:68px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:0 16px;
-    position:fixed;
-    top:0;
-    left:0;
-    right:0;
-    z-index:3000;
-    background:rgba(7,9,12,.97);
-    border-bottom:1px solid var(--line);
-    backdrop-filter:blur(18px);
+position:fixed;
+top:0;
+left:0;
+right:0;
+height:68px;
+z-index:5000;
+
+display:flex;
+align-items:center;
+justify-content:space-between;
+
+padding:0 18px;
+
+background:rgba(7,9,12,.96);
+backdrop-filter:blur(18px);
+
+border-bottom:1px solid var(--line);
 }
 
 .logo{
-    font-size:25px;
-    font-weight:900;
-    font-style:italic;
-    letter-spacing:5px;
+font-size:25px;
+font-weight:900;
+font-style:italic;
+letter-spacing:5px;
 }
 
 .logo span{
-    color:var(--red);
+color:var(--red);
 }
 
 .header-actions{
-    display:flex;
-    gap:8px;
+display:flex;
+gap:8px;
 }
 
 .icon{
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    border:1px solid var(--line);
-    background:var(--panel2);
-    color:white;
-    font-size:17px;
+width:42px;
+height:42px;
+
+border-radius:50%;
+
+border:1px solid var(--line);
+
+background:var(--panel2);
+
+color:white;
+
+font-size:17px;
+}
+
+.language{
+height:42px;
+padding:0 10px;
+
+background:var(--panel2);
+color:white;
+
+border:1px solid var(--line);
+border-radius:12px;
 }
 
 .map-wrap{
-    height:58vh;
-    min-height:420px;
-    margin-top:68px;
-    position:relative;
+height:58vh;
+min-height:430px;
+
+margin-top:68px;
+
+position:relative;
+overflow:hidden;
 }
 
 #map{
-    width:100%;
-    height:100%;
-    background:#111;
-}
-
-.map-top{
-    position:absolute;
-    top:15px;
-    left:15px;
-    z-index:700;
+width:100%;
+height:100%;
+background:#101318;
 }
 
 .status{
-    padding:9px 14px;
-    background:rgba(7,9,12,.93);
-    border:1px solid var(--line);
-    border-radius:30px;
-    font-size:10px;
-    font-weight:900;
-    letter-spacing:1px;
+position:absolute;
+top:16px;
+left:16px;
+z-index:1000;
+
+padding:9px 14px;
+
+border-radius:30px;
+
+background:rgba(7,9,12,.9);
+
+border:1px solid var(--line);
+
+font-size:10px;
+font-weight:900;
+letter-spacing:1px;
 }
 
-.status.gps{
-    color:var(--green);
+.map-info{
+position:absolute;
+
+left:15px;
+right:15px;
+bottom:15px;
+
+z-index:1000;
+
+padding:18px;
+
+border-radius:20px;
+
+background:rgba(7,9,12,.92);
+
+backdrop-filter:blur(16px);
+
+border:1px solid var(--line);
 }
 
-.map-bottom{
-    position:absolute;
-    left:15px;
-    right:15px;
-    bottom:15px;
-    z-index:700;
-    padding:18px;
-    border-radius:20px;
-    background:rgba(7,9,12,.93);
-    border:1px solid var(--line);
-    backdrop-filter:blur(15px);
+.map-info small{
+color:var(--red);
+font-weight:900;
+font-size:9px;
+letter-spacing:2px;
 }
 
-.map-bottom small{
-    color:var(--red);
-    font-weight:900;
-    font-size:9px;
-    letter-spacing:2px;
+.map-info h1{
+margin:7px 0 5px;
+
+font-size:28px;
+font-style:italic;
+line-height:1;
 }
 
-.map-bottom h1{
-    margin:7px 0;
-    font-size:26px;
-    line-height:1;
-    font-style:italic;
-}
-
-.map-bottom p{
-    margin:0;
-    color:var(--muted);
-    font-size:12px;
+.map-info p{
+margin:0;
+font-size:12px;
+color:var(--muted);
 }
 
 main{
-    max-width:1100px;
-    margin:auto;
-    padding:30px 16px 90px;
+max-width:1200px;
+margin:auto;
+
+padding:30px 18px 90px;
 }
 
 .section{
-    margin-bottom:40px;
+margin-bottom:38px;
 }
 
 .eyebrow{
-    color:var(--red);
-    font-size:9px;
-    font-weight:900;
-    letter-spacing:2px;
+color:var(--red);
+font-size:9px;
+font-weight:900;
+letter-spacing:2px;
 }
 
 h2{
-    margin:7px 0;
-    font-size:25px;
-    font-style:italic;
+font-size:25px;
+font-style:italic;
+margin:7px 0;
 }
 
 .description{
-    color:var(--muted);
-    font-size:13px;
-    line-height:1.5;
+color:var(--muted);
+font-size:13px;
+line-height:1.5;
 }
 
 .bikes{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:10px;
-    margin-top:18px;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+
+margin-top:18px;
 }
 
 .bike{
-    padding:15px;
-    min-height:115px;
-    text-align:left;
-    border-radius:17px;
-    border:1px solid var(--line);
-    background:var(--panel);
-    color:white;
-    transition:.2s;
+min-height:110px;
+
+padding:15px;
+
+text-align:left;
+
+background:var(--panel);
+
+border:1px solid var(--line);
+
+border-radius:18px;
+
+color:white;
+
+transition:.2s;
 }
 
 .bike:hover{
-    transform:translateY(-2px);
+transform:translateY(-2px);
 }
 
 .bike.active{
-    border-color:var(--red);
-    background:
-        linear-gradient(
-            145deg,
-            rgba(255,59,48,.20),
-            rgba(255,59,48,.02)
-        ),
-        var(--panel);
+border-color:var(--red);
+
+background:
+linear-gradient(
+135deg,
+rgba(255,59,48,.18),
+rgba(255,59,48,.03)
+),
+var(--panel);
 }
 
 .bike-icon{
-    display:block;
-    font-size:27px;
-    margin-bottom:12px;
+font-size:27px;
+display:block;
+margin-bottom:12px;
 }
 
 .bike strong{
-    display:block;
-    font-size:11px;
+font-size:11px;
+display:block;
 }
 
 .bike small{
-    display:block;
-    margin-top:4px;
-    color:var(--muted);
-    font-size:9px;
+display:block;
+margin-top:5px;
+color:var(--muted);
+font-size:9px;
 }
 
 .controls{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-    margin-top:17px;
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+
+margin-top:18px;
 }
 
 .control{
-    padding:16px;
-    border-radius:17px;
-    background:var(--panel);
-    border:1px solid var(--line);
+padding:16px;
+
+background:var(--panel);
+
+border:1px solid var(--line);
+
+border-radius:17px;
 }
 
-.control-header{
-    display:flex;
-    justify-content:space-between;
-    margin-bottom:14px;
-}
+.control-head{
+display:flex;
+justify-content:space-between;
 
-.control-title{
-    font-size:11px;
-    font-weight:900;
+margin-bottom:14px;
+
+font-size:11px;
+font-weight:900;
 }
 
 .value{
-    color:var(--red);
-    font-weight:900;
+color:var(--red);
 }
 
 input[type=range]{
-    width:100%;
-    accent-color:var(--red);
+width:100%;
+accent-color:var(--red);
 }
 
 .mode-selector{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-    margin-top:15px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+
+margin-top:16px;
 }
 
-.mode-btn,
-.distance button{
-    padding:15px;
-    border-radius:14px;
-    border:1px solid var(--line);
-    background:var(--panel2);
-    color:#aaa;
-    font-weight:900;
-    font-size:11px;
+.mode{
+padding:15px;
+
+border-radius:15px;
+
+background:var(--panel2);
+
+border:1px solid var(--line);
+
+color:#aeb5bd;
+
+font-weight:900;
+font-size:11px;
 }
 
-.mode-btn.active,
-.distance button.active{
-    background:var(--red);
-    border-color:var(--red);
-    color:white;
+.mode.active{
+background:var(--red);
+border-color:var(--red);
+color:white;
 }
 
-.dest-input{
-    display:none;
-    width:100%;
-    margin-top:12px;
-    padding:16px;
-    border-radius:14px;
-    border:1px solid var(--line);
-    background:var(--panel2);
-    color:white;
-    outline:none;
+.destination-wrap{
+position:relative;
+margin-top:12px;
 }
 
-.suggestions{
-    display:none;
-    margin-top:6px;
-    background:var(--panel2);
-    border:1px solid var(--line);
-    border-radius:14px;
-    overflow:hidden;
+#destinationInput{
+display:none;
+
+width:100%;
+
+padding:16px;
+
+background:var(--panel2);
+
+border:1px solid var(--line);
+
+border-radius:14px;
+
+color:white;
+outline:none;
+}
+
+#suggestions{
+display:none;
+
+position:absolute;
+
+top:calc(100% + 6px);
+
+left:0;
+right:0;
+
+z-index:6000;
+
+background:#12161b;
+
+border:1px solid var(--line);
+
+border-radius:14px;
+
+overflow:hidden;
+
+box-shadow:0 15px 40px rgba(0,0,0,.5);
 }
 
 .suggestion{
-    padding:13px;
-    border-bottom:1px solid var(--line);
-    cursor:pointer;
-    font-size:11px;
+padding:13px;
+
+border-bottom:1px solid var(--line);
+
+font-size:11px;
+
+cursor:pointer;
 }
 
 .suggestion:hover{
-    background:#242a32;
-}
-
-.suggestion small{
-    display:block;
-    color:var(--muted);
-    margin-top:4px;
+background:#1b2027;
 }
 
 .distance{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:8px;
-    margin-top:15px;
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:8px;
+
+margin-top:15px;
+}
+
+.distance button{
+padding:13px 5px;
+
+background:var(--panel2);
+
+border:1px solid var(--line);
+
+border-radius:12px;
+
+color:#aeb5bd;
+
+font-size:10px;
+font-weight:900;
+}
+
+.distance button.active{
+background:var(--red);
+border-color:var(--red);
+color:white;
 }
 
 .options{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-    margin-top:15px;
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+
+margin-top:15px;
 }
 
 .option{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:15px;
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:15px;
-    cursor:pointer;
+display:flex;
+
+justify-content:space-between;
+align-items:center;
+
+padding:16px;
+
+background:var(--panel);
+
+border:1px solid var(--line);
+
+border-radius:16px;
+
+cursor:pointer;
 }
 
-.option-title{
-    font-size:11px;
-    font-weight:900;
+.option strong{
+display:block;
+font-size:11px;
 }
 
-.option-description{
-    color:var(--muted);
-    font-size:9px;
-    margin-top:4px;
+.option small{
+display:block;
+margin-top:5px;
+font-size:9px;
+color:var(--muted);
 }
 
 .switch{
-    width:43px;
-    height:24px;
-    border-radius:20px;
-    background:#292e35;
-    position:relative;
+width:42px;
+height:23px;
+
+border-radius:30px;
+
+background:#303640;
+
+position:relative;
 }
 
 .switch:after{
-    content:"";
-    width:18px;
-    height:18px;
-    position:absolute;
-    top:3px;
-    left:3px;
-    border-radius:50%;
-    background:#777;
-    transition:.2s;
+content:"";
+
+position:absolute;
+
+width:17px;
+height:17px;
+
+top:3px;
+left:3px;
+
+border-radius:50%;
+
+background:#89919a;
+
+transition:.2s;
 }
 
 .switch.active{
-    background:var(--red);
+background:var(--red);
 }
 
 .switch.active:after{
-    left:22px;
-    background:white;
+left:22px;
+background:white;
 }
 
 .generate{
-    width:100%;
-    margin-top:20px;
-    padding:20px;
-    border:0;
-    border-radius:17px;
-    background:linear-gradient(135deg,var(--red),var(--red2));
-    color:white;
-    font-size:14px;
-    font-weight:900;
+width:100%;
+
+margin-top:25px;
+
+padding:20px;
+
+border:0;
+
+border-radius:17px;
+
+background:linear-gradient(135deg,var(--red),var(--red2));
+
+color:white;
+
+font-size:14px;
+font-weight:900;
+
+box-shadow:0 8px 25px rgba(255,59,48,.25);
 }
 
 .generate:disabled{
-    opacity:.5;
+opacity:.6;
 }
 
 .loading{
-    display:none;
-    text-align:center;
-    padding:25px;
-    color:var(--muted);
-    font-size:12px;
+display:none;
+
+text-align:center;
+
+padding:30px;
+
+color:var(--muted);
+
+font-size:12px;
 }
 
 .notice{
-    display:none;
-    padding:15px;
-    margin-top:15px;
-    background:#211313;
-    border:1px solid rgba(255,59,48,.4);
-    border-radius:14px;
-    color:#ffb0aa;
-    font-size:11px;
+display:none;
+
+margin-top:15px;
+
+padding:15px;
+
+border-radius:14px;
+
+background:#1d1212;
+
+border:1px solid rgba(255,59,48,.35);
+
+color:#ffaaa4;
+
+font-size:12px;
 }
 
 .result{
-    display:none;
-    margin-top:25px;
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:20px;
-    overflow:hidden;
+display:none;
+
+margin-top:25px;
+
+background:var(--panel);
+
+border:1px solid var(--line);
+
+border-radius:22px;
+
+overflow:hidden;
 }
 
 .result-head{
-    padding:20px;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255,59,48,.18),
-            transparent
-        ),
-        var(--panel2);
+padding:22px;
+
+background:
+linear-gradient(
+135deg,
+rgba(255,59,48,.16),
+transparent
+),
+var(--panel2);
 }
 
 .result-label{
-    color:var(--red);
-    font-size:9px;
-    font-weight:900;
-    letter-spacing:2px;
+color:var(--red);
+
+font-size:9px;
+font-weight:900;
+letter-spacing:2px;
 }
 
 .result-name{
-    margin:7px 0;
-    font-size:25px;
-    font-style:italic;
+font-size:25px;
+font-style:italic;
+
+margin:7px 0;
 }
 
 .result-subtitle{
-    color:var(--muted);
-    font-size:11px;
+font-size:11px;
+color:var(--muted);
 }
 
 .route-selector{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:8px;
-    padding:15px 20px;
+display:grid;
+
+grid-template-columns:repeat(3,1fr);
+
+gap:8px;
+
+padding:16px 20px 0;
 }
 
-.route-opt{
-    padding:12px;
-    border-radius:11px;
-    background:var(--panel2);
-    border:1px solid var(--line);
-    color:#aaa;
-    font-weight:900;
-    font-size:10px;
+.route-option{
+padding:12px;
+
+background:var(--panel2);
+
+border:1px solid var(--line);
+
+border-radius:11px;
+
+color:#aeb5bd;
+
+font-size:10px;
+font-weight:900;
 }
 
-.route-opt.active{
-    background:var(--red);
-    border-color:var(--red);
-    color:white;
+.route-option.active{
+background:var(--red);
+border-color:var(--red);
+color:white;
 }
 
 .stats{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    border-top:1px solid var(--line);
-    border-bottom:1px solid var(--line);
+display:grid;
+grid-template-columns:repeat(4,1fr);
+
+margin-top:16px;
+
+border-top:1px solid var(--line);
+border-bottom:1px solid var(--line);
 }
 
 .stat{
-    padding:16px 5px;
-    text-align:center;
-    border-right:1px solid var(--line);
+padding:17px 5px;
+
+text-align:center;
+
+border-right:1px solid var(--line);
 }
 
 .stat:last-child{
-    border:0;
+border:0;
 }
 
 .stat strong{
-    display:block;
-    font-size:15px;
+display:block;
+font-size:15px;
 }
 
 .stat span{
-    display:block;
-    color:var(--muted);
-    margin-top:4px;
-    font-size:8px;
-    text-transform:uppercase;
+display:block;
+
+margin-top:5px;
+
+color:var(--muted);
+
+font-size:8px;
+
+text-transform:uppercase;
 }
 
 .result-body{
-    padding:18px;
+padding:20px;
 }
 
-.score{
-    display:flex;
-    justify-content:space-between;
-}
+.score-head{
+display:flex;
+justify-content:space-between;
+align-items:center;
 
-.score-title{
-    font-size:10px;
-    font-weight:900;
+font-size:10px;
+font-weight:900;
 }
 
 .score-number{
-    color:var(--red);
-    font-size:24px;
-    font-weight:900;
+font-size:25px;
+color:var(--red);
 }
 
 .bar{
-    height:5px;
-    margin-top:10px;
-    background:#292e35;
-    border-radius:20px;
-    overflow:hidden;
+height:6px;
+
+margin-top:10px;
+
+background:#292e35;
+
+border-radius:20px;
+
+overflow:hidden;
 }
 
 .bar div{
-    height:100%;
-    width:0;
-    background:var(--red);
-    transition:1s;
+height:100%;
+
+background:var(--red);
+
+width:0;
+
+transition:1s;
 }
 
-.result-buttons{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:9px;
-    margin-top:20px;
+.buttons{
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:10px;
+
+margin-top:20px;
 }
 
-.result-buttons button{
-    padding:14px 8px;
-    border-radius:12px;
-    border:1px solid var(--line);
-    background:var(--panel2);
-    color:white;
-    font-size:10px;
-    font-weight:900;
+.buttons button{
+padding:15px 8px;
+
+border-radius:13px;
+
+background:var(--panel2);
+
+border:1px solid var(--line);
+
+color:white;
+
+font-size:10px;
+font-weight:900;
 }
 
 #navigateButton{
-    grid-column:1/-1;
-    background:linear-gradient(135deg,var(--red),var(--red2));
-    border:0;
+grid-column:1/-1;
+
+background:linear-gradient(135deg,var(--red),var(--red2));
+
+border:0;
 }
 
-.route-profile{
-    margin-top:14px;
-    padding:14px;
-    border-radius:14px;
-    background:var(--panel2);
-    border:1px solid var(--line);
-    font-size:11px;
-    line-height:1.5;
+#cockpitButton{
+grid-column:1/-1;
+
+background:linear-gradient(135deg,#10b981,#059669);
+
+border:0;
 }
 
-.route-profile strong{
-    color:var(--red);
+.cockpit{
+display:none;
+
+position:fixed;
+
+inset:0;
+
+z-index:10000;
+
+background:#020617;
+
+padding:22px;
+
+flex-direction:column;
+
+justify-content:space-between;
+}
+
+.cockpit.active{
+display:flex;
+}
+
+.cockpit-top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.cockpit-instruction{
+font-size:22px;
+font-weight:900;
+}
+
+.speed{
+text-align:center;
+
+font-size:110px;
+
+font-family:monospace;
+
+font-weight:900;
+}
+
+.speed small{
+display:block;
+
+font-size:18px;
+
+color:#94a3b8;
+}
+
+.cockpit-card{
+padding:22px;
+
+border:2px solid #10b981;
+
+border-radius:22px;
+
+background:#0f172a;
+
+font-size:19px;
+font-weight:900;
+}
+
+.cockpit-buttons{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+}
+
+.cockpit-buttons button{
+padding:20px;
+
+border-radius:18px;
+
+border:1px solid #334155;
+
+background:#0f172a;
+
+color:white;
+
+font-weight:900;
+}
+
+.exit{
+background:#dc2626 !important;
+}
+
+footer{
+padding:25px;
+
+text-align:center;
+
+color:var(--muted);
+
+font-size:10px;
+
+border-top:1px solid var(--line);
 }
 
 @media(max-width:700px){
 
-    header{
-        height:64px;
-    }
+header{
+height:64px;
+}
 
-    .map-wrap{
-        margin-top:64px;
-        height:52vh;
-        min-height:390px;
-    }
+.map-wrap{
+margin-top:64px;
+height:53vh;
+}
 
-    .bikes{
-        display:flex;
-        overflow-x:auto;
-    }
+.bikes{
+display:flex;
+overflow-x:auto;
+}
 
-    .bike{
-        min-width:135px;
-    }
+.bike{
+min-width:130px;
+}
 
-    .controls,
-    .options{
-        grid-template-columns:1fr;
-    }
+.controls,
+.options{
+grid-template-columns:1fr;
+}
 
-    .stats{
-        grid-template-columns:repeat(2,1fr);
-    }
+.stats{
+grid-template-columns:repeat(2,1fr);
+}
 
-    .stat:nth-child(2){
-        border-right:0;
-    }
+.distance{
+grid-template-columns:repeat(5,1fr);
+}
 
 }
+
 </style>
 </head>
 
@@ -642,113 +902,122 @@ input[type=range]{
 
 <header>
 
-    <div class="logo">
-        RIDER<span>.</span>
-    </div>
+<div class="logo">
+RIDER<span>.</span>
+</div>
 
-    <div class="header-actions">
-        <button class="icon" id="locateButton">📍</button>
-    </div>
+<div class="header-actions">
+
+<select class="language">
+<option>🇪🇸 ES</option>
+<option>🏴 CA</option>
+<option>🇬🇧 EN</option>
+</select>
+
+<button class="icon" id="locateButton">📍</button>
+
+</div>
 
 </header>
 
 
 <div class="map-wrap">
 
-    <div class="map-top">
-        <div class="status" id="gpsStatus">
-            ● GPS LISTO
-        </div>
-    </div>
+<div class="status" id="gpsStatus">
+● GPS LISTO
+</div>
 
-    <div id="map"></div>
+<div id="map"></div>
 
-    <div class="map-bottom">
-        <small>RIDE DIFFERENT</small>
+<div class="map-info">
 
-        <h1>
-            ENCUENTRA TU<br>
-            PRÓXIMA RUTA.
-        </h1>
+<small>RIDE DIFFERENT</small>
 
-        <p id="mapText">
-            Selecciona tu moto. RIDER adaptará realmente la generación de rutas.
-        </p>
-    </div>
+<h1>
+ENCUENTRA TU<br>
+PRÓXIMA RUTA.
+</h1>
+
+<p id="mapText">
+Selecciona tu moto y configura tu estilo de conducción.
+</p>
+
+</div>
 
 </div>
 
 
 <main>
 
+
 <!-- MOTO -->
 
 <section class="section">
 
-    <div class="eyebrow">
-        01 — PERFIL
-    </div>
+<div class="eyebrow">
+01 — PERFIL
+</div>
 
-    <h2>
-        ¿CON QUÉ VAS A RODAR?
-    </h2>
+<h2>
+¿CON QUÉ VAS A RODAR?
+</h2>
 
-    <p class="description">
-        El tipo de moto modifica el motor de generación de rutas.
-    </p>
+<p class="description">
+Tu moto modifica realmente la forma en que RIDER genera y puntúa las rutas.
+</p>
 
 
-    <div class="bikes">
+<div class="bikes">
 
-        <button class="bike active" data-bike="sport">
-            <span class="bike-icon">🏁</span>
-            <strong>SPORT</strong>
-            <small>Curvas / técnica</small>
-        </button>
+<button class="bike active" data-bike="sport">
+<span class="bike-icon">🏁</span>
+<strong>SPORT</strong>
+<small>Máximas curvas</small>
+</button>
 
-        <button class="bike" data-bike="naked">
-            <span class="bike-icon">🏍️</span>
-            <strong>NAKED</strong>
-            <small>Equilibrada</small>
-        </button>
+<button class="bike" data-bike="naked">
+<span class="bike-icon">🏍️</span>
+<strong>NAKED</strong>
+<small>Equilibrada</small>
+</button>
 
-        <button class="bike" data-bike="trail">
-            <span class="bike-icon">🧭</span>
-            <strong>TRAIL</strong>
-            <small>Aventura</small>
-        </button>
+<button class="bike" data-bike="trail">
+<span class="bike-icon">🧭</span>
+<strong>TRAIL</strong>
+<small>Montaña / aventura</small>
+</button>
 
-        <button class="bike" data-bike="touring">
-            <span class="bike-icon">🛣️</span>
-            <strong>TOURING</strong>
-            <small>Distancia</small>
-        </button>
+<button class="bike" data-bike="touring">
+<span class="bike-icon">🛣️</span>
+<strong>TOURING</strong>
+<small>Distancia / fluidez</small>
+</button>
 
-        <button class="bike" data-bike="custom">
-            <span class="bike-icon">😎</span>
-            <strong>CUSTOM</strong>
-            <small>Paisaje</small>
-        </button>
+<button class="bike" data-bike="custom">
+<span class="bike-icon">😎</span>
+<strong>CUSTOM</strong>
+<small>Paisaje</small>
+</button>
 
-        <button class="bike" data-bike="supermoto">
-            <span class="bike-icon">⚡</span>
-            <strong>SUPERMOTO</strong>
-            <small>Diversión</small>
-        </button>
+<button class="bike" data-bike="supermoto">
+<span class="bike-icon">⚡</span>
+<strong>SUPERMOTO</strong>
+<small>Curvas extremas</small>
+</button>
 
-        <button class="bike" data-bike="scooter">
-            <span class="bike-icon">🛵</span>
-            <strong>SCOOTER</strong>
-            <small>Compacta</small>
-        </button>
+<button class="bike" data-bike="scooter">
+<span class="bike-icon">🛵</span>
+<strong>SCOOTER</strong>
+<small>Versátil</small>
+</button>
 
-        <button class="bike" data-bike="customized">
-            <span class="bike-icon">⚙️</span>
-            <strong>A MEDIDA</strong>
-            <small>Personalizada</small>
-        </button>
+<button class="bike" data-bike="customized">
+<span class="bike-icon">⚙️</span>
+<strong>A MEDIDA</strong>
+<small>Personalizada</small>
+</button>
 
-    </div>
+</div>
 
 </section>
 
@@ -757,127 +1026,137 @@ input[type=range]{
 
 <section class="section">
 
-    <div class="eyebrow">
-        02 — ESTILO DE RUTA
-    </div>
+<div class="eyebrow">
+02 — ESTILO DE RUTA
+</div>
 
-    <h2>
-        ¿QUÉ TE APETECE HOY?
-    </h2>
+<h2>
+¿QUÉ TE APETECE HOY?
+</h2>
 
-    <p class="description">
-        Tus preferencias se combinan con el perfil de la moto.
-    </p>
-
-
-    <div class="controls">
-
-        <div class="control">
-            <div class="control-header">
-                <span class="control-title">🔥 CURVAS</span>
-                <span class="value" id="curvesValue">9</span>
-            </div>
-
-            <input id="curves" type="range" min="0" max="10" value="9">
-        </div>
+<p class="description">
+Estos valores se combinan con el perfil de tu motocicleta.
+</p>
 
 
-        <div class="control">
-            <div class="control-header">
-                <span class="control-title">⛰️ MONTAÑA</span>
-                <span class="value" id="mountainValue">8</span>
-            </div>
+<div class="controls">
 
-            <input id="mountain" type="range" min="0" max="10" value="8">
-        </div>
+<div class="control">
 
+<div class="control-head">
+<span>🔥 CURVAS</span>
+<span class="value" id="curvesValue">9</span>
+</div>
 
-        <div class="control">
-            <div class="control-header">
-                <span class="control-title">🌲 SECUNDARIAS</span>
-                <span class="value" id="secondaryValue">9</span>
-            </div>
+<input id="curves" type="range" min="0" max="10" value="9">
 
-            <input id="secondary" type="range" min="0" max="10" value="9">
-        </div>
+</div>
 
 
-        <div class="control">
-            <div class="control-header">
-                <span class="control-title">🌄 PAISAJE</span>
-                <span class="value" id="sceneryValue">7</span>
-            </div>
+<div class="control">
 
-            <input id="scenery" type="range" min="0" max="10" value="7">
-        </div>
+<div class="control-head">
+<span>⛰️ MONTAÑA</span>
+<span class="value" id="mountainValue">8</span>
+</div>
+
+<input id="mountain" type="range" min="0" max="10" value="8">
+
+</div>
 
 
-        <div class="control">
-            <div class="control-header">
-                <span class="control-title">⚡ DIVERSIÓN</span>
-                <span class="value" id="funValue">9</span>
-            </div>
+<div class="control">
 
-            <input id="fun" type="range" min="0" max="10" value="9">
-        </div>
+<div class="control-head">
+<span>🌲 SECUNDARIAS</span>
+<span class="value" id="secondaryValue">9</span>
+</div>
 
-    </div>
+<input id="secondary" type="range" min="0" max="10" value="9">
+
+</div>
+
+
+<div class="control">
+
+<div class="control-head">
+<span>🌄 PAISAJE</span>
+<span class="value" id="sceneryValue">7</span>
+</div>
+
+<input id="scenery" type="range" min="0" max="10" value="7">
+
+</div>
+
+
+<div class="control">
+
+<div class="control-head">
+<span>⚡ DIVERSIÓN</span>
+<span class="value" id="funValue">9</span>
+</div>
+
+<input id="fun" type="range" min="0" max="10" value="9">
+
+</div>
+
+</div>
 
 </section>
 
 
-<!-- TIPO -->
+<!-- DESTINO -->
 
 <section class="section">
 
-    <div class="eyebrow">
-        03 — TIPO Y DESTINO
-    </div>
+<div class="eyebrow">
+03 — TIPO Y DESTINO
+</div>
 
-    <h2>
-        ¿CÓMO QUIERES RODAR?
-    </h2>
-
-
-    <div class="mode-selector">
-
-        <button class="mode-btn active" id="modeCircular">
-            🔄 RUTA CIRCULAR
-        </button>
-
-        <button class="mode-btn" id="modeDestination">
-            🎯 POR DESTINO
-        </button>
-
-    </div>
+<h2>
+¿CÓMO QUIERES RODAR?
+</h2>
 
 
-    <input
-        type="text"
-        id="destinationInput"
-        class="dest-input"
-        placeholder="Escribe una ciudad o destino..."
-    >
+<div class="mode-selector">
+
+<button class="mode active" id="circularMode">
+🔄 RUTA CIRCULAR
+</button>
+
+<button class="mode" id="destinationMode">
+🎯 POR DESTINO
+</button>
+
+</div>
 
 
-    <div id="suggestions" class="suggestions"></div>
+<div class="destination-wrap">
+
+<input
+id="destinationInput"
+placeholder="Escribe una ciudad o destino..."
+autocomplete="off"
+>
+
+<div id="suggestions"></div>
+
+</div>
 
 
-    <div class="distance" id="distanceSelector">
+<div class="distance" id="distanceSelector">
 
-        <button data-distance="100">100 KM</button>
+<button data-distance="100">100 KM</button>
 
-        <button data-distance="200">200 KM</button>
+<button data-distance="200">200 KM</button>
 
-        <button class="active" data-distance="250">
-            250 KM
-        </button>
+<button class="active" data-distance="250">250 KM</button>
 
-        <button data-distance="350">350 KM</button>
+<button data-distance="350">350 KM</button>
 
-        <button data-distance="500">500+</button>
+<button data-distance="500">500+</button>
 
-    </div>
+</div>
 
 </section>
 
@@ -886,100 +1165,84 @@ input[type=range]{
 
 <section class="section">
 
-    <div class="eyebrow">
-        04 — CARRETERA
-    </div>
+<div class="eyebrow">
+04 — CARRETERA
+</div>
 
-    <h2>
-        DEFINE EL TERRENO.
-    </h2>
-
-
-    <div class="options">
-
-        <div class="option" data-option="highways">
-
-            <div>
-                <div class="option-title">
-                    🛣️ EVITAR AUTOPISTAS
-                </div>
-
-                <div class="option-description">
-                    Priorizar carreteras secundarias
-                </div>
-            </div>
-
-            <div class="switch active"></div>
-
-        </div>
+<h2>
+DEFINE EL TERRENO.
+</h2>
 
 
-        <div class="option" data-option="cities">
-
-            <div>
-                <div class="option-title">
-                    🏙️ EVITAR CIUDADES
-                </div>
-
-                <div class="option-description">
-                    Menos tráfico urbano
-                </div>
-            </div>
-
-            <div class="switch active"></div>
-
-        </div>
+<div class="options">
 
 
-        <div class="option" data-option="tolls">
+<div class="option" data-option="highways">
 
-            <div>
-                <div class="option-title">
-                    💳 EVITAR PEAJES
-                </div>
+<div>
+<strong>🛣️ EVITAR AUTOPISTAS</strong>
+<small>Priorizar carreteras secundarias</small>
+</div>
 
-                <div class="option-description">
-                    Priorizar alternativas
-                </div>
-            </div>
+<div class="switch active"></div>
 
-            <div class="switch active"></div>
-
-        </div>
+</div>
 
 
-        <div class="option" data-option="mountainPasses">
+<div class="option" data-option="cities">
 
-            <div>
-                <div class="option-title">
-                    🏔️ PUERTOS
-                </div>
+<div>
+<strong>🏙️ EVITAR CIUDADES</strong>
+<small>Menos tráfico urbano</small>
+</div>
 
-                <div class="option-description">
-                    Aumentar zonas de montaña
-                </div>
-            </div>
+<div class="switch active"></div>
 
-            <div class="switch active"></div>
+</div>
 
-        </div>
 
-    </div>
+<div class="option" data-option="mountains">
+
+<div>
+<strong>🏔️ BUSCAR MONTAÑA</strong>
+<small>Priorizar zonas elevadas</small>
+</div>
+
+<div class="switch active"></div>
+
+</div>
+
+
+<div class="option" data-option="scenic">
+
+<div>
+<strong>🌄 BUSCAR PAISAJE</strong>
+<small>Exploración panorámica</small>
+</div>
+
+<div class="switch active"></div>
+
+</div>
+
+
+</div>
 
 </section>
 
 
 <button class="generate" id="generateButton">
-    🏍️ &nbsp; GENERAR RUTAS RIDER
+🏍️ GENERAR RUTAS RIDER
 </button>
 
 
 <div class="loading" id="loading">
-    🧠 RIDER ROUTE ENGINE<br><br>
 
-    Analizando perfil de moto...<br>
-    Generando candidatos...<br>
-    Seleccionando las mejores rutas...
+🧠 Analizando tu moto y preferencias...<br><br>
+
+🗺️ Generando candidatos...<br><br>
+
+🏆 Seleccionando las mejores rutas...
+
 </div>
 
 
@@ -990,110 +1253,168 @@ input[type=range]{
 
 <section class="result" id="result">
 
-    <div class="result-head">
+<div class="result-head">
 
-        <div class="result-label">
-            RIDER ROUTE ENGINE
-        </div>
+<div class="result-label">
+RIDER INTELLIGENT ROUTING
+</div>
 
-        <div class="result-name">
-            RUTAS ENCONTRADAS
-        </div>
+<div class="result-name">
+RUTAS ENCONTRADAS
+</div>
 
-        <div class="result-subtitle" id="resultSubtitle">
-            Seleccionadas para tu perfil.
-        </div>
+<div class="result-subtitle" id="routeDescription">
+Analizadas según tu moto y preferencias.
+</div>
 
-    </div>
-
-
-    <div class="route-selector">
-
-        <button class="route-opt active" id="btnOpt0">
-            🥇 OPCIÓN A
-        </button>
-
-        <button class="route-opt" id="btnOpt1">
-            🥈 OPCIÓN B
-        </button>
-
-        <button class="route-opt" id="btnOpt2">
-            🥉 OPCIÓN C
-        </button>
-
-    </div>
+</div>
 
 
-    <div class="stats">
+<div class="route-selector">
 
-        <div class="stat">
-            <strong id="distanceResult">—</strong>
-            <span>Distancia</span>
-        </div>
+<button class="route-option active" data-route="0">
+OPCIÓN A
+</button>
 
-        <div class="stat">
-            <strong id="timeResult">—</strong>
-            <span>Tiempo</span>
-        </div>
+<button class="route-option" data-route="1">
+OPCIÓN B
+</button>
 
-        <div class="stat">
-            <strong id="waypointsResult">—</strong>
-            <span>Puntos</span>
-        </div>
+<button class="route-option" data-route="2">
+OPCIÓN C
+</button>
 
-        <div class="stat">
-            <strong id="scoreResult">—</strong>
-            <span>RIDER SCORE</span>
-        </div>
-
-    </div>
+</div>
 
 
-    <div class="result-body">
+<div class="stats">
 
-        <div class="score">
+<div class="stat">
+<strong id="distanceResult">—</strong>
+<span>Distancia</span>
+</div>
 
-            <span class="score-title">
-                COMPATIBILIDAD CON TU PERFIL
-            </span>
+<div class="stat">
+<strong id="timeResult">—</strong>
+<span>Tiempo</span>
+</div>
 
-            <span class="score-number" id="scoreNumber">
-                —
-            </span>
+<div class="stat">
+<strong id="curvesResult">—</strong>
+<span>Curvas</span>
+</div>
 
-        </div>
+<div class="stat">
+<strong id="scoreResult">—</strong>
+<span>RIDER SCORE</span>
+</div>
 
-
-        <div class="bar">
-            <div id="scoreBar"></div>
-        </div>
-
-
-        <div class="route-profile" id="routeProfile">
-        </div>
+</div>
 
 
-        <div class="result-buttons">
+<div class="result-body">
 
-            <button id="saveButton">
-                ♡ FAVORITA
-            </button>
+<div class="score-head">
 
-            <button id="gpxButton">
-                ⇩ DESCARGAR GPX
-            </button>
+<span>
+COMPATIBILIDAD CON TU PERFIL
+</span>
 
-            <button id="navigateButton">
-                🧭 ABRIR EN GOOGLE MAPS
-            </button>
+<span class="score-number" id="scoreNumber">
+—
+</span>
 
-        </div>
+</div>
 
-    </div>
+
+<div class="bar">
+<div id="scoreBar"></div>
+</div>
+
+
+<div class="buttons">
+
+<button id="cockpitButton">
+🏍️ MODO MANILLAR Y VOZ
+</button>
+
+<button id="saveButton">
+♡ GUARDAR FAVORITA
+</button>
+
+<button id="gpxButton">
+⇩ DESCARGAR GPX
+</button>
+
+<button id="navigateButton">
+🧭 ABRIR NAVEGACIÓN
+</button>
+
+</div>
+
+</div>
 
 </section>
 
+
 </main>
+
+
+<footer>
+RIDER · RIDE DIFFERENT · OPENSTREETMAP
+</footer>
+
+
+<!-- COCKPIT -->
+
+<div class="cockpit" id="cockpit">
+
+<div class="cockpit-top">
+
+<div class="cockpit-instruction" id="cockpitInstruction">
+SIGUE LA RUTA
+</div>
+
+<button class="icon" id="muteButton">
+🔊
+</button>
+
+</div>
+
+
+<div class="cockpit-card">
+
+<div id="nextInstruction">
+Preparando navegación...
+</div>
+
+</div>
+
+
+<div class="speed">
+
+<div id="speedValue">
+0
+</div>
+
+<small>KM/H</small>
+
+</div>
+
+
+<div class="cockpit-buttons">
+
+<button id="nextButton">
+SIGUIENTE
+</button>
+
+<button class="exit" id="exitButton">
+SALIR
+</button>
+
+</div>
+
+</div>
 
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1102,528 +1423,602 @@ input[type=range]{
 <script>
 
 /* =========================================================
-   RIDER ROUTE ENGINE
-   ========================================================= */
-
-
-/* -------------------------
-   SERVICIOS
-------------------------- */
+   CONFIGURACIÓN
+========================================================= */
 
 const OSRM =
-    "https://router.project-osrm.org/route/v1/driving/";
+"https://router.project-osrm.org/route/v1/driving/";
 
 const NOMINATIM =
-    "https://nominatim.openstreetmap.org/search?format=json&limit=6&q=";
-
-
-/* -------------------------
-   MAPA
-------------------------- */
-
-const map = L.map("map", {
-    zoomControl:true,
-    preferCanvas:true
-}).setView([41.3851,2.1734], 10);
-
-
-L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {
-        maxZoom:19,
-        attribution:"© OpenStreetMap"
-    }
-).addTo(map);
-
-
-/* -------------------------
-   VARIABLES
-------------------------- */
-
-const $ = id => document.getElementById(id);
-
-let userPosition = {
-    lat:41.3851,
-    lng:2.1734
-};
-
-
-let userMarker = L.circleMarker(
-    [userPosition.lat,userPosition.lng],
-    {
-        radius:9,
-        color:"#fff",
-        weight:2,
-        fillColor:"#ff3b30",
-        fillOpacity:1
-    }
-).addTo(map);
-
-
-let destMarker = null;
-let routeLayer = null;
-
-let selectedBike = "sport";
-let selectedDistance = 250;
-let routeMode = "circular";
-
-let selectedDestination = null;
-
-let generatedRoutes = [];
-let activeRouteIndex = 0;
-
-let autocompleteTimer = null;
+"https://nominatim.openstreetmap.org/search?format=json&limit=6&q=";
 
 
 /* =========================================================
-   PERFILES REALES DE MOTOS
-   ========================================================= */
+   MAPA
+========================================================= */
 
-const bikeProfiles = {
-
-    sport:{
-        name:"SPORT",
-        icon:"🏁",
-        style:"CURVAS Y CONDUCCIÓN DEPORTIVA",
-
-        radiusMultiplier:.14,
-
-        waypointCount:8,
-
-        curveWeight:1.9,
-        mountainWeight:1.2,
-        secondaryWeight:1.7,
-        sceneryWeight:.7,
-        funWeight:1.9,
-
-        patterns:[
-            [20,55,95,140,190,235,285,330],
-            [35,75,115,160,210,255,300,345],
-            [10,50,100,150,205,250,295,340]
-        ]
-    },
+const map = L.map("map",{
+zoomControl:true,
+preferCanvas:true
+}).setView([41.3851,2.1734],11);
 
 
-    naked:{
-        name:"NAKED",
-        icon:"🏍️",
-        style:"EQUILIBRIO ENTRE CURVAS Y PAISAJE",
-
-        radiusMultiplier:.15,
-
-        waypointCount:7,
-
-        curveWeight:1.4,
-        mountainWeight:1.1,
-        secondaryWeight:1.3,
-        sceneryWeight:1.1,
-        funWeight:1.5,
-
-        patterns:[
-            [25,75,125,175,225,275,325],
-            [45,95,145,195,245,295,345],
-            [15,65,115,165,215,265,315]
-        ]
-    },
+L.tileLayer(
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+{
+maxZoom:19,
+attribution:"© OpenStreetMap"
+}
+).addTo(map);
 
 
-    trail:{
-        name:"TRAIL / ADVENTURE",
-        icon:"🧭",
-        style:"MONTAÑA, AVENTURA Y CARRETERAS RURALES",
-
-        radiusMultiplier:.21,
-
-        waypointCount:9,
-
-        curveWeight:1.1,
-        mountainWeight:2.0,
-        secondaryWeight:2.0,
-        sceneryWeight:1.8,
-        funWeight:1.3,
-
-        patterns:[
-            [10,45,85,125,165,210,255,300,345],
-            [25,65,105,150,195,240,285,330,355],
-            [40,80,120,160,205,250,295,335,15]
-        ]
-    },
+setTimeout(()=>{
+map.invalidateSize();
+},500);
 
 
-    touring:{
-        name:"TOURING",
-        icon:"🛣️",
-        style:"DISTANCIA, FLUIDEZ Y GRANDES RECORRIDOS",
+/* =========================================================
+   VARIABLES
+========================================================= */
 
-        radiusMultiplier:.27,
+let userPosition={
+lat:41.3851,
+lng:2.1734
+};
 
-        waypointCount:5,
+let selectedDestination=null;
 
-        curveWeight:.8,
-        mountainWeight:1.0,
-        secondaryWeight:.8,
-        sceneryWeight:1.8,
-        funWeight:.9,
+let userMarker=null;
+let destinationMarker=null;
+let routeLayer=null;
 
-        patterns:[
-            [20,95,170,245,320],
-            [45,120,195,270,345],
-            [70,145,220,295,10]
-        ]
-    },
+let selectedBike="sport";
 
+let selectedDistance=250;
 
-    custom:{
-        name:"CUSTOM / CRUISER",
-        icon:"😎",
-        style:"PAISAJE, PUEBLOS Y RUTA TRANQUILA",
+let routeMode="circular";
 
-        radiusMultiplier:.18,
+let generatedRoutes=[];
 
-        waypointCount:5,
+let activeRoute=0;
 
-        curveWeight:.7,
-        mountainWeight:.8,
-        secondaryWeight:1.2,
-        sceneryWeight:2.0,
-        funWeight:.8,
+let autocompleteTimer=null;
 
-        patterns:[
-            [30,100,175,250,325],
-            [55,130,205,280,350],
-            [80,155,230,305,20]
-        ]
-    },
+let routeSteps=[];
+
+let currentStep=0;
+
+let voiceMuted=false;
 
 
-    supermoto:{
-        name:"SUPERMOTO",
-        icon:"⚡",
-        style:"MÁXIMA DIVERSIÓN Y TRAMOS REVirADOS",
+/* =========================================================
+   PERFILES DE MOTOS
+========================================================= */
 
-        radiusMultiplier:.11,
+/*
 
-        waypointCount:10,
+IMPORTANTE:
 
-        curveWeight:2.0,
-        mountainWeight:1.7,
-        secondaryWeight:2.0,
-        sceneryWeight:.6,
-        funWeight:2.0,
+Estos perfiles cambian:
 
-        patterns:[
-            [10,40,70,105,140,180,220,260,305,345],
-            [25,55,90,125,160,200,240,280,320,355],
-            [5,35,75,115,155,195,235,275,315,350]
-        ]
-    },
+- número de waypoints
+- radio de exploración
+- agresividad angular
+- preferencia de curvas
+- forma de puntuar
+
+*/
+
+const bikeProfiles={
 
 
-    scooter:{
-        name:"SCOOTER",
-        icon:"🛵",
-        style:"RUTA COMPACTA Y PRÁCTICA",
+sport:{
 
-        radiusMultiplier:.09,
+name:"SPORT",
 
-        waypointCount:4,
+waypoints:7,
 
-        curveWeight:.7,
-        mountainWeight:.5,
-        secondaryWeight:.9,
-        sceneryWeight:1.1,
-        funWeight:.8,
+radius:.17,
 
-        patterns:[
-            [35,125,215,305],
-            [60,150,240,330],
-            [15,105,195,285]
-        ]
-    },
+curveWeight:2.4,
+
+mountainWeight:1.7,
+
+sceneryWeight:.7,
+
+funWeight:2.0,
+
+patterns:[
+[10,55,105,160,220,280,330],
+[25,75,135,195,245,300,345],
+[350,40,95,150,210,270,320]
+]
+
+},
 
 
-    customized:{
-        name:"PERSONALIZADA",
-        icon:"⚙️",
-        style:"CONFIGURACIÓN EQUILIBRADA",
+naked:{
 
-        radiusMultiplier:.16,
+name:"NAKED",
 
-        waypointCount:7,
+waypoints:6,
 
-        curveWeight:1,
-        mountainWeight:1,
-        secondaryWeight:1,
-        sceneryWeight:1,
-        funWeight:1,
+radius:.18,
 
-        patterns:[
-            [25,75,125,175,225,275,325],
-            [45,95,145,195,245,295,345],
-            [15,65,115,165,215,265,315]
-        ]
-    }
+curveWeight:1.8,
+
+mountainWeight:1.4,
+
+sceneryWeight:1.2,
+
+funWeight:1.8,
+
+patterns:[
+[20,80,140,210,270,330],
+[45,110,175,240,300,350],
+[5,65,130,200,265,320]
+]
+
+},
+
+
+trail:{
+
+name:"TRAIL",
+
+waypoints:7,
+
+radius:.22,
+
+curveWeight:1.5,
+
+mountainWeight:2.8,
+
+sceneryWeight:2.2,
+
+funWeight:1.5,
+
+patterns:[
+[15,65,115,180,240,295,340],
+[35,95,150,215,275,325,5],
+[60,120,175,230,285,330,20]
+]
+
+},
+
+
+touring:{
+
+name:"TOURING",
+
+waypoints:5,
+
+radius:.26,
+
+curveWeight:.8,
+
+mountainWeight:1.2,
+
+sceneryWeight:2.5,
+
+funWeight:1.0,
+
+patterns:[
+[30,105,180,250,325],
+[55,135,210,285,350],
+[10,90,175,260,340]
+]
+
+},
+
+
+custom:{
+
+name:"CUSTOM",
+
+waypoints:5,
+
+radius:.20,
+
+curveWeight:.8,
+
+mountainWeight:.9,
+
+sceneryWeight:2.7,
+
+funWeight:1.0,
+
+patterns:[
+[25,95,165,235,305],
+[50,125,200,275,345],
+[75,145,215,285,355]
+]
+
+},
+
+
+supermoto:{
+
+name:"SUPERMOTO",
+
+waypoints:9,
+
+radius:.13,
+
+curveWeight:3.0,
+
+mountainWeight:2.3,
+
+sceneryWeight:.6,
+
+funWeight:3.0,
+
+patterns:[
+[5,40,80,125,170,215,260,305,345],
+[20,60,105,150,195,240,285,325,355],
+[350,30,70,115,160,205,250,295,335]
+]
+
+},
+
+
+scooter:{
+
+name:"SCOOTER",
+
+waypoints:4,
+
+radius:.12,
+
+curveWeight:.9,
+
+mountainWeight:.5,
+
+sceneryWeight:1.5,
+
+funWeight:1.0,
+
+patterns:[
+[30,120,210,300],
+[60,150,240,330],
+[10,100,190,280]
+]
+
+},
+
+
+customized:{
+
+name:"PERSONALIZADA",
+
+waypoints:6,
+
+radius:.19,
+
+curveWeight:1.5,
+
+mountainWeight:1.5,
+
+sceneryWeight:1.5,
+
+funWeight:1.5,
+
+patterns:[
+[20,85,150,215,280,345],
+[45,110,175,240,305,350],
+[5,70,135,200,265,330]
+]
+
+}
 
 };
 
 
 /* =========================================================
    PREFERENCIAS
-   ========================================================= */
+========================================================= */
 
-const preferences = {
-
-    highways:true,
-    cities:true,
-    tolls:true,
-    mountainPasses:true
-
+const preferences={
+highways:true,
+cities:true,
+mountains:true,
+scenic:true
 };
 
 
 /* =========================================================
-   UI MOTO
-   ========================================================= */
+   UTILIDADES
+========================================================= */
 
-document.querySelectorAll(".bike").forEach(button=>{
-
-    button.addEventListener("click",()=>{
-
-        document.querySelectorAll(".bike").forEach(b=>{
-            b.classList.remove("active");
-        });
-
-        button.classList.add("active");
-
-        selectedBike = button.dataset.bike;
-
-        const profile = bikeProfiles[selectedBike];
+const $=id=>document.getElementById(id);
 
 
-        setSlider("curves",
-            Math.round(Math.min(10,profile.curveWeight*5))
-        );
+function getPreferences(){
 
-        setSlider("mountain",
-            Math.round(Math.min(10,profile.mountainWeight*5))
-        );
+return{
 
-        setSlider("secondary",
-            Math.round(Math.min(10,profile.secondaryWeight*5))
-        );
+curves:Number($("curves").value),
 
-        setSlider("scenery",
-            Math.round(Math.min(10,profile.sceneryWeight*5))
-        );
+mountain:Number($("mountain").value),
 
-        setSlider("fun",
-            Math.round(Math.min(10,profile.funWeight*5))
-        );
+secondary:Number($("secondary").value),
 
+scenery:Number($("scenery").value),
 
-        $("mapText").textContent =
-            `${profile.icon} ${profile.name}: ${profile.style}`;
+fun:Number($("fun").value)
 
-    });
-
-});
-
-
-function setSlider(id,value){
-
-    $(id).value = value;
-
-    $(id+"Value").textContent = value;
+};
 
 }
 
 
 /* =========================================================
    SLIDERS
-   ========================================================= */
+========================================================= */
 
-document.querySelectorAll('input[type="range"]')
-.forEach(slider=>{
+document.querySelectorAll('input[type="range"]').forEach(slider=>{
 
-    slider.addEventListener("input",()=>{
+slider.addEventListener("input",()=>{
 
-        $(slider.id+"Value").textContent =
-            slider.value;
+$(slider.id+"Value").textContent=
+slider.value;
 
-    });
+});
+
+});
+
+
+/* =========================================================
+   SELECCIÓN MOTO
+========================================================= */
+
+document.querySelectorAll(".bike").forEach(button=>{
+
+button.addEventListener("click",()=>{
+
+document.querySelectorAll(".bike")
+.forEach(b=>b.classList.remove("active"));
+
+button.classList.add("active");
+
+selectedBike=button.dataset.bike;
+
+const profile=bikeProfiles[selectedBike];
+
+
+/*
+
+La moto también ajusta automáticamente
+los sliders para mostrar su personalidad.
+
+*/
+
+$("curves").value=
+Math.round(Math.min(
+10,
+profile.curveWeight*4
+));
+
+$("mountain").value=
+Math.round(Math.min(
+10,
+profile.mountainWeight*4
+));
+
+$("scenery").value=
+Math.round(Math.min(
+10,
+profile.sceneryWeight*4
+));
+
+$("fun").value=
+Math.round(Math.min(
+10,
+profile.funWeight*4
+));
+
+
+["curves","mountain","scenery","fun"]
+.forEach(id=>{
+
+$(id+"Value").textContent=
+$(id).value;
+
+});
+
+
+$("mapText").textContent=
+"Perfil "+profile.name+
+" activado. La generación cambiará según esta moto.";
+
+});
 
 });
 
 
 /* =========================================================
    DISTANCIA
-   ========================================================= */
+========================================================= */
 
 document.querySelectorAll(".distance button")
 .forEach(button=>{
 
-    button.addEventListener("click",()=>{
+button.addEventListener("click",()=>{
 
-        document
-            .querySelectorAll(".distance button")
-            .forEach(b=>b.classList.remove("active"));
+document.querySelectorAll(".distance button")
+.forEach(b=>b.classList.remove("active"));
 
-        button.classList.add("active");
+button.classList.add("active");
 
-        selectedDistance =
-            Number(button.dataset.distance);
+selectedDistance=
+Number(button.dataset.distance);
 
-    });
+});
 
 });
 
 
 /* =========================================================
    OPCIONES
-   ========================================================= */
+========================================================= */
 
 document.querySelectorAll(".option")
 .forEach(option=>{
 
-    option.addEventListener("click",()=>{
+option.addEventListener("click",()=>{
 
-        const key = option.dataset.option;
+const key=option.dataset.option;
 
-        preferences[key] = !preferences[key];
+preferences[key]=!preferences[key];
 
-        option
-            .querySelector(".switch")
-            .classList.toggle(
-                "active",
-                preferences[key]
-            );
+option.querySelector(".switch")
+.classList.toggle(
+"active",
+preferences[key]
+);
 
-    });
+});
 
 });
 
 
 /* =========================================================
    MODOS
-   ========================================================= */
+========================================================= */
 
-$("modeCircular")
-.addEventListener("click",()=>{
+$("circularMode").addEventListener("click",()=>{
 
-    routeMode = "circular";
+routeMode="circular";
 
-    $("modeCircular").classList.add("active");
+$("circularMode").classList.add("active");
 
-    $("modeDestination")
-        .classList.remove("active");
+$("destinationMode").classList.remove("active");
 
-    $("destinationInput").style.display = "none";
+$("destinationInput").style.display="none";
 
-    $("suggestions").style.display = "none";
+$("suggestions").style.display="none";
 
-    $("distanceSelector").style.display = "grid";
+$("distanceSelector").style.display="grid";
 
 });
 
 
-$("modeDestination")
-.addEventListener("click",()=>{
+$("destinationMode").addEventListener("click",()=>{
 
-    routeMode = "destination";
+routeMode="destination";
 
-    $("modeDestination").classList.add("active");
+$("destinationMode").classList.add("active");
 
-    $("modeCircular")
-        .classList.remove("active");
+$("circularMode").classList.remove("active");
 
-    $("destinationInput").style.display = "block";
+$("destinationInput").style.display="block";
 
-    $("distanceSelector").style.display = "none";
+$("distanceSelector").style.display="none";
+
+$("destinationInput").focus();
 
 });
 
 
 /* =========================================================
    GPS
-   ========================================================= */
+========================================================= */
+
+function updateUserMarker(){
+
+if(userMarker){
+
+map.removeLayer(userMarker);
+
+}
+
+userMarker=L.circleMarker(
+[userPosition.lat,userPosition.lng],
+{
+
+radius:9,
+
+color:"#fff",
+
+weight:3,
+
+fillColor:"#ff3b30",
+
+fillOpacity:1
+
+}
+).addTo(map);
+
+}
+
+
+updateUserMarker();
+
 
 function locateUser(){
 
-    if(!navigator.geolocation){
+if(!navigator.geolocation){
 
-        alert("Tu navegador no permite GPS.");
+alert("Tu navegador no permite GPS.");
 
-        return;
+return;
 
-    }
-
-
-    $("gpsStatus").textContent =
-        "● BUSCANDO GPS...";
+}
 
 
-    navigator.geolocation.getCurrentPosition(
-
-        position=>{
-
-            userPosition = {
-
-                lat:position.coords.latitude,
-
-                lng:position.coords.longitude
-
-            };
+$("gpsStatus").textContent=
+"● BUSCANDO GPS...";
 
 
-            map.removeLayer(userMarker);
+navigator.geolocation.getCurrentPosition(
+
+position=>{
+
+userPosition={
+
+lat:position.coords.latitude,
+
+lng:position.coords.longitude
+
+};
 
 
-            userMarker = L.circleMarker(
-
-                [userPosition.lat,userPosition.lng],
-
-                {
-                    radius:10,
-                    color:"#fff",
-                    weight:2,
-                    fillColor:"#ff3b30",
-                    fillOpacity:1
-                }
-
-            ).addTo(map);
+updateUserMarker();
 
 
-            map.setView(
-                [userPosition.lat,userPosition.lng],
-                11
-            );
+map.setView(
+[userPosition.lat,userPosition.lng],
+12
+);
 
 
-            $("gpsStatus").textContent =
-                "● GPS ACTIVO";
-
-            $("gpsStatus").classList.add("gps");
+$("gpsStatus").textContent=
+"● GPS ACTIVO";
 
 
-            $("mapText").textContent =
-                "📍 Ubicación detectada. RIDER está listo.";
+$("mapText").textContent=
+"Tu posición GPS está siendo utilizada como punto de salida.";
 
-        },
+},
 
-        ()=>{
+()=>{
 
-            $("gpsStatus").textContent =
-                "● UBICACIÓN PREDETERMINADA";
+$("gpsStatus").textContent=
+"● UBICACIÓN PREDETERMINADA";
 
-        },
+},
 
-        {
-            enableHighAccuracy:true,
-            timeout:8000,
-            maximumAge:30000
-        }
+{
 
-    );
+enableHighAccuracy:true,
+
+timeout:10000,
+
+maximumAge:30000
+
+}
+
+);
 
 }
 
@@ -1633,1448 +2028,1690 @@ $("locateButton")
 
 
 /* =========================================================
-   DESTINOS
-   ========================================================= */
+   AUTOCOMPLETADO
+========================================================= */
 
 $("destinationInput")
 .addEventListener("input",()=>{
 
-    clearTimeout(autocompleteTimer);
-
-    const query =
-        $("destinationInput").value.trim();
+const query=
+$("destinationInput").value.trim();
 
 
-    selectedDestination = null;
+selectedDestination=null;
 
 
-    if(query.length<3){
-
-        $("suggestions").style.display="none";
-
-        return;
-
-    }
+clearTimeout(autocompleteTimer);
 
 
-    autocompleteTimer =
-    setTimeout(async()=>{
+if(query.length<3){
 
-        try{
+$("suggestions").style.display="none";
 
-            const response =
-                await fetch(
-                    NOMINATIM+
-                    encodeURIComponent(query)
-                );
+return;
+
+}
 
 
-            const data =
-                await response.json();
+autocompleteTimer=setTimeout(async()=>{
+
+try{
+
+const response=await fetch(
+
+NOMINATIM+
+encodeURIComponent(query)
+
+);
 
 
-            const container =
-                $("suggestions");
+const data=await response.json();
 
 
-            container.innerHTML="";
+const container=$("suggestions");
 
 
-            if(!data.length){
-
-                container.style.display="none";
-
-                return;
-
-            }
+container.innerHTML="";
 
 
-            data.forEach(place=>{
+if(!data.length){
 
-                const item =
-                    document.createElement("div");
+container.style.display="none";
 
+return;
 
-                item.className="suggestion";
-
-
-                item.innerHTML=`
-
-                    <strong>
-                        ${place.display_name.split(",")[0]}
-                    </strong>
-
-                    <small>
-                        ${place.display_name}
-                    </small>
-
-                `;
+}
 
 
-                item.addEventListener("click",()=>{
-
-                    selectedDestination={
-
-                        lat:parseFloat(place.lat),
-
-                        lng:parseFloat(place.lon)
-
-                    };
+data.forEach(place=>{
 
 
-                    $("destinationInput").value =
-                        place.display_name;
+const item=
+document.createElement("div");
 
 
-                    container.style.display="none";
+item.className="suggestion";
 
 
-                    if(destMarker){
-
-                        map.removeLayer(destMarker);
-
-                    }
-
-
-                    destMarker =
-                        L.marker([
-                            selectedDestination.lat,
-                            selectedDestination.lng
-                        ])
-                        .addTo(map);
-
-                });
+item.innerHTML=
+"<strong>"+
+place.display_name.split(",")[0]+
+"</strong><br><small>"+
+place.display_name+
+"</small>";
 
 
-                container.appendChild(item);
-
-            });
+item.addEventListener("click",()=>{
 
 
-            container.style.display="block";
+selectedDestination={
 
-        }
+lat:Number(place.lat),
 
-        catch(error){
+lng:Number(place.lon)
 
-            console.error(error);
+};
 
-        }
 
-    },500);
+$("destinationInput").value=
+place.display_name;
+
+
+container.style.display="none";
+
+
+if(destinationMarker){
+
+map.removeLayer(destinationMarker);
+
+}
+
+
+destinationMarker=L.marker([
+selectedDestination.lat,
+selectedDestination.lng
+]).addTo(map);
+
+
+map.setView([
+selectedDestination.lat,
+selectedDestination.lng
+],10);
+
+
+});
+
+
+container.appendChild(item);
+
+
+});
+
+
+container.style.display="block";
+
+
+}catch(error){
+
+console.log(error);
+
+}
+
+},500);
 
 });
 
 
 /* =========================================================
-   GEOMETRÍA
-   ========================================================= */
+   GEOGRAFÍA
+========================================================= */
 
 function destinationPoint(
-    origin,
-    bearing,
-    distanceKm
+origin,
+bearing,
+distanceKm
 ){
 
-    const R=6371;
+const R=6371;
 
 
-    const lat1=
-        origin.lat*Math.PI/180;
+const lat1=
+origin.lat*Math.PI/180;
 
 
-    const lon1=
-        origin.lng*Math.PI/180;
+const lon1=
+origin.lng*Math.PI/180;
 
 
-    const bearingRad=
-        bearing*Math.PI/180;
+const bearingRad=
+bearing*Math.PI/180;
 
 
-    const distance=
-        distanceKm/R;
+const distance=
+distanceKm/R;
 
 
-    const lat2=Math.asin(
+const lat2=Math.asin(
 
-        Math.sin(lat1)*Math.cos(distance)+
+Math.sin(lat1)*Math.cos(distance)+
 
-        Math.cos(lat1)*
-        Math.sin(distance)*
-        Math.cos(bearingRad)
+Math.cos(lat1)*
+Math.sin(distance)*
+Math.cos(bearingRad)
 
-    );
+);
 
 
-    const lon2=
+const lon2=
 
-        lon1+
+lon1+
 
-        Math.atan2(
+Math.atan2(
 
-            Math.sin(bearingRad)*
-            Math.sin(distance)*
-            Math.cos(lat1),
+Math.sin(bearingRad)*
+Math.sin(distance)*
+Math.cos(lat1),
 
-            Math.cos(distance)-
-            Math.sin(lat1)*
-            Math.sin(lat2)
+Math.cos(distance)-
+Math.sin(lat1)*
+Math.sin(lat2)
 
-        );
+);
 
 
-    return{
+return{
 
-        lat:lat2*180/Math.PI,
+lat:lat2*180/Math.PI,
 
-        lng:
-            ((lon2*180/Math.PI+540)%360)-180
+lng:
+((lon2*180/Math.PI+540)%360)-180
 
-    };
-
-}
-
-
-/* =========================================================
-   PESOS DEL USUARIO
-   ========================================================= */
-
-function getUserPreferences(){
-
-    return{
-
-        curves:Number($("curves").value),
-
-        mountain:Number($("mountain").value),
-
-        secondary:Number($("secondary").value),
-
-        scenery:Number($("scenery").value),
-
-        fun:Number($("fun").value)
-
-    };
-
-}
-
-
-/* =========================================================
-   MOTOR DE WAYPOINTS
-   ========================================================= */
-
-function generateCandidatePoints(
-    variant
-){
-
-    const profile =
-        bikeProfiles[selectedBike];
-
-
-    const prefs =
-        getUserPreferences();
-
-
-    let radius =
-        selectedDistance*
-        profile.radiusMultiplier;
-
-
-    /*
-       Ajustes reales según preferencias
-    */
-
-
-    radius *=
-
-        0.8+
-
-        (prefs.mountain/10)*0.15+
-
-        (prefs.scenery/10)*0.10;
-
-
-    if(selectedBike==="supermoto"){
-
-        radius*=.75;
-
-    }
-
-
-    if(selectedBike==="touring"){
-
-        radius*=1.15;
-
-    }
-
-
-    const pattern =
-        profile.patterns[
-            variant % profile.patterns.length
-        ];
-
-
-    const points=[userPosition];
-
-
-    pattern.forEach((baseAngle,index)=>{
-
-
-        /*
-           CURVAS:
-           aumenta irregularidad
-        */
-
-        const curveInfluence =
-            prefs.curves*
-            profile.curveWeight;
-
-
-        /*
-           MONTAÑA:
-           modifica dirección
-           para evitar círculos perfectos
-        */
-
-        const mountainInfluence =
-            prefs.mountain*
-            profile.mountainWeight;
-
-
-        /*
-           Variación según candidato
-        */
-
-        const variantOffset=
-
-            variant===0 ? 0 :
-
-            variant===1 ? 18 :
-
-            -18;
-
-
-        const dynamicOffset=
-
-            Math.sin(
-                index*1.7+
-                variant
-            )*
-
-            (
-                curveInfluence*1.8+
-                mountainInfluence*.8
-            );
-
-
-        const angle=
-
-            baseAngle+
-            variantOffset+
-            dynamicOffset;
-
-
-        /*
-           Distancias diferentes =
-           rutas diferentes
-        */
-
-        const wave=
-
-            0.72+
-
-            (
-                Math.sin(
-                    index*1.9+
-                    variant*2
-                )+1
-            )*.22;
-
-
-        let pointDistance=
-
-            radius*wave;
-
-
-        /*
-           TRAIL:
-           más irregular
-        */
-
-        if(selectedBike==="trail"){
-
-            pointDistance*=
-
-                index%2===0
-                    ?1.18
-                    :.82;
-
-        }
-
-
-        /*
-           SPORT / SUPERMOTO:
-           puntos más cercanos =
-           recorrido más técnico
-        */
-
-        if(
-            selectedBike==="sport"||
-            selectedBike==="supermoto"
-        ){
-
-            pointDistance*=.88;
-
-        }
-
-
-        points.push(
-
-            destinationPoint(
-
-                userPosition,
-
-                angle,
-
-                pointDistance
-
-            )
-
-        );
-
-    });
-
-
-    points.push(userPosition);
-
-
-    return points;
+};
 
 }
 
 
 /* =========================================================
    OSRM
-   ========================================================= */
+========================================================= */
 
 async function calculateRoute(points){
 
-    const coordinates=
+const coordinates=
 
-        points
-        .map(point=>
-            `${point.lng},${point.lat}`
-        )
-        .join(";");
-
-
-    const url=
-
-        `${OSRM}${coordinates}`+
-
-        "?overview=full"+
-
-        "&geometries=geojson"+
-
-        "&steps=true";
+points
+.map(point=>
+point.lng+","+point.lat
+)
+.join(";");
 
 
-    const response=
-        await fetch(url);
+const url=
+
+OSRM+
+coordinates+
+"?overview=full&geometries=geojson&steps=true";
 
 
-    if(!response.ok){
-
-        throw new Error("Error OSRM");
-
-    }
+const response=await fetch(url);
 
 
-    const data=
-        await response.json();
+if(!response.ok){
+
+throw new Error("OSRM no disponible");
+
+}
 
 
-    if(!data.routes?.length){
-
-        throw new Error("Ruta no encontrada");
-
-    }
+const data=await response.json();
 
 
-    return data.routes[0];
+if(!data.routes || !data.routes.length){
+
+throw new Error("No hay ruta");
+
+}
+
+
+return data.routes[0];
 
 }
 
 
 /* =========================================================
-   CÁLCULO DEL RIDER SCORE
-   ========================================================= */
+   ANALIZADOR DE CURVAS
+========================================================= */
 
-function calculateRiderScore(
-    route,
-    candidateIndex
+function calculateCurvature(coordinates){
+
+if(!coordinates || coordinates.length<3){
+
+return 0;
+
+}
+
+
+let totalAngle=0;
+
+let samples=0;
+
+
+/*
+
+No analizamos todos los puntos porque
+una ruta puede contener miles.
+
+*/
+
+const step=Math.max(
+1,
+Math.floor(coordinates.length/250)
+);
+
+
+for(let i=step;i<coordinates.length-step;i+=step){
+
+
+const a=coordinates[i-step];
+
+const b=coordinates[i];
+
+const c=coordinates[i+step];
+
+
+const v1={
+
+x:b[0]-a[0],
+
+y:b[1]-a[1]
+
+};
+
+
+const v2={
+
+x:c[0]-b[0],
+
+y:c[1]-b[1]
+
+};
+
+
+const dot=
+v1.x*v2.x+
+v1.y*v2.y;
+
+
+const mag1=
+Math.sqrt(
+v1.x*v1.x+
+v1.y*v1.y
+);
+
+
+const mag2=
+Math.sqrt(
+v2.x*v2.x+
+v2.y*v2.y
+);
+
+
+if(mag1===0 || mag2===0){
+
+continue;
+
+}
+
+
+let cosine=
+dot/(mag1*mag2);
+
+
+cosine=
+Math.max(-1,Math.min(1,cosine));
+
+
+const angle=
+Math.acos(cosine);
+
+
+totalAngle+=angle;
+
+samples++;
+
+}
+
+
+if(!samples){
+
+return 0;
+
+}
+
+
+/*
+
+Valor 0-100 aproximado.
+
+*/
+
+return Math.min(
+100,
+Math.round(
+(totalAngle/samples)*100
+)
+);
+
+}
+
+
+/* =========================================================
+   MOTOR DE PUNTUACIÓN
+========================================================= */
+
+function scoreRoute(route,variant){
+
+
+const profile=
+bikeProfiles[selectedBike];
+
+
+const userPrefs=
+getPreferences();
+
+
+const distanceKm=
+route.distance/1000;
+
+
+const curvature=
+calculateCurvature(
+route.geometry.coordinates
+);
+
+
+/*
+
+Compatibilidad con la distancia solicitada.
+
+*/
+
+const distanceDifference=
+Math.abs(
+distanceKm-selectedDistance
+);
+
+
+const distanceScore=
+
+routeMode==="destination"
+
+?90
+
+:Math.max(
+0,
+100-
+(distanceDifference/
+Math.max(selectedDistance,1))*100
+);
+
+
+/*
+
+Combinación REAL:
+
+MOTO × PREFERENCIAS × CURVATURA
+
+*/
+
+
+let curveScore=
+
+(curvature/100)*
+
+userPrefs.curves*
+
+profile.curveWeight*3;
+
+
+let mountainScore=
+
+userPrefs.mountain*
+profile.mountainWeight;
+
+
+let sceneryScore=
+
+userPrefs.scenery*
+profile.sceneryWeight;
+
+
+let funScore=
+
+userPrefs.fun*
+profile.funWeight;
+
+
+let secondaryScore=
+
+userPrefs.secondary*1.4;
+
+
+/*
+
+Variación entre candidatos.
+
+*/
+
+let variation=
+variant*2;
+
+
+/*
+
+Bonus por configuración.
+
+*/
+
+if(preferences.mountains){
+
+mountainScore*=1.15;
+
+}
+
+if(preferences.scenic){
+
+sceneryScore*=1.15;
+
+}
+
+if(preferences.highways){
+
+secondaryScore*=1.10;
+
+}
+
+
+let rawScore=
+
+curveScore+
+
+mountainScore+
+
+sceneryScore+
+
+funScore+
+
+secondaryScore+
+
+distanceScore*.45+
+
+variation;
+
+
+/*
+
+Normalizamos.
+
+*/
+
+let score=Math.round(
+Math.min(
+99,
+Math.max(
+60,
+rawScore/1.55
+)
+)
+);
+
+
+return{
+
+score,
+
+curvature,
+
+distanceScore
+
+};
+
+}
+
+
+/* =========================================================
+   GENERADOR DE WAYPOINTS
+========================================================= */
+
+function createCandidate(
+variant,
+candidateNumber
 ){
 
-    const profile =
-        bikeProfiles[selectedBike];
+const profile=
+bikeProfiles[selectedBike];
 
 
-    const prefs =
-        getUserPreferences();
+const pattern=
+profile.patterns[
+variant%profile.patterns.length
+];
 
 
-    /*
-       Compatibilidad perfil + usuario
-    */
+const points=[userPosition];
 
-    const preferenceScore=
 
-        (
+/*
 
-            prefs.curves*
-            profile.curveWeight+
+La distancia real de los waypoints
+depende directamente de la moto.
 
-            prefs.mountain*
-            profile.mountainWeight+
+SUPER MOTO:
+radio pequeño + muchos puntos
 
-            prefs.secondary*
-            profile.secondaryWeight+
+TOURING:
+radio grande + menos puntos
 
-            prefs.scenery*
-            profile.sceneryWeight+
+*/
 
-            prefs.fun*
-            profile.funWeight
+const baseRadius=
 
-        )/10;
+selectedDistance*
+profile.radius;
 
 
-    /*
-       Número de maniobras
-       como aproximación de complejidad
-    */
+/*
 
-    let steps=0;
+Variación para que cada candidato
+sea diferente.
 
+*/
 
-    route.legs?.forEach(leg=>{
+const radiusVariation=
 
-        steps+=leg.steps?.length||0;
+.82+
+(candidateNumber*.06);
 
-    });
 
+/*
 
-    /*
-       Ratio de maniobras
-    */
+Preferencias del usuario.
 
-    const distanceKm=
-        route.distance/1000;
+*/
 
+const prefs=
+getPreferences();
 
-    const complexity=
 
-        Math.min(
-            10,
-            steps/
-            Math.max(distanceKm,1)*
-            10
-        );
+const curveIntensity=
 
+prefs.curves/10;
 
-    /*
-       Cada moto valora diferente
-       la complejidad
-    */
 
-    let complexityWeight=1;
+/*
 
+Más curvas = más variación angular.
 
-    if(selectedBike==="sport")
-        complexityWeight=1.5;
+*/
 
-    if(selectedBike==="supermoto")
-        complexityWeight=1.8;
+const angularVariation=
 
-    if(selectedBike==="touring")
-        complexityWeight=.65;
+curveIntensity*28;
 
-    if(selectedBike==="custom")
-        complexityWeight=.75;
 
+pattern.forEach((angle,index)=>{
 
-    /*
-       Penalización distancia excesiva
-       respecto al objetivo
-    */
 
-    const target=
+let modifiedAngle=
 
-        routeMode==="circular"
-            ?selectedDistance
-            :distanceKm;
+angle+
 
+(
+Math.sin(
+index*2.7+
+candidateNumber*3
+)
+*
+angularVariation
+);
 
-    const distanceDifference=
 
-        Math.abs(
-            distanceKm-target
-        )/
-        Math.max(target,1);
+/*
 
+Cada perfil utiliza distancias
+distintas entre sus puntos.
 
-    const distanceScore=
+*/
 
-        Math.max(
-            0,
-            10-distanceDifference*10
-        );
+let distance=
 
+baseRadius*
 
-    /*
-       Variación controlada
-       para que las 3 opciones
-       sean diferentes
-    */
+radiusVariation;
 
-    const candidateBonus=
 
-        candidateIndex===0
-            ?2.5
+/*
 
-            :candidateIndex===1
-                ?1.5
-                :1;
+TRAIL y montaña exploran
+más territorio.
 
+*/
 
-    let score=
+if(selectedBike==="trail"){
 
-        55+
+distance*=
+1+
+(prefs.mountain/10)*.18;
 
-        preferenceScore*2+
+}
 
-        complexity*
-        complexityWeight*2+
 
-        distanceScore+
+/*
 
-        candidateBonus;
+SPORT y SUPERMOTO generan
+puntos más compactos.
 
+*/
 
-    /*
-       Ajustes por preferencias
-    */
+if(
+selectedBike==="sport" ||
+selectedBike==="supermoto"
+){
 
-    if(preferences.mountainPasses){
+distance*=
+.85+
+(index%2)*.08;
 
-        score+=
-            prefs.mountain*
-            profile.mountainWeight*.25;
+}
 
-    }
 
+points.push(
 
-    if(preferences.highways){
+destinationPoint(
+userPosition,
+modifiedAngle,
+distance
+)
 
-        score+=
-            prefs.secondary*
-            profile.secondaryWeight*.20;
+);
 
-    }
+});
 
 
-    score=
-        Math.round(
-            Math.max(
-                70,
-                Math.min(99,score)
-            )
-        );
+points.push(userPosition);
 
 
-    return score;
+return points;
 
 }
 
 
 /* =========================================================
-   GENERADOR PRINCIPAL
-   ========================================================= */
+   GENERAR RUTAS
+========================================================= */
 
 $("generateButton")
-.addEventListener("click",async()=>{
+.addEventListener("click",
+async()=>{
 
 
-    $("generateButton").disabled=true;
+$("generateButton").disabled=true;
 
-    $("loading").style.display="block";
+$("loading").style.display="block";
 
-    $("notice").style.display="none";
+$("notice").style.display="none";
 
+$("result").style.display="none";
 
-    generatedRoutes=[];
 
+try{
 
-    try{
 
+let promises=[];
 
-        /*
-           DESTINO
-        */
 
-        if(
+/* ==========================================
+   RUTA CIRCULAR
+========================================== */
 
-            routeMode==="destination"&&
-            !selectedDestination
+if(routeMode==="circular"){
 
-        ){
 
-            throw new Error(
-                "Selecciona un destino válido de la lista."
-            );
+/*
 
-        }
+Generamos MUCHOS candidatos.
 
+Antes: solo 3.
 
-        const profile=
-            bikeProfiles[selectedBike];
+Ahora: hasta 9 candidatos.
 
+Después elegimos los mejores.
 
-        const candidatePromises=[];
+*/
 
+for(let variant=0;variant<3;variant++){
 
-        /*
-           RUTAS CIRCULARES
-        */
+for(let candidate=0;candidate<3;candidate++){
 
-        if(routeMode==="circular"){
 
+const points=
 
-            /*
-               Generamos 6 candidatos,
-               no solamente 3
-            */
+createCandidate(
+variant,
+candidate
+);
 
-            for(let i=0;i<6;i++){
 
+promises.push(
 
-                const points=
+calculateRoute(points)
+.then(route=>({
 
-                    generateCandidatePoints(i);
+route,
 
+variant,
 
-                candidatePromises.push(
+candidate
 
-                    calculateRoute(points)
+}))
 
-                    .then(route=>({
+);
 
-                        route,
+}
 
-                        points,
+}
 
-                        candidate:i
 
-                    }))
+}
 
-                );
 
-            }
+/* ==========================================
+   DESTINO
+========================================== */
 
-        }
+else{
 
 
-        /*
-           RUTAS POR DESTINO
-        */
+if(!selectedDestination){
 
-        else{
+throw new Error(
+"Selecciona un destino válido de la lista."
+);
 
+}
 
-            for(let i=0;i<5;i++){
 
+/*
 
-                let points;
+Creamos variantes por diferentes
+puntos intermedios.
 
+*/
 
-                if(i===0){
+const profile=
+bikeProfiles[selectedBike];
 
-                    points=[
-                        userPosition,
-                        selectedDestination
-                    ];
 
-                }
+for(let variant=0;variant<6;variant++){
 
 
-                else{
+const bearing=
+variant*60+
+(selectedBike==="sport"?25:0);
 
 
-                    const angle=
+const midDistance=
 
-                        45+i*65;
+Math.min(
+80,
+Math.max(
+15,
+selectedDistance*.15
+)
+);
 
 
-                    const detourDistance=
+const midpoint=
 
-                        15+
-                        i*8+
-                        profile.radiusMultiplier*100;
+destinationPoint(
+userPosition,
+bearing,
+midDistance
+);
 
 
-                    const detour=
+const points=
 
-                        destinationPoint(
+variant===0
 
-                            selectedDestination,
+?
 
-                            angle,
+[userPosition,selectedDestination]
 
-                            detourDistance
+:
 
-                        );
+[
+userPosition,
+midpoint,
+selectedDestination
+];
 
 
-                    points=[
+promises.push(
 
-                        userPosition,
+calculateRoute(points)
+.then(route=>({
 
-                        detour,
+route,
 
-                        selectedDestination
+variant,
 
-                    ];
+candidate:variant
 
-                }
+}))
 
+);
 
-                candidatePromises.push(
+}
 
-                    calculateRoute(points)
+}
 
-                    .then(route=>({
 
-                        route,
+const results=
 
-                        points,
+await Promise.allSettled(promises);
 
-                        candidate:i
 
-                    }))
+const candidates=[];
 
-                );
 
-            }
+/* ==========================================
+   ANALIZAR CANDIDATOS
+========================================== */
 
-        }
+results.forEach(result=>{
 
 
-        /*
-           Esperamos candidatos
-        */
+if(result.status==="fulfilled"){
 
-        const results=
 
-            await Promise.allSettled(
-                candidatePromises
-            );
+const data=result.value;
 
 
-        const validRoutes=[];
+const analysis=
 
+scoreRoute(
+data.route,
+data.variant
+);
 
-        results.forEach(result=>{
 
+data.route.riderScore=
+analysis.score;
 
-            if(
-                result.status==="fulfilled"
-            ){
+data.route.curvature=
+analysis.curvature;
 
+data.route.distanceScore=
+analysis.distanceScore;
 
-                const item=result.value;
 
+candidates.push(data.route);
 
-                item.route.score=
+}
 
-                    calculateRiderScore(
+});
 
-                        item.route,
 
-                        item.candidate
+if(!candidates.length){
 
-                    );
+throw new Error(
+"No se han podido encontrar carreteras disponibles."
+);
 
+}
 
-                item.route.riderPoints=
-                    item.points;
 
+/* ==========================================
+   ORDENAR POR SCORE
+========================================== */
 
-                item.route.candidate=
-                    item.candidate;
+candidates.sort((a,b)=>
+b.riderScore-a.riderScore
+);
 
 
-                validRoutes.push(
-                    item.route
-                );
+/*
 
-            }
+Seleccionamos las 3 mejores.
 
+*/
 
-        });
+generatedRoutes=
 
+candidates.slice(0,3);
 
-        if(!validRoutes.length){
 
-            throw new Error(
-                "No se han encontrado carreteras válidas."
-            );
+/*
 
-        }
+Si solo hay 1 o 2 disponibles,
+duplicamos visualmente las opciones.
 
+*/
 
-        /*
-           Ordenamos por Rider Score
-        */
+while(generatedRoutes.length<3){
 
-        validRoutes.sort(
-            (a,b)=>b.score-a.score
-        );
+generatedRoutes.push(
+generatedRoutes[
+generatedRoutes.length-1
+]
+);
 
+}
 
-        /*
-           Eliminamos rutas demasiado parecidas
-        */
 
-        generatedRoutes=[];
+/* ==========================================
+   MOSTRAR
+========================================== */
 
+selectRoute(0);
 
-        for(const route of validRoutes){
 
+$("result").style.display="block";
 
-            const distanceKm=
 
-                route.distance/1000;
+$("result").scrollIntoView({
 
+behavior:"smooth",
 
-            const alreadySimilar=
+block:"start"
 
-                generatedRoutes.some(existing=>{
+});
 
-                    const existingDistance=
 
-                        existing.distance/1000;
+}catch(error){
 
 
-                    return Math.abs(
-                        existingDistance-distanceKm
-                    )<8;
+console.error(error);
 
-                });
 
+$("notice").textContent=
 
-            if(!alreadySimilar){
+error.message ||
 
-                generatedRoutes.push(route);
+"No se ha podido calcular la ruta. Prueba otra distancia o ubicación.";
 
-            }
 
+$("notice").style.display="block";
 
-            if(generatedRoutes.length===3)
-                break;
 
-        }
+}finally{
 
 
-        /*
-           Si no hay suficientes,
-           usamos las mejores disponibles
-        */
+$("loading").style.display="none";
 
-        if(generatedRoutes.length<3){
+$("generateButton").disabled=false;
 
-            validRoutes.forEach(route=>{
-
-                if(
-                    !generatedRoutes.includes(route)&&
-                    generatedRoutes.length<3
-                ){
-
-                    generatedRoutes.push(route);
-
-                }
-
-            });
-
-        }
-
-
-        selectOption(0);
-
-
-        $("result").style.display="block";
-
-
-        $("result").scrollIntoView({
-
-            behavior:"smooth",
-
-            block:"start"
-
-        });
-
-
-    }
-
-    catch(error){
-
-
-        console.error(error);
-
-
-        $("notice").textContent=
-
-            error.message||
-
-            "No se ha podido calcular la ruta. Prueba otra distancia.";
-
-
-        $("notice").style.display="block";
-
-
-    }
-
-
-    finally{
-
-
-        $("generateButton").disabled=false;
-
-        $("loading").style.display="none";
-
-    }
+}
 
 
 });
 
 
 /* =========================================================
-   MOSTRAR OPCIÓN
-   ========================================================= */
+   MOSTRAR RUTA
+========================================================= */
 
-function selectOption(index){
+function selectRoute(index){
 
 
-    if(!generatedRoutes[index]) return;
+if(!generatedRoutes[index]){
 
+return;
 
-    activeRouteIndex=index;
+}
 
 
-    const route=
-        generatedRoutes[index];
+activeRoute=index;
 
 
-    document
-        .querySelectorAll(".route-opt")
-        .forEach((button,i)=>{
+document
+.querySelectorAll(".route-option")
+.forEach((button,i)=>{
 
-            button.classList.toggle(
-                "active",
-                i===index
-            );
+button.classList.toggle(
+"active",
+i===index
+);
 
-        });
+});
 
 
-    if(routeLayer){
+const route=
+generatedRoutes[index];
 
-        map.removeLayer(routeLayer);
 
-    }
+if(routeLayer){
 
+map.removeLayer(routeLayer);
 
-    routeLayer=
+}
 
-        L.geoJSON(
 
-            route.geometry,
+routeLayer=L.geoJSON(
 
-            {
+route.geometry,
 
-                style:{
+{
 
-                    color:"#3d9cff",
+style:{
 
-                    weight:6,
+color:"#3d9cff",
 
-                    opacity:.9
+weight:6,
 
-                }
+opacity:.9
 
-            }
+}
 
-        )
-        .addTo(map);
+}
 
+).addTo(map);
 
-    map.fitBounds(
 
-        routeLayer.getBounds(),
+map.fitBounds(
+routeLayer.getBounds(),
+{
+padding:[40,40]
+}
+);
 
-        {
 
-            padding:[40,40],
+/* DISTANCIA */
 
-            maxZoom:13
+const km=
+route.distance/1000;
 
-        }
 
-    );
+/* TIEMPO */
 
+const totalMinutes=
+Math.round(route.duration/60);
 
-    const distanceKm=
 
-        route.distance/1000;
+const hours=
+Math.floor(totalMinutes/60);
 
 
-    const hours=
+const minutes=
+totalMinutes%60;
 
-        Math.floor(
-            route.duration/3600
-        );
 
+$("distanceResult").textContent=
+km.toFixed(0)+" km";
 
-    const minutes=
 
-        Math.round(
-            (route.duration%3600)/60
-        );
+$("timeResult").textContent=
 
+hours>0
 
-    let steps=0;
+?
 
+hours+"h "+minutes+"m"
 
-    route.legs?.forEach(leg=>{
+:
 
-        steps+=leg.steps?.length||0;
+minutes+"m";
 
-    });
 
+/* CURVAS */
 
-    $("distanceResult").textContent=
+$("curvesResult").textContent=
+route.curvature+"/100";
 
-        distanceKm.toFixed(0)+" km";
 
+/* SCORE */
 
-    $("timeResult").textContent=
+$("scoreResult").textContent=
+route.riderScore+"%";
 
-        hours>0
 
-            ?`${hours}h ${minutes}m`
+$("scoreNumber").textContent=
+route.riderScore+"%";
 
-            :`${minutes}m`;
 
+setTimeout(()=>{
 
-    $("waypointsResult").textContent=
+$("scoreBar").style.width=
+route.riderScore+"%";
 
-        steps;
+},100);
 
 
-    $("scoreResult").textContent=
+/* DESCRIPCIÓN */
 
-        route.score+"%";
+$("routeDescription").textContent=
 
+bikeProfiles[selectedBike].name+
 
-    $("scoreNumber").textContent=
+" · Curvatura "+
 
-        route.score+"%";
+route.curvature+
 
+"/100 · Analizada según tu perfil.";
 
-    setTimeout(()=>{
 
-        $("scoreBar").style.width=
+/* PASOS DE NAVEGACIÓN */
 
-            route.score+"%";
+routeSteps=[];
 
-    },100);
 
+if(route.legs){
 
-    const profile=
 
-        bikeProfiles[selectedBike];
+route.legs.forEach(leg=>{
 
 
-    const optionNames=[
+if(leg.steps){
 
-        "MEJOR COMPATIBILIDAD",
 
-        "ALTERNATIVA EQUILIBRADA",
+leg.steps.forEach(step=>{
 
-        "VARIANTE DIFERENTE"
 
-    ];
+let instruction=
 
 
-    $("resultSubtitle").textContent=
+step.maneuver.type
 
-        `${optionNames[index]} para ${profile.name}`;
+?
 
+translateManeuver(
+step.maneuver
+)
 
-    $("routeProfile").innerHTML=`
+:
 
-        <strong>
-            ${profile.icon} ${profile.name}
-        </strong>
+"Continúa por la carretera";
 
-        <br>
 
-        ${profile.style}
+routeSteps.push(instruction);
 
-        <br><br>
 
-        RIDER ha combinado tu tipo de moto con:
+});
 
-        🔥 Curvas ${$("curves").value}/10 ·
 
-        ⛰️ Montaña ${$("mountain").value}/10 ·
+}
 
-        🌲 Secundarias ${$("secondary").value}/10 ·
 
-        🌄 Paisaje ${$("scenery").value}/10
+});
 
-    `;
+
+}
+
+
+if(!routeSteps.length){
+
+routeSteps=[
+"Sigue la ruta marcada"
+];
+
+}
+
+
+currentStep=0;
+
+updateCockpit();
+
 
 }
 
 
 /* =========================================================
-   BOTONES OPCIONES
-   ========================================================= */
+   SELECTOR DE RUTAS
+========================================================= */
 
-$("btnOpt0")
-.addEventListener("click",()=>selectOption(0));
+document
+.querySelectorAll(".route-option")
+.forEach(button=>{
 
+button.addEventListener("click",()=>{
 
-$("btnOpt1")
-.addEventListener("click",()=>selectOption(1));
+selectRoute(
+Number(button.dataset.route)
+);
 
+});
 
-$("btnOpt2")
-.addEventListener("click",()=>selectOption(2));
+});
 
 
 /* =========================================================
-   FAVORITAS
-   ========================================================= */
+   TRADUCIR MANIOBRAS
+========================================================= */
+
+function translateManeuver(maneuver){
+
+switch(maneuver.type){
+
+case "depart":
+return "Comienza la ruta";
+
+case "arrive":
+return "Has llegado al destino";
+
+case "turn":
+
+if(maneuver.modifier==="left"){
+return "Gira a la izquierda";
+}
+
+if(maneuver.modifier==="right"){
+return "Gira a la derecha";
+}
+
+return "Continúa y gira";
+
+case "roundabout":
+return "Entra en la rotonda";
+
+case "merge":
+return "Incorpórate a la vía";
+
+case "fork":
+return "Mantente en la bifurcación";
+
+default:
+return "Continúa por la carretera";
+
+}
+
+}
+
+
+/* =========================================================
+   GUARDAR FAVORITA
+========================================================= */
 
 $("saveButton")
 .addEventListener("click",()=>{
 
 
-    const route=
-        generatedRoutes[activeRouteIndex];
+if(!generatedRoutes[activeRoute]){
+
+return;
+
+}
 
 
-    if(!route) return;
+const route=
+generatedRoutes[activeRoute];
 
 
-    const saved=
+let saved=
 
-        JSON.parse(
-            localStorage.getItem(
-                "rider-favorites"
-            )||"[]"
-        );
-
-
-    saved.push({
-
-        date:new Date().toISOString(),
-
-        bike:selectedBike,
-
-        distance:
-            Math.round(route.distance/1000),
-
-        score:route.score
-
-    });
+JSON.parse(
+localStorage.getItem("riderFavorites")
+||"[]"
+);
 
 
-    localStorage.setItem(
+saved.push({
 
-        "rider-favorites",
+id:Date.now(),
 
-        JSON.stringify(saved)
+bike:selectedBike,
 
-    );
+distance:
+Math.round(route.distance/1000),
+
+score:route.riderScore,
+
+date:new Date().toLocaleString()
+
+});
 
 
-    alert("🏍️ Ruta guardada en favoritas.");
+localStorage.setItem(
+"riderFavorites",
+JSON.stringify(saved)
+);
+
+
+alert("🏍️ Ruta guardada en favoritas.");
 
 });
 
 
 /* =========================================================
    GPX
-   ========================================================= */
+========================================================= */
 
 $("gpxButton")
 .addEventListener("click",()=>{
 
 
-    const route=
-        generatedRoutes[activeRouteIndex];
+const route=
+generatedRoutes[activeRoute];
 
 
-    if(!route) return;
+if(!route){
+
+return;
+
+}
 
 
-    const coordinates=
-        route.geometry.coordinates;
+const coordinates=
+route.geometry.coordinates;
 
 
-    let gpx=
+let gpx=
 
 `<?xml version="1.0" encoding="UTF-8"?>
-
 <gpx version="1.1"
-creator="RIDER Route Engine">
-
+xmlns="http://www.topografix.com/GPX/1/1">
 <trk>
-
 <name>RIDER Route</name>
-
 <trkseg>`;
 
 
-    coordinates.forEach(coord=>{
+coordinates.forEach(coord=>{
 
-        gpx+=
+gpx+=
+`<trkpt lat="${coord[1]}" lon="${coord[0]}"></trkpt>`;
 
-`<trkpt lat="${coord[1]}"
-lon="${coord[0]}"></trkpt>`;
-
-    });
+});
 
 
-    gpx+=
-
+gpx+=
 `</trkseg>
 </trk>
 </gpx>`;
 
 
-    const blob=
-
-        new Blob(
-
-            [gpx],
-
-            {
-                type:"application/gpx+xml"
-            }
-
-        );
+const blob=
+new Blob(
+[gpx],
+{
+type:"application/gpx+xml"
+}
+);
 
 
-    const url=
-        URL.createObjectURL(blob);
+const url=
+URL.createObjectURL(blob);
 
 
-    const link=
-        document.createElement("a");
+const link=
+document.createElement("a");
 
 
-    link.href=url;
+link.href=url;
 
-    link.download=
-        "RIDER-route.gpx";
-
-
-    link.click();
+link.download=
+"RIDER-route.gpx";
 
 
-    URL.revokeObjectURL(url);
+document.body.appendChild(link);
+
+link.click();
+
+link.remove();
+
+
+setTimeout(()=>{
+
+URL.revokeObjectURL(url);
+
+},1000);
+
 
 });
 
 
 /* =========================================================
-   GOOGLE MAPS
-   ========================================================= */
+   NAVEGACIÓN
+========================================================= */
 
 $("navigateButton")
 .addEventListener("click",()=>{
 
 
-    const route=
-        generatedRoutes[activeRouteIndex];
+const route=
+generatedRoutes[activeRoute];
 
 
-    if(!route) return;
+if(!route){
+
+return;
+
+}
 
 
-    const coords=
-        route.geometry.coordinates;
+/*
+
+Google Maps acepta origen/destino.
+
+*/
+
+const coords=
+route.geometry.coordinates;
 
 
-    /*
-       Para rutas circulares Google Maps
-       necesita puntos intermedios
-    */
-
-    const origin=
-        coords[0];
+const first=
+coords[0];
 
 
-    const destination=
-        coords[
-            coords.length-1
-        ];
+const last=
+coords[coords.length-1];
 
 
-    const url=
+const url=
 
-        "https://www.google.com/maps/dir/?api=1"+
+"https://www.google.com/maps/dir/?api=1"+
 
-        `&origin=${origin[1]},${origin[0]}`+
+"&origin="+
+first[1]+","+first[0]+
 
-        `&destination=${destination[1]},${destination[0]}`+
+"&destination="+
+last[1]+","+last[0]+
 
-        "&travelmode=driving";
+"&travelmode=driving";
 
 
-    window.open(
+window.open(
+url,
+"_blank"
+);
 
-        url,
-
-        "_blank"
-
-    );
 
 });
 
 
 /* =========================================================
+   COCKPIT
+========================================================= */
+
+$("cockpitButton")
+.addEventListener("click",()=>{
+
+
+if(!generatedRoutes[activeRoute]){
+
+return;
+
+}
+
+
+$("cockpit").classList.add("active");
+
+
+updateCockpit();
+
+
+});
+
+
+$("exitButton")
+.addEventListener("click",()=>{
+
+$("cockpit").classList.remove("active");
+
+});
+
+
+$("nextButton")
+.addEventListener("click",()=>{
+
+
+currentStep=
+(currentStep+1)%
+routeSteps.length;
+
+
+updateCockpit();
+
+
+});
+
+
+$("muteButton")
+.addEventListener("click",()=>{
+
+
+voiceMuted=!voiceMuted;
+
+
+$("muteButton").textContent=
+
+voiceMuted
+
+?
+
+"🔇"
+
+:
+
+"🔊";
+
+
+});
+
+
+function updateCockpit(){
+
+
+const instruction=
+
+routeSteps[currentStep] ||
+
+"Continúa por la ruta";
+
+
+$("cockpitInstruction").textContent=
+instruction;
+
+
+$("nextInstruction").textContent=
+
+"Paso "+
+(currentStep+1)+
+" de "+
+routeSteps.length;
+
+
+/* VOZ */
+
+if(
+
+!voiceMuted &&
+
+"speechSynthesis" in window
+
+){
+
+
+window.speechSynthesis.cancel();
+
+
+const speech=
+new SpeechSynthesisUtterance(
+instruction
+);
+
+
+speech.lang="es-ES";
+
+
+speech.rate=.9;
+
+
+window.speechSynthesis.speak(
+speech
+);
+
+
+}
+
+}
+
+
+/* =========================================================
+   VELOCIDAD GPS
+========================================================= */
+
+if(navigator.geolocation){
+
+
+navigator.geolocation.watchPosition(
+
+position=>{
+
+
+if(position.coords.speed!==null){
+
+
+const kmh=
+
+Math.max(
+0,
+Math.round(
+position.coords.speed*3.6
+)
+);
+
+
+$("speedValue").textContent=
+kmh;
+
+
+}
+
+
+},
+
+()=>{},
+
+{
+
+enableHighAccuracy:true,
+
+maximumAge:3000
+
+}
+
+);
+
+}
+
+
+/* =========================================================
    INICIALIZACIÓN
-   ========================================================= */
+========================================================= */
 
-setTimeout(()=>{
-
-    map.invalidateSize();
-
-},500);
-
-
-/*
-   Intentar GPS automáticamente
-*/
-
-setTimeout(()=>{
-
-    locateUser();
-
-},1000);
+console.log(
+"RIDER Intelligent Routing iniciado"
+);
 
 </script>
 
