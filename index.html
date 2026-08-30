@@ -1,2929 +1,3322 @@
-<!DOCTYPE html><html lang="es">
+<!DOCTYPE html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>RIDER 3.0 — Motorcycle Routes</title><link rel="stylesheet"
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<title>RIDER 3.0 — Motorcycle Routes</title>
+
+<link rel="stylesheet"
 href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-crossorigin=""/><style>
+integrity="sha256-p4NxAoJBhIINfM3ZyoHS5obTRR9BMY="
+crossorigin="">
+
+<style>
 :root{
---bg:#07090c;
---panel:#101318;
---panel2:#171b21;
---line:rgba(255,255,255,.08);
---text:#f6f7f8;
---muted:#858d98;
---red:#ff3b30;
---red2:#ff5a36;
---green:#57e389;
---blue:#3d9cff;
+ --bg:#07090c;
+ --panel:#101318;
+ --panel2:#171b21;
+ --line:rgba(255,255,255,.09);
+ --text:#f6f7f8;
+ --muted:#858d98;
+ --red:#ff3b30;
+ --red2:#ff5a36;
+ --green:#57e389;
+ --blue:#3d9cff;
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth}
-html,body{
-margin:0;
-padding:0;
-min-height:100%;
-background:var(--bg);
-color:var(--text);
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif
+
+*{
+ box-sizing:border-box;
+ -webkit-tap-highlight-color:transparent;
 }
-body{overflow-x:hidden}
-button,input,select,textarea{font-family:inherit}
-button{cursor:pointer}
-.app{width:100%;max-width:1200px;margin:auto}
+
+html{
+ scroll-behavior:smooth;
+}
+
+body{
+ margin:0;
+ background:var(--bg);
+ color:var(--text);
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+ overflow-x:hidden;
+}
+
+button,input,textarea,select{
+ font-family:inherit;
+}
+
+button{
+ cursor:pointer;
+}
+
+.app{
+ width:100%;
+ max-width:1200px;
+ margin:auto;
+}
 
 header{
-height:68px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:0 16px;
-position:fixed;
-top:0;
-left:0;
-right:0;
-z-index:3000;
-background:rgba(7,9,12,.96);
-backdrop-filter:blur(18px);
-border-bottom:1px solid var(--line)
+ height:68px;
+ position:fixed;
+ top:0;
+ left:0;
+ right:0;
+ z-index:3000;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:0 16px;
+ background:rgba(7,9,12,.97);
+ backdrop-filter:blur(18px);
+ border-bottom:1px solid var(--line);
 }
 
 .logo{
-font-size:25px;
-font-weight:900;
-font-style:italic;
-letter-spacing:5px
+ font-size:25px;
+ font-weight:900;
+ font-style:italic;
+ letter-spacing:5px;
 }
-.logo span{color:var(--red)}
+
+.logo span{
+ color:var(--red);
+}
 
 .header-actions{
-display:flex;
-align-items:center;
-gap:7px
+ display:flex;
+ align-items:center;
+ gap:7px;
+}
+
+.icon,
+.language-select{
+ height:42px;
+ border-radius:12px;
+ border:1px solid var(--line);
+ background:var(--panel2);
+ color:#fff;
 }
 
 .icon{
-width:42px;
-height:42px;
-border-radius:50%;
-border:1px solid var(--line);
-background:var(--panel2);
-color:#fff;
-display:grid;
-place-items:center;
-font-size:17px
+ width:42px;
+ border-radius:50%;
+ font-size:17px;
 }
 
 .language-select{
-height:42px;
-border-radius:12px;
-border:1px solid var(--line);
-background:var(--panel2);
-color:white;
-padding:0 8px;
-font-size:11px;
-font-weight:900
+ padding:0 8px;
+ font-size:11px;
+ font-weight:900;
 }
 
 .nav-menu{
-position:fixed;
-top:76px;
-right:12px;
-z-index:2900;
-display:none;
-width:220px;
-padding:10px;
-border:1px solid var(--line);
-border-radius:18px;
-background:rgba(13,16,20,.98);
-box-shadow:0 15px 40px rgba(0,0,0,.45)
+ position:fixed;
+ top:76px;
+ right:12px;
+ z-index:5000;
+ display:none;
+ width:220px;
+ padding:10px;
+ border:1px solid var(--line);
+ border-radius:18px;
+ background:rgba(13,16,20,.98);
+ box-shadow:0 15px 40px rgba(0,0,0,.5);
 }
-.nav-menu.open{display:block}
+
+.nav-menu.open{
+ display:block;
+}
+
 .nav-menu button{
-width:100%;
-padding:13px;
-margin:2px 0;
-border:0;
-border-radius:11px;
-background:transparent;
-color:white;
-text-align:left;
-font-size:11px;
-font-weight:900
+ width:100%;
+ padding:13px;
+ margin:2px 0;
+ border:0;
+ border-radius:11px;
+ background:transparent;
+ color:#fff;
+ text-align:left;
+ font-size:11px;
+ font-weight:900;
 }
-.nav-menu button:hover{background:var(--panel2)}
+
+.nav-menu button:hover{
+ background:var(--panel2);
+}
+
+/* MAPA */
 
 .map-wrap{
-position:relative;
-height:62vh;
-min-height:430px;
-margin-top:68px;
-overflow:hidden
+ position:relative;
+ width:100%;
+ height:62vh;
+ min-height:460px;
+ margin-top:68px;
+ overflow:hidden;
+ background:#11151a;
 }
 
 #map{
-width:100%;
-height:100%;
-background:#11151a
+ width:100%;
+ height:100%;
+ min-height:460px;
+ background:#11151a;
+}
+
+.leaflet-container{
+ background:#11151a;
 }
 
 .map-top{
-position:absolute;
-top:18px;
-left:16px;
-z-index:600
+ position:absolute;
+ top:18px;
+ left:16px;
+ z-index:1000;
 }
 
 .status{
-padding:9px 13px;
-background:rgba(7,9,12,.92);
-border:1px solid var(--line);
-border-radius:30px;
-font-size:10px;
-font-weight:900;
-letter-spacing:1px
+ padding:9px 13px;
+ background:rgba(7,9,12,.94);
+ border:1px solid var(--line);
+ border-radius:30px;
+ font-size:10px;
+ font-weight:900;
+ letter-spacing:1px;
 }
-.status.gps{color:var(--green)}
+
+.status.gps{
+ color:var(--green);
+}
 
 .map-bottom{
-position:absolute;
-left:15px;
-right:15px;
-bottom:15px;
-z-index:600;
-padding:18px;
-border:1px solid var(--line);
-border-radius:20px;
-background:rgba(8,10,13,.94);
-backdrop-filter:blur(18px)
+ position:absolute;
+ left:15px;
+ right:15px;
+ bottom:15px;
+ z-index:1000;
+ padding:18px;
+ border:1px solid var(--line);
+ border-radius:20px;
+ background:rgba(8,10,13,.94);
+ backdrop-filter:blur(18px);
 }
 
 .map-bottom small{
-color:var(--red);
-font-size:9px;
-font-weight:900;
-letter-spacing:2px
-}
-.map-bottom h1{
-margin:6px 0 4px;
-font-size:26px;
-line-height:1;
-font-style:italic
-}
-.map-bottom p{
-margin:0;
-color:var(--muted);
-font-size:12px;
-line-height:1.4
+ color:var(--red);
+ font-size:9px;
+ font-weight:900;
+ letter-spacing:2px;
 }
 
-main{padding:28px 18px 90px}
+.map-bottom h1{
+ margin:6px 0 4px;
+ font-size:26px;
+ line-height:1;
+ font-style:italic;
+}
+
+.map-bottom p{
+ margin:0;
+ color:var(--muted);
+ font-size:12px;
+ line-height:1.4;
+}
+
+/* MAIN */
+
+main{
+ padding:28px 18px 90px;
+}
 
 .section{
-margin-bottom:34px;
-scroll-margin-top:90px
+ margin-bottom:34px;
+ scroll-margin-top:90px;
 }
 
 .eyebrow{
-color:var(--red);
-font-size:9px;
-font-weight:900;
-letter-spacing:2px
+ color:var(--red);
+ font-size:9px;
+ font-weight:900;
+ letter-spacing:2px;
 }
 
 h2{
-margin:6px 0;
-font-size:24px;
-font-style:italic
+ margin:6px 0;
+ font-size:24px;
+ font-style:italic;
 }
 
 .description{
-margin:0;
-color:var(--muted);
-font-size:13px;
-line-height:1.5
+ margin:0;
+ color:var(--muted);
+ font-size:13px;
+ line-height:1.5;
 }
 
+/* MOTOS */
+
 .bikes{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:10px;
-margin-top:17px
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:10px;
+ margin-top:17px;
 }
 
 .bike{
-min-height:105px;
-padding:14px;
-text-align:left;
-color:white;
-background:var(--panel);
-border:1px solid var(--line);
-border-radius:17px;
-transition:.15s
-}
-.bike:active{transform:scale(.97)}
-.bike.active{
-border-color:var(--red);
-background:
-linear-gradient(145deg,rgba(255,59,48,.18),rgba(255,59,48,.03)),
-var(--panel)
-}
-.bike-icon{
-font-size:27px;
-display:block;
-margin-bottom:12px
-}
-.bike strong{
-display:block;
-font-size:11px
-}
-.bike small{
-display:block;
-margin-top:4px;
-color:var(--muted);
-font-size:9px
+ min-height:105px;
+ padding:14px;
+ text-align:left;
+ color:white;
+ background:var(--panel);
+ border:1px solid var(--line);
+ border-radius:17px;
 }
 
+.bike.active{
+ border-color:var(--red);
+ background:
+ linear-gradient(145deg,rgba(255,59,48,.18),rgba(255,59,48,.03)),
+ var(--panel);
+}
+
+.bike-icon{
+ display:block;
+ font-size:27px;
+ margin-bottom:12px;
+}
+
+.bike strong{
+ display:block;
+ font-size:11px;
+}
+
+.bike small{
+ display:block;
+ margin-top:4px;
+ color:var(--muted);
+ font-size:9px;
+}
+
+/* CONTROLES */
+
 .controls{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-top:16px
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:10px;
+ margin-top:16px;
 }
 
 .control{
-padding:16px;
-background:var(--panel);
-border:1px solid var(--line);
-border-radius:17px
+ padding:16px;
+ background:var(--panel);
+ border:1px solid var(--line);
+ border-radius:17px;
 }
 
 .control-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:14px
+ display:flex;
+ justify-content:space-between;
+ margin-bottom:14px;
 }
 
 .control-title{
-font-size:11px;
-font-weight:900
+ font-size:11px;
+ font-weight:900;
 }
 
 .value{
-color:var(--red);
-font-size:12px;
-font-weight:900
+ color:var(--red);
+ font-size:12px;
+ font-weight:900;
 }
 
 input[type=range]{
-width:100%;
-appearance:none;
-height:4px;
-border-radius:20px;
-background:#2a2f36
+ width:100%;
+ appearance:none;
+ height:4px;
+ border-radius:20px;
+ background:#2a2f36;
 }
 
 input[type=range]::-webkit-slider-thumb{
-appearance:none;
-width:19px;
-height:19px;
-border-radius:50%;
-background:white;
-border:4px solid var(--red)
+ appearance:none;
+ width:19px;
+ height:19px;
+ border-radius:50%;
+ background:#fff;
+ border:4px solid var(--red);
 }
 
+/* MODOS */
+
 .mode-selector{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-top:15px
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px;
+ margin-top:15px;
 }
 
 .mode-btn{
-padding:14px;
-border-radius:14px;
-border:1px solid var(--line);
-background:var(--panel2);
-color:#aeb5bd;
-font-size:11px;
-font-weight:900
+ padding:14px;
+ border-radius:14px;
+ border:1px solid var(--line);
+ background:var(--panel2);
+ color:#aeb5bd;
+ font-size:11px;
+ font-weight:900;
 }
 
 .mode-btn.active{
-background:var(--red);
-color:white;
-border-color:var(--red)
+ background:var(--red);
+ color:#fff;
+ border-color:var(--red);
 }
 
+/* DESTINO */
+
 .destination-wrap{
-position:relative;
-margin-top:12px
+ position:relative;
+ margin-top:12px;
 }
 
 .dest-input{
-width:100%;
-display:none;
-padding:16px;
-border-radius:14px;
-border:1px solid var(--line);
-background:var(--panel2);
-color:white;
-outline:none;
-font-size:13px
+ width:100%;
+ display:none;
+ padding:16px;
+ border-radius:14px;
+ border:1px solid var(--line);
+ background:var(--panel2);
+ color:white;
+ outline:none;
+ font-size:13px;
 }
 
 .suggestions{
-position:absolute;
-top:calc(100% + 6px);
-left:0;
-right:0;
-z-index:4000;
-display:none;
-max-height:260px;
-overflow:auto;
-border:1px solid var(--line);
-border-radius:14px;
-background:#11151a;
-box-shadow:0 15px 35px rgba(0,0,0,.45)
+ position:absolute;
+ top:calc(100% + 6px);
+ left:0;
+ right:0;
+ z-index:5000;
+ display:none;
+ max-height:260px;
+ overflow:auto;
+ border:1px solid var(--line);
+ border-radius:14px;
+ background:#11151a;
 }
 
 .suggestion{
-padding:13px;
-border-bottom:1px solid var(--line);
-color:white;
-font-size:11px;
-line-height:1.35
+ padding:13px;
+ border-bottom:1px solid var(--line);
+ font-size:11px;
+ cursor:pointer;
 }
 
 .suggestion strong{
-display:block
+ display:block;
+ color:#fff;
 }
 
 .suggestion small{
-display:block;
-color:var(--muted);
-margin-top:2px
+ display:block;
+ color:var(--muted);
+ margin-top:3px;
 }
 
+/* DISTANCIA */
+
 .distance{
-display:grid;
-grid-template-columns:repeat(5,1fr);
-gap:8px;
-margin-top:15px
+ display:grid;
+ grid-template-columns:repeat(5,1fr);
+ gap:8px;
+ margin-top:15px;
 }
 
 .distance button{
-padding:13px 4px;
-border-radius:12px;
-border:1px solid var(--line);
-background:var(--panel2);
-color:#aeb5bd;
-font-size:10px;
-font-weight:900
+ padding:13px 4px;
+ border-radius:12px;
+ border:1px solid var(--line);
+ background:var(--panel2);
+ color:#aeb5bd;
+ font-size:10px;
+ font-weight:900;
 }
 
 .distance button.active{
-background:var(--red);
-color:white;
-border-color:var(--red)
+ background:var(--red);
+ color:#fff;
+ border-color:var(--red);
 }
 
+/* OPCIONES */
+
 .options{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-top:15px
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px;
+ margin-top:15px;
 }
 
 .option{
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:15px;
-background:var(--panel);
-border:1px solid var(--line);
-border-radius:15px
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:15px;
+ background:var(--panel);
+ border:1px solid var(--line);
+ border-radius:15px;
 }
 
 .option-title{
-font-size:11px;
-font-weight:900
+ font-size:11px;
+ font-weight:900;
 }
 
 .option-description{
-margin-top:4px;
-color:var(--muted);
-font-size:9px
+ margin-top:4px;
+ color:var(--muted);
+ font-size:9px;
 }
 
 .switch{
-width:43px;
-height:24px;
-border-radius:20px;
-background:#292e35;
-position:relative
+ width:43px;
+ height:24px;
+ border-radius:20px;
+ background:#292e35;
+ position:relative;
 }
 
 .switch:after{
-content:"";
-position:absolute;
-width:18px;
-height:18px;
-top:3px;
-left:3px;
-border-radius:50%;
-background:#747b83;
-transition:.2s
+ content:"";
+ position:absolute;
+ width:18px;
+ height:18px;
+ top:3px;
+ left:3px;
+ border-radius:50%;
+ background:#747b83;
 }
 
-.switch.active{background:var(--red)}
-.switch.active:after{
-left:22px;
-background:white
+.switch.active{
+ background:var(--red);
 }
+
+.switch.active:after{
+ left:22px;
+ background:white;
+}
+
+/* GENERAR */
 
 .generate{
-width:100%;
-margin-top:15px;
-margin-bottom:15px;
-padding:19px;
-border:0;
-border-radius:16px;
-color:white;
-background:linear-gradient(135deg,var(--red),var(--red2));
-font-size:14px;
-font-weight:900;
-box-shadow:0 4px 15px rgba(255,59,48,.3)
+ width:100%;
+ margin:15px 0;
+ padding:19px;
+ border:0;
+ border-radius:16px;
+ color:#fff;
+ background:linear-gradient(135deg,var(--red),var(--red2));
+ font-size:14px;
+ font-weight:900;
+ box-shadow:0 4px 15px rgba(255,59,48,.3);
 }
 
 .generate:disabled{
-opacity:.55;
-cursor:not-allowed
+ opacity:.55;
+ cursor:not-allowed;
 }
 
 .loading{
-display:none;
-text-align:center;
-padding:24px;
-color:var(--muted);
-font-size:12px
+ display:none;
+ text-align:center;
+ padding:24px;
+ color:var(--muted);
+ font-size:12px;
 }
 
 .notice{
-display:none;
-margin-top:15px;
-padding:14px;
-border-radius:14px;
-background:#1b1413;
-border:1px solid rgba(255,59,48,.3);
-color:#ffb0aa;
-font-size:11px;
-line-height:1.5
+ display:none;
+ margin-top:15px;
+ padding:14px;
+ border-radius:14px;
+ background:#1b1413;
+ border:1px solid rgba(255,59,48,.3);
+ color:#ffb0aa;
+ font-size:11px;
+ line-height:1.5;
 }
 
+/* RESULTADO */
+
 .result{
-display:none;
-margin-top:20px;
-background:var(--panel);
-border:1px solid var(--line);
-border-radius:20px;
-overflow:hidden
+ display:none;
+ margin-top:20px;
+ background:var(--panel);
+ border:1px solid var(--line);
+ border-radius:20px;
+ overflow:hidden;
 }
 
 .result-head{
-padding:20px;
-background:
-linear-gradient(135deg,rgba(255,59,48,.17),transparent),
-var(--panel2)
+ padding:20px;
+ background:
+ linear-gradient(135deg,rgba(255,59,48,.17),transparent),
+ var(--panel2);
 }
 
 .result-label{
-color:var(--red);
-font-size:9px;
-font-weight:900;
-letter-spacing:2px
+ color:var(--red);
+ font-size:9px;
+ font-weight:900;
+ letter-spacing:2px;
 }
 
 .result-name{
-margin:6px 0;
-font-size:24px;
-font-style:italic
+ margin:6px 0;
+ font-size:24px;
+ font-style:italic;
 }
 
 .result-subtitle{
-color:var(--muted);
-font-size:11px
+ color:var(--muted);
+ font-size:11px;
 }
 
 .route-selector{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:8px;
-padding:15px 20px 0
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:8px;
+ padding:15px 20px 0;
 }
 
 .route-opt{
-padding:11px 5px;
-border-radius:10px;
-border:1px solid var(--line);
-background:var(--panel2);
-color:#aeb5bd;
-font-size:10px;
-font-weight:900
+ padding:11px 5px;
+ border-radius:10px;
+ border:1px solid var(--line);
+ background:var(--panel2);
+ color:#aeb5bd;
+ font-size:10px;
+ font-weight:900;
 }
 
 .route-opt.active{
-background:var(--red);
-border-color:var(--red);
-color:white
+ background:var(--red);
+ border-color:var(--red);
+ color:white;
 }
 
 .stats{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-border-top:1px solid var(--line);
-border-bottom:1px solid var(--line);
-margin-top:15px
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ border-top:1px solid var(--line);
+ border-bottom:1px solid var(--line);
+ margin-top:15px;
 }
 
 .stat{
-padding:16px 5px;
-text-align:center;
-border-right:1px solid var(--line)
+ padding:16px 5px;
+ text-align:center;
+ border-right:1px solid var(--line);
 }
 
-.stat:last-child{border-right:0}
+.stat:last-child{
+ border-right:0;
+}
 
 .stat strong{
-display:block;
-font-size:15px
+ display:block;
+ font-size:15px;
 }
 
 .stat span{
-display:block;
-margin-top:4px;
-color:var(--muted);
-font-size:8px;
-text-transform:uppercase
+ display:block;
+ margin-top:4px;
+ color:var(--muted);
+ font-size:8px;
+ text-transform:uppercase;
 }
 
-.result-body{padding:18px}
+.result-body{
+ padding:18px;
+}
 
 .score{
-display:flex;
-justify-content:space-between;
-align-items:center
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
 }
 
 .score-title{
-font-size:10px;
-font-weight:900
+ font-size:10px;
+ font-weight:900;
 }
 
 .score-number{
-color:var(--red);
-font-size:24px;
-font-weight:900
+ color:var(--red);
+ font-size:24px;
+ font-weight:900;
 }
 
 .bar{
-height:5px;
-margin-top:9px;
-background:#292e35;
-border-radius:20px;
-overflow:hidden
+ height:5px;
+ margin-top:9px;
+ background:#292e35;
+ border-radius:20px;
+ overflow:hidden;
 }
 
 .bar div{
-height:100%;
-width:0;
-background:var(--red);
-transition:width 1s ease
+ height:100%;
+ background:var(--red);
+ transition:width 1s ease;
 }
 
 .result-buttons{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:9px;
-margin-top:18px
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:9px;
+ margin-top:18px;
 }
 
 .result-buttons button{
-padding:14px 8px;
-border-radius:12px;
-border:1px solid var(--line);
-background:var(--panel2);
-color:white;
-font-size:10px;
-font-weight:900
+ padding:14px 8px;
+ border-radius:12px;
+ border:1px solid var(--line);
+ background:var(--panel2);
+ color:white;
+ font-size:10px;
+ font-weight:900;
 }
 
 #startCockpitBtn,
 #navigateButton{
-grid-column:1/-1
+ grid-column:1/-1;
 }
 
 #startCockpitBtn{
-background:linear-gradient(135deg,#10b981,#059669);
-border:0;
-font-size:13px
+ background:linear-gradient(135deg,#10b981,#059669);
+ border:0;
+ font-size:13px;
 }
 
 #navigateButton{
-background:linear-gradient(135deg,var(--red),var(--red2));
-border:0
+ background:linear-gradient(135deg,var(--red),var(--red2));
+ border:0;
 }
 
+/* COMUNIDAD */
+
 .post-creator,
-.post-card,
-.intercom-box,
-.profile-box{
-background:var(--panel);
-border:1px solid var(--line);
-border-radius:18px
+.post-card{
+ background:var(--panel);
+ border:1px solid var(--line);
+ border-radius:18px;
+ padding:18px;
 }
 
 .post-creator{
-padding:18px;
-margin-top:16px
+ margin-top:16px;
 }
 
 .post-input{
-width:100%;
-height:80px;
-background:var(--panel2);
-border:1px solid var(--line);
-border-radius:12px;
-padding:12px;
-color:white;
-resize:none;
-font-size:12px
+ width:100%;
+ height:80px;
+ background:var(--panel2);
+ border:1px solid var(--line);
+ border-radius:12px;
+ padding:12px;
+ color:white;
+ resize:none;
+ outline:none;
+ font-size:12px;
 }
 
 .post-actions{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-top:12px;
-gap:8px
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:8px;
+ margin-top:12px;
 }
 
 .file-label{
-background:var(--panel2);
-border:1px solid var(--line);
-padding:9px 14px;
-border-radius:10px;
-font-size:11px;
-font-weight:700
+ background:var(--panel2);
+ border:1px solid var(--line);
+ padding:9px 14px;
+ border-radius:10px;
+ font-size:11px;
+ font-weight:700;
+ cursor:pointer;
 }
 
 .post-btn{
-background:var(--red);
-color:white;
-border:0;
-padding:9px 18px;
-border-radius:10px;
-font-size:11px;
-font-weight:900
+ background:var(--red);
+ color:white;
+ border:0;
+ padding:9px 18px;
+ border-radius:10px;
+ font-size:11px;
+ font-weight:900;
 }
 
 .posts-feed{
-margin-top:20px;
-display:flex;
-flex-direction:column;
-gap:16px
-}
-
-.post-card{
-padding:18px
+ margin-top:20px;
+ display:flex;
+ flex-direction:column;
+ gap:16px;
 }
 
 .post-header{
-display:flex;
-justify-content:space-between;
-font-size:11px;
-margin-bottom:10px
+ display:flex;
+ justify-content:space-between;
+ margin-bottom:10px;
+ font-size:11px;
 }
 
 .post-user{
-font-weight:900;
-color:var(--red)
+ color:var(--red);
+ font-weight:900;
 }
 
 .post-content{
-font-size:12px;
-line-height:1.4;
-margin-bottom:12px;
-white-space:pre-wrap
+ font-size:12px;
+ line-height:1.4;
+ margin-bottom:12px;
+ white-space:pre-wrap;
 }
 
 .post-img{
-width:100%;
-max-height:320px;
-object-fit:cover;
-border-radius:12px;
-margin-bottom:12px
+ width:100%;
+ max-height:320px;
+ object-fit:cover;
+ border-radius:12px;
+ margin-bottom:12px;
 }
 
 .like-btn{
-background:transparent;
-border:0;
-color:var(--muted);
-font-size:12px;
-font-weight:800
+ background:transparent;
+ border:0;
+ color:var(--muted);
+ font-size:12px;
+ font-weight:800;
 }
 
-.like-btn.liked{color:var(--red)}
+.like-btn.liked{
+ color:var(--red);
+}
+
+/* INTERCOM */
 
 .talk{
-width:145px;
-height:145px;
-margin:22px auto 12px;
-border-radius:50%;
-border:7px solid rgba(255,59,48,.22);
-background:linear-gradient(145deg,var(--red),var(--red2));
-color:white;
-display:grid;
-place-items:center;
-text-align:center;
-font-size:12px;
-font-weight:900;
-user-select:none
+ width:145px;
+ height:145px;
+ margin:22px auto 12px;
+ border-radius:50%;
+ border:7px solid rgba(255,59,48,.22);
+ background:linear-gradient(145deg,var(--red),var(--red2));
+ color:white;
+ display:grid;
+ place-items:center;
+ text-align:center;
+ font-size:12px;
+ font-weight:900;
+ user-select:none;
 }
 
 .talk.active{
-transform:scale(1.06);
-box-shadow:0 0 0 16px rgba(255,59,48,.15)
+ transform:scale(1.06);
+ box-shadow:0 0 0 16px rgba(255,59,48,.15);
 }
+
+/* COCKPIT */
 
 .cockpit-overlay{
-display:none;
-position:fixed;
-inset:0;
-z-index:9999;
-background:#020617;
-padding:24px;
-flex-direction:column;
-justify-content:space-between
+ display:none;
+ position:fixed;
+ inset:0;
+ z-index:9999;
+ background:#020617;
+ padding:24px;
+ flex-direction:column;
+ justify-content:space-between;
 }
 
-.cockpit-overlay.active{display:flex}
+.cockpit-overlay.active{
+ display:flex;
+}
 
 .cockpit-card{
-background:#0f172a;
-border:3px solid #10b981;
-border-radius:24px;
-padding:24px;
-display:flex;
-align-items:center;
-gap:20px
+ background:#0f172a;
+ border:3px solid #10b981;
+ border-radius:24px;
+ padding:24px;
+ display:flex;
+ align-items:center;
+ gap:20px;
 }
 
 .cockpit-icon{
-width:64px;
-height:64px;
-background:#10b981;
-color:#020617;
-border-radius:16px;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:36px;
-font-weight:900
+ width:64px;
+ height:64px;
+ background:#10b981;
+ color:#020617;
+ border-radius:16px;
+ display:grid;
+ place-items:center;
+ font-size:36px;
+ font-weight:900;
+ flex-shrink:0;
 }
 
 .cockpit-speedometer{
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-margin:auto 0
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ margin:auto 0;
 }
 
 .speed-number{
-font-size:110px;
-font-weight:900;
-font-family:monospace;
-line-height:1
+ font-size:110px;
+ font-weight:900;
+ font-family:monospace;
+ line-height:1;
+ color:white;
 }
 
 .speed-unit{
-color:#94a3b8;
-font-size:20px;
-font-weight:800;
-letter-spacing:4px;
-margin-top:8px
+ color:#94a3b8;
+ font-size:20px;
+ font-weight:800;
+ letter-spacing:4px;
+ margin-top:8px;
 }
 
 .cockpit-controls{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:16px
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:16px;
 }
 
 .cockpit-btn{
-padding:22px;
-border-radius:20px;
-font-weight:900;
-font-size:16px;
-border:2px solid #334155;
-background:#0f172a;
-color:white
+ padding:22px;
+ border-radius:20px;
+ font-weight:900;
+ font-size:16px;
+ border:2px solid #334155;
+ background:#0f172a;
+ color:white;
 }
 
 .cockpit-btn.danger{
-background:#dc2626;
-border-color:#ef4444
+ background:#dc2626;
+ border-color:#ef4444;
+}
+
+footer{
+ text-align:center;
+ padding:20px;
+ color:var(--muted);
+ font-size:10px;
+ border-top:1px solid var(--line);
 }
 
 @media(max-width:700px){
-header{
-height:64px;
-padding:0 10px
+
+ header{
+  height:64px;
+  padding:0 10px;
+ }
+
+ .logo{
+  font-size:21px;
+  letter-spacing:3px;
+ }
+
+ .map-wrap{
+  margin-top:64px;
+  height:55vh;
+  min-height:410px;
+ }
+
+ #map{
+  min-height:410px;
+ }
+
+ main{
+  padding:25px 14px 90px;
+ }
+
+ .bikes{
+  display:flex;
+  overflow-x:auto;
+  scrollbar-width:none;
+ }
+
+ .bikes::-webkit-scrollbar{
+  display:none;
+ }
+
+ .bike{
+  min-width:125px;
+  flex:0 0 auto;
+ }
+
+ .controls,
+ .options{
+  grid-template-columns:1fr;
+ }
+
+ .stats{
+  grid-template-columns:repeat(2,1fr);
+ }
+
+ .stat:nth-child(2){
+  border-right:0;
+ }
+
+ .speed-number{
+  font-size:80px;
+ }
+
+ .cockpit-card{
+  padding:16px;
+ }
 }
-.logo{
-font-size:21px;
-letter-spacing:3px
-}
-.map-wrap{
-margin-top:64px;
-height:53vh;
-min-height:390px
-}
-main{
-padding:25px 14px 90px
-}
-.bikes{
-display:flex;
-overflow-x:auto;
-scrollbar-width:none
-}
-.bikes::-webkit-scrollbar{display:none}
-.bike{
-min-width:125px;
-flex:0 0 auto
-}
-.controls,
-.options{
-grid-template-columns:1fr
-}
-.stats{
-grid-template-columns:repeat(2,1fr)
-}
-}
-</style></head><body><div class="app"><header>
-<div class="logo">RIDER<span>.</span></div><div class="header-actions"><select id="languageSelect" class="language-select">
-<option value="es">🇪🇸 ES</option>
-<option value="ca">🏴 CA</option>
-<option value="en">🇬🇧 EN</option>
-</select><button class="icon" id="locateButton">📍</button>
-<button class="icon" id="menuButton">☰</button>
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+ <div class="logo">RIDER<span>.</span></div>
+
+ <div class="header-actions">
+  <select id="languageSelect" class="language-select">
+   <option value="es">🇪🇸 ES</option>
+   <option value="ca">🏴 CA</option>
+   <option value="en">🇬🇧 EN</option>
+  </select>
+
+  <button class="icon" id="locateButton">📍</button>
+  <button class="icon" id="menuButton">☰</button>
+ </div>
+</header>
+
+<div class="nav-menu" id="navMenu">
+ <button data-scroll="routeSection">🏍️ Crear ruta</button>
+ <button data-scroll="communitySection">👥 Comunidad</button>
+ <button data-scroll="intercomSection">🎙️ Intercom</button>
+ <button data-scroll="profileInfoSection">⚙️ Mi perfil</button>
+</div>
+
+<div class="map-wrap">
+
+ <div class="map-top">
+  <div class="status" id="gpsStatus">● GPS LISTO</div>
+ </div>
+
+ <div id="map"></div>
+
+ <div class="map-bottom">
+  <small>RIDE DIFFERENT</small>
+  <h1 id="heroTitle">ENCUENTRA TU<br>PRÓXIMA RUTA.</h1>
+  <p id="mapText">
+   Selecciona tu moto y crea una ruta con puntos de consigna.
+  </p>
+ </div>
 
 </div>
-</header><div class="nav-menu" id="navMenu">
-<button data-scroll="routeSection">🏍️ Crear ruta</button>
-<button data-scroll="communitySection">👥 Comunidad</button>
-<button data-scroll="intercomSection">🎙️ Intercom</button>
-<button data-scroll="profileInfoSection">⚙️ Mi perfil</button>
-</div><div class="map-wrap"><div class="map-top">
-<div class="status" id="gpsStatus">● GPS LISTO</div>
-</div><div id="map"></div><div class="map-bottom">
-<small>RIDE DIFFERENT</small>
-<h1 id="heroTitle">ENCUENTRA TU<br>PRÓXIMA RUTA.</h1>
-<p id="mapText">Selecciona tu moto y estilo para trazar carreteras increíbles.</p>
-</div></div><main><section class="section" id="profileSection"><div class="eyebrow">01 — PERFIL</div><h2>¿CON QUÉ VAS A RODAR?</h2><p class="description">
-RIDER adapta realmente la geometría de la ruta al tipo de moto.
-</p><div class="bikes"><button class="bike active" data-bike="sport">
+
+<main>
+
+<section class="section">
+
+<div class="eyebrow">01 — PERFIL</div>
+
+<h2>¿CON QUÉ VAS A RODAR?</h2>
+
+<p class="description">
+El tipo de moto modifica el radio, número de puntos de consigna,
+cantidad de curvas y filosofía de la ruta.
+</p>
+
+<div class="bikes">
+
+<button class="bike active" data-bike="sport">
 <span class="bike-icon">🏁</span>
 <strong>SPORT</strong>
 <small>Curvas / técnica</small>
-</button><button class="bike" data-bike="naked">
+</button>
+
+<button class="bike" data-bike="naked">
 <span class="bike-icon">🏍️</span>
 <strong>NAKED</strong>
 <small>Equilibrada</small>
-</button><button class="bike" data-bike="trail">
+</button>
+
+<button class="bike" data-bike="trail">
 <span class="bike-icon">🧭</span>
 <strong>TRAIL</strong>
 <small>Aventura</small>
-</button><button class="bike" data-bike="touring">
+</button>
+
+<button class="bike" data-bike="touring">
 <span class="bike-icon">🛣️</span>
 <strong>TOURING</strong>
 <small>Distancia</small>
-</button><button class="bike" data-bike="custom">
+</button>
+
+<button class="bike" data-bike="custom">
 <span class="bike-icon">😎</span>
 <strong>CUSTOM</strong>
 <small>Paisaje</small>
-</button><button class="bike" data-bike="supermoto">
+</button>
+
+<button class="bike" data-bike="supermoto">
 <span class="bike-icon">⚡</span>
 <strong>SUPERMOTO</strong>
 <small>Diversión</small>
-</button><button class="bike" data-bike="scooter">
+</button>
+
+<button class="bike" data-bike="scooter">
 <span class="bike-icon">🛵</span>
 <strong>SCOOTER</strong>
 <small>Versátil</small>
-</button><button class="bike" data-bike="customized">
+</button>
+
+<button class="bike" data-bike="customized">
 <span class="bike-icon">⚙️</span>
 <strong>A MEDIDA</strong>
 <small>Tú decides</small>
-</button></div>
-</section><section class="section" id="routeSection"><div class="eyebrow">02 — ESTILO DE RUTA</div><h2>¿QUÉ TE APETECE HOY?</h2><p class="description">
-Cuanto más alto, más peso tendrá ese factor.
-</p><div class="controls"><div class="control">
+</button>
+
+</div>
+</section>
+
+<section class="section" id="routeSection">
+
+<div class="eyebrow">02 — ESTILO DE RUTA</div>
+
+<h2>¿QUÉ TE APETECE HOY?</h2>
+
+<p class="description">
+Los valores influyen en la selección de los puntos de consigna.
+</p>
+
+<div class="controls">
+
+<div class="control">
 <div class="control-header">
 <span class="control-title">🔥 CURVAS</span>
 <span class="value" id="curvesValue">9</span>
 </div>
 <input id="curves" type="range" min="0" max="10" value="9">
-</div><div class="control">
+</div>
+
+<div class="control">
 <div class="control-header">
 <span class="control-title">⛰️ MONTAÑA</span>
 <span class="value" id="mountainValue">8</span>
 </div>
 <input id="mountain" type="range" min="0" max="10" value="8">
-</div><div class="control">
+</div>
+
+<div class="control">
 <div class="control-header">
 <span class="control-title">🌲 SECUNDARIAS</span>
 <span class="value" id="secondaryValue">9</span>
 </div>
 <input id="secondary" type="range" min="0" max="10" value="9">
-</div><div class="control">
+</div>
+
+<div class="control">
 <div class="control-header">
 <span class="control-title">🌄 PAISAJE</span>
 <span class="value" id="sceneryValue">7</span>
 </div>
 <input id="scenery" type="range" min="0" max="10" value="7">
-</div><div class="control">
+</div>
+
+<div class="control">
 <div class="control-header">
 <span class="control-title">⚡ DIVERSIÓN</span>
 <span class="value" id="funValue">9</span>
 </div>
 <input id="fun" type="range" min="0" max="10" value="9">
-</div></div>
-</section><section class="section"><div class="eyebrow">03 — TIPO Y DESTINO</div><h2>¿CÓMO QUIERES NAVEGAR?</h2><div class="mode-selector"><button class="mode-btn active" id="modeCircular">
+</div>
+
+</div>
+
+</section>
+
+<section class="section">
+
+<div class="eyebrow">03 — TIPO Y DESTINO</div>
+
+<h2>¿CÓMO QUIERES NAVEGAR?</h2>
+
+<div class="mode-selector">
+
+<button class="mode-btn active" id="modeCircular">
 🔄 RUTA CIRCULAR
-</button><button class="mode-btn" id="modeDest">
+</button>
+
+<button class="mode-btn" id="modeDest">
 🎯 POR DESTINO
-</button></div><div class="destination-wrap"><input
+</button>
+
+</div>
+
+<div class="destination-wrap">
+
+<input
 type="text"
 id="destinationInput"
 class="dest-input"
 autocomplete="off"
 placeholder="Escribe ciudad o lugar de destino..."
+>
 
-«»
+<div class="suggestions" id="suggestions"></div>
 
-<div class="suggestions" id="suggestions"></div></div><div class="distance" id="distanceSelector"><button data-distance="100">100 KM</button>
+</div>
+
+<div class="distance" id="distanceSelector">
+
+<button data-distance="100">100 KM</button>
 <button data-distance="200">200 KM</button>
 <button class="active" data-distance="250">250 KM</button>
 <button data-distance="350">350 KM</button>
 <button data-distance="500">500+</button>
 
-</div></section><section class="section"><div class="eyebrow">04 — CARRETERA</div><h2>DEFINE EL TERRENO.</h2><div class="options"><div class="option" data-option="highways">
+</div>
+
+</section>
+
+<section class="section">
+
+<div class="eyebrow">04 — CARRETERA</div>
+
+<h2>DEFINE EL TERRENO.</h2>
+
+<div class="options">
+
+<div class="option" data-option="highways">
 <div>
 <div class="option-title">🛣️ EVITAR AUTOPISTAS</div>
 <div class="option-description">Priorizar carreteras secundarias</div>
 </div>
 <div class="switch active"></div>
-</div><div class="option" data-option="cities">
+</div>
+
+<div class="option" data-option="cities">
 <div>
 <div class="option-title">🏙️ EVITAR CIUDADES</div>
 <div class="option-description">Menos tráfico urbano</div>
 </div>
 <div class="switch active"></div>
-</div><div class="option" data-option="tolls">
+</div>
+
+<div class="option" data-option="tolls">
 <div>
 <div class="option-title">💳 EVITAR PEAJES</div>
 <div class="option-description">Sin carreteras de pago</div>
 </div>
 <div class="switch active"></div>
-</div><div class="option" data-option="mountainPasses">
+</div>
+
+<div class="option" data-option="mountainPasses">
 <div>
 <div class="option-title">🏔️ PUERTOS</div>
 <div class="option-description">Buscar carreteras de montaña</div>
 </div>
 <div class="switch active"></div>
-</div></div></section><button class="generate" id="generateButton">
+</div>
+
+</div>
+</section>
+
+<button class="generate" id="generateButton">
 🏍️ &nbsp; GENERAR RUTAS RIDER
-</button><div class="notice" id="notice"></div><div class="loading" id="loading">
-🛰️ Analizando carreteras...<br><br>
-Buscando curvas, montaña y carreteras secundarias...
-</div><section class="result" id="result"><div class="result-head"><div class="result-label">RIDER ROUTES</div><div class="result-name" id="resultName">
-OPCIONES ENCONTRADAS
-</div><div class="result-subtitle" id="resultSubtitle">
-Ruta adaptada a tu moto.
-</div></div><div class="route-selector"><button class="route-opt active" id="btnOpt0">
-OPCIÓN A
-</button><button class="route-opt" id="btnOpt1">
-OPCIÓN B
-</button><button class="route-opt" id="btnOpt2">
-OPCIÓN C
-</button></div><div class="stats"><div class="stat">
+</button>
+
+<div class="loading" id="loading">
+🛰️ Buscando puntos de consigna...<br><br>
+Construyendo rutas circulares reales...
+</div>
+
+<div class="notice" id="notice"></div>
+
+<section class="result" id="result">
+
+<div class="result-head">
+<div class="result-label">RIDER ROUTES</div>
+<div class="result-name" id="resultName">RUTAS ENCONTRADAS</div>
+<div class="result-subtitle">
+Rutas calculadas pasando por puntos de consigna.
+</div>
+</div>
+
+<div class="route-selector">
+
+<button class="route-opt active" id="btnOpt0">OPCIÓN A</button>
+<button class="route-opt" id="btnOpt1">OPCIÓN B</button>
+<button class="route-opt" id="btnOpt2">OPCIÓN C</button>
+
+</div>
+
+<div class="stats">
+
+<div class="stat">
 <strong id="distanceResult">—</strong>
 <span>Distancia</span>
-</div><div class="stat">
+</div>
+
+<div class="stat">
 <strong id="timeResult">—</strong>
 <span>Tiempo</span>
-</div><div class="stat">
+</div>
+
+<div class="stat">
 <strong id="elevationResult">—</strong>
 <span>Desnivel</span>
-</div><div class="stat">
+</div>
+
+<div class="stat">
 <strong id="scoreResult">—</strong>
 <span>RIDER SCORE</span>
-</div></div><div class="result-body"><div class="score"><span class="score-title">
-COMPATIBILIDAD CON TU PERFIL
-</span><span class="score-number" id="scoreNumber">
-—
-</span></div><div class="bar">
+</div>
+
+</div>
+
+<div class="result-body">
+
+<div class="score">
+<span class="score-title">COMPATIBILIDAD CON TU PERFIL</span>
+<span class="score-number" id="scoreNumber">—</span>
+</div>
+
+<div class="bar">
 <div id="scoreBar"></div>
-</div><div class="result-buttons"><button id="startCockpitBtn">
+</div>
+
+<div class="result-buttons">
+
+<button id="startCockpitBtn">
 🏍️ MODO MANILLAR Y VOZ
-</button><button id="saveOfflineBtn">
+</button>
+
+<button id="saveOfflineBtn">
 💾 GUARDAR OFFLINE
-</button><button id="saveButton">
+</button>
+
+<button id="saveButton">
 ♡ GUARDAR EN FAVORITAS
-</button><button id="shareButton">
+</button>
+
+<button id="shareButton">
 ↗ COMPARTIR RUTA
-</button><button id="gpxButton">
+</button>
+
+<button id="gpxButton">
 ⇩ DESCARGAR GPX
-</button><button id="navigateButton">
+</button>
+
+<button id="navigateButton">
 🧭 ABRIR EN GOOGLE MAPS
-</button></div></div></section><section class="section" id="communitySection"><div class="eyebrow">05 — COMUNIDAD</div><h2>RIDER COMMUNITY</h2><p class="description">
+</button>
+
+</div>
+
+</div>
+</section>
+
+<!-- COMUNIDAD -->
+
+<section class="section" id="communitySection">
+
+<div class="eyebrow">05 — COMUNIDAD</div>
+
+<h2>RIDER COMMUNITY</h2>
+
+<p class="description">
 Comparte rutas, fotos y experiencias.
-</p><div class="post-creator"><textarea
+</p>
+
+<div class="post-creator">
+
+<textarea
 id="postInput"
 class="post-input"
 placeholder="¡Comparte una foto o tu experiencia de hoy!"
-></textarea><div class="post-actions"><label class="file-label">
+></textarea>
+
+<div class="post-actions">
+
+<label class="file-label">
 📷 Añadir foto
-<input type="file" id="postImage" accept="image/*" style="display:none">
-</label><span id="fileName"></span>
+<input
+type="file"
+id="postImage"
+accept="image/*"
+style="display:none"
+>
+</label>
+
+<span id="fileName"
+style="font-size:10px;color:var(--muted)">
+</span>
 
 <button class="post-btn" id="publishBtn">
 PUBLICAR
-</button></div></div><div class="posts-feed" id="postsFeed"></div></section><section class="section" id="intercomSection"><div class="eyebrow">06 — INTERCOM Y LIVE TRACKING</div><h2>RIDER INTERCOM & GROUP</h2><p class="description">
-Crea un grupo para rodar juntos y comunicarte.
-</p><div class="intercom-box" style="padding:18px;margin-top:15px"><div style="display:flex;gap:8px"><input
+</button>
+
+</div>
+</div>
+
+<div class="posts-feed" id="postsFeed"></div>
+
+</section>
+
+<!-- INTERCOM -->
+
+<section class="section" id="intercomSection">
+
+<div class="eyebrow">06 — INTERCOM Y LIVE TRACKING</div>
+
+<h2>RIDER INTERCOM & GROUP</h2>
+
+<p class="description">
+Crea un grupo y simula comunicación entre riders.
+</p>
+
+<div style="
+margin-top:15px;
+background:var(--panel);
+border:1px solid var(--line);
+border-radius:18px;
+padding:18px;
+">
+
+<div style="display:flex;gap:8px;margin-bottom:12px">
+
+<input
 type="text"
 id="groupCodeInput"
-placeholder="Código de grupo"
-style="flex:1;background:var(--panel2);border:1px solid var(--line);padding:12px;border-radius:10px;color:white"
-
-«»
+placeholder="Código de grupo (ej: MOTOS-99)"
+style="
+flex:1;
+background:var(--panel2);
+border:1px solid var(--line);
+padding:12px;
+border-radius:10px;
+color:white;
+font-size:12px;
+">
 
 <button
 id="joinGroupBtn"
-style="background:var(--red);color:white;border:0;padding:0 16px;border-radius:10px;font-weight:900"
-
-«»
-
+style="
+background:var(--red);
+color:white;
+border:0;
+padding:0 16px;
+border-radius:10px;
+font-weight:900;
+font-size:11px;
+">
 UNIRSE
 </button>
 
-</div><div id="groupMembersList"
-style="font-size:11px;color:var(--muted);margin-top:15px">
-Sin grupo activo.
-</div></div><div style="text-align:center"><button class="talk" id="talkButton">
-🎙️<br>PULSA<br>PARA HABLAR
-</button><div id="intercomStatus"
+</div>
+
+<div id="groupMembersList"
 style="font-size:11px;color:var(--muted)">
-Micrófono preparado
-</div></div></section><section class="section" id="profileInfoSection"><div class="eyebrow">07 — PERFIL</div><h2>MI RIDER</h2><div style="display:flex;gap:10px;margin-top:15px"><div class="profile-box" style="padding:15px;flex:1">
+Sin grupo activo.
+</div>
+
+</div>
+
+<div style="text-align:center;margin-top:15px">
+
+<button class="talk" id="talkButton">
+🎙️<br>
+PULSA<br>
+PARA HABLAR
+</button>
+
+<div
+id="intercomStatus"
+style="font-size:11px;color:var(--muted);margin-top:10px">
+Micrófono preparado.
+</div>
+
+</div>
+
+</section>
+
+<!-- PERFIL -->
+
+<section class="section" id="profileInfoSection">
+
+<div class="eyebrow">07 — PERFIL</div>
+
+<h2>MI RIDER</h2>
+
+<div style="display:flex;gap:10px;margin-top:15px">
+
+<div style="
+padding:15px;
+background:var(--panel);
+border-radius:12px;
+flex:1;
+">
 <span style="font-size:9px;color:var(--muted);display:block">
 VEHÍCULO
 </span>
 <strong id="profileBike">SPORT</strong>
-</div><div class="profile-box" style="padding:15px;flex:1">
+</div>
+
+<div style="
+padding:15px;
+background:var(--panel);
+border-radius:12px;
+flex:1;
+">
 <span style="font-size:9px;color:var(--muted);display:block">
 IDIOMA
 </span>
 <strong id="profileLanguage">ES</strong>
-</div></div></section></main><footer>
+</div>
+
+</div>
+</section>
+
+</main>
+
+<footer>
 RIDER · RIDE DIFFERENT · POWERED BY OPENSTREETMAP
-</footer></div><div class="cockpit-overlay" id="cockpitOverlay"><div style="display:flex;justify-content:space-between;align-items:center"><div id="cockpitInstruction"
+</footer>
+
+</div>
+
+<!-- COCKPIT -->
+
+<div class="cockpit-overlay" id="cockpitOverlay">
+
+<div style="display:flex;justify-content:space-between;align-items:center">
+
+<div id="cockpitInstruction"
 style="font-size:20px;font-weight:900">
 Sigue la ruta
-</div><button id="cockpitMuteBtn" class="cockpit-btn" style="padding:10px 16px;font-size:12px">
+</div>
+
+<button
+id="cockpitMuteBtn"
+class="cockpit-btn"
+style="padding:10px 16px;font-size:12px">
 🔊 VOZ ACTIVA
-</button></div><div class="cockpit-card"><div class="cockpit-icon" id="cockpitTurnIcon">
+</button>
+
+</div>
+
+<div class="cockpit-card">
+
+<div class="cockpit-icon" id="cockpitTurnIcon">
 ↑
-</div><div><div id="cockpitDist" style="font-size:28px;font-weight:900">
+</div>
+
+<div>
+<div
+id="cockpitDist"
+style="font-size:28px;font-weight:900">
 EN RUTA
-</div><div id="cockpitNextStreet"
+</div>
+
+<div
+id="cockpitNextStreet"
 style="font-size:12px;color:#94a3b8;margin-top:4px">
 Siguiente maniobra
-</div></div></div><div class="cockpit-speedometer"><div class="speed-number" id="cockpitSpeed">
+</div>
+</div>
+
+</div>
+
+<div class="cockpit-speedometer">
+
+<div class="speed-number" id="cockpitSpeed">
 0
-</div><div class="speed-unit">
+</div>
+
+<div class="speed-unit">
 KM/H
-</div></div><div class="cockpit-controls"><button class="cockpit-btn" id="cockpitNextStep">
+</div>
+
+</div>
+
+<div class="cockpit-controls">
+
+<button class="cockpit-btn" id="cockpitNextStep">
 SIGUIENTE PASO
-</button><button class="cockpit-btn danger" id="cockpitExitBtn">
+</button>
+
+<button class="cockpit-btn danger" id="cockpitExitBtn">
 SALIR
-</button></div></div><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+</button>
+
+</div>
+
+</div>
+
+<script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-crossorigin=""></script><script>
+crossorigin="">
+</script>
 
-const OSRM="https://router.project-osrm.org/route/v1/driving/";
-const NOMINATIM="https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q=";
+<script>
 
-const $=id=>document.getElementById(id);
+const OSRM =
+"https://router.project-osrm.org/route/v1/driving/";
 
-const map=L.map("map",{
-zoomControl:true,
-preferCanvas:true
+const NOMINATIM =
+"https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q=";
+
+
+/* =========================================================
+   MAPA
+========================================================= */
+
+const map = L.map("map",{
+ zoomControl:true,
+ preferCanvas:true
 }).setView([41.3851,2.1734],10);
 
 L.tileLayer(
 "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
 {
-maxZoom:19,
-subdomains:["a","b","c","d"],
-attribution:"&copy; OpenStreetMap & CARTO"
+ maxZoom:19,
+ subdomains:["a","b","c","d"],
+ attribution:"© OpenStreetMap & CARTO"
 }
 ).addTo(map);
 
-setTimeout(()=>map.invalidateSize(),400);
+setTimeout(()=>{
+ map.invalidateSize(true);
+},500);
+
+window.addEventListener("resize",()=>{
+ setTimeout(()=>map.invalidateSize(true),150);
+});
+
+
+/* =========================================================
+   ESTADO
+========================================================= */
 
 let userPosition={
-lat:41.3851,
-lng:2.1734
+ lat:41.3851,
+ lng:2.1734
 };
 
 let userMarker=L.circleMarker(
 [userPosition.lat,userPosition.lng],
 {
-radius:9,
-color:"#000",
-weight:3,
-fillColor:"#ff3b30",
-fillOpacity:1
+ radius:9,
+ color:"#000",
+ weight:3,
+ fillColor:"#ff3b30",
+ fillOpacity:1
 }
 ).addTo(map);
 
 let destMarker=null;
 let routeLayer=null;
+let waypointLayer=L.layerGroup().addTo(map);
+
+let generatedRoutes=[];
 let lastRoute=null;
 
 let selectedBike="sport";
 let selectedDistance=250;
 let routeMode="circular";
-let generatedRoutes=[];
-let activeRouteIndex=0;
+
 let selectedDestination=null;
-let autocompleteTimer=null;
+let activeRouteIndex=0;
 
 let currentSpeed=0;
-let voiceMuted=false;
-let currentStepIndex=0;
 let routeSteps=[];
+let currentStepIndex=0;
+let voiceMuted=false;
 
-const preferences={
-highways:true,
-cities:true,
-tolls:true,
-mountainPasses:true
-};
 
-/*
-==========================================================
-PERFILES DE MOTO
-==========================================================
-Cada perfil modifica:
-- radio de ruta
-- número de puntos
-- irregularidad
-- concentración de curvas
-- montaña
-- paisaje
-==========================================================
-*/
+/* =========================================================
+   PERFILES DE MOTO
+   AQUÍ ES DONDE REALMENTE INFLUYE LA MOTO
+========================================================= */
 
 const bikeProfiles={
 
 sport:{
-name:"SPORT",
-radius:.52,
-points:10,
-curve:1.35,
-mountain:1.20,
-secondary:1.25,
-scenery:.85,
-fun:1.40,
-angleShift:0
+ name:"SPORT",
+ radius:0.75,
+ waypoints:8,
+ curveBias:1.25,
+ mountainBias:1.15,
+ secondaryBias:1.20,
+ sceneryBias:.75,
+ funBias:1.30
 },
 
 naked:{
-name:"NAKED",
-radius:.48,
-points:9,
-curve:1.15,
-mountain:1.05,
-secondary:1.15,
-scenery:1,
-fun:1.20,
-angleShift:8
+ name:"NAKED",
+ radius:.72,
+ waypoints:7,
+ curveBias:1.10,
+ mountainBias:1.05,
+ secondaryBias:1.10,
+ sceneryBias:.95,
+ funBias:1.15
 },
 
 trail:{
-name:"TRAIL / ADVENTURE",
-radius:.55,
-points:11,
-curve:1.0,
-mountain:1.50,
-secondary:1.45,
-scenery:1.45,
-fun:1.10,
-angleShift:17
+ name:"TRAIL / ADVENTURE",
+ radius:.82,
+ waypoints:9,
+ curveBias:.95,
+ mountainBias:1.35,
+ secondaryBias:1.35,
+ sceneryBias:1.35,
+ funBias:1.10
 },
 
 touring:{
-name:"TOURING",
-radius:.72,
-points:8,
-curve:.70,
-mountain:.90,
-secondary:.90,
-scenery:1.40,
-fun:.75,
-angleShift:25
+ name:"TOURING",
+ radius:.90,
+ waypoints:6,
+ curveBias:.75,
+ mountainBias:.85,
+ secondaryBias:.90,
+ sceneryBias:1.35,
+ funBias:.80
 },
 
 custom:{
-name:"CUSTOM / CRUISER",
-radius:.46,
-points:8,
-curve:.70,
-mountain:.80,
-secondary:1.15,
-scenery:1.55,
-fun:.80,
-angleShift:35
+ name:"CUSTOM / CRUISER",
+ radius:.68,
+ waypoints:7,
+ curveBias:.75,
+ mountainBias:.80,
+ secondaryBias:1.10,
+ sceneryBias:1.35,
+ funBias:.85
 },
 
 supermoto:{
-name:"SUPERMOTO",
-radius:.42,
-points:13,
-curve:1.55,
-mountain:1.35,
-secondary:1.55,
-scenery:.75,
-fun:1.60,
-angleShift:47
+ name:"SUPERMOTO",
+ radius:.62,
+ waypoints:10,
+ curveBias:1.40,
+ mountainBias:1.30,
+ secondaryBias:1.35,
+ sceneryBias:.70,
+ funBias:1.45
 },
 
 scooter:{
-name:"SCOOTER",
-radius:.35,
-points:7,
-curve:.65,
-mountain:.55,
-secondary:.80,
-scenery:1.0,
-fun:.70,
-angleShift:60
+ name:"SCOOTER",
+ radius:.58,
+ waypoints:6,
+ curveBias:.75,
+ mountainBias:.55,
+ secondaryBias:.85,
+ sceneryBias:.90,
+ funBias:.80
 },
 
 customized:{
-name:"PERSONALIZADA",
-radius:.52,
-points:10,
-curve:1,
-mountain:1,
-secondary:1,
-scenery:1,
-fun:1,
-angleShift:72
+ name:"PERSONALIZADA",
+ radius:.75,
+ waypoints:8,
+ curveBias:1,
+ mountainBias:1,
+ secondaryBias:1,
+ sceneryBias:1,
+ funBias:1
 }
 
 };
+
+
+/* =========================================================
+   PREFERENCIAS
+========================================================= */
+
+const preferences={
+ highways:true,
+ cities:true,
+ tolls:true,
+ mountainPasses:true
+};
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const $=id=>document.getElementById(id);
 
 function setSlider(id,value){
 
-if($(id)){
-$(id).value=Math.round(value);
-$(id+"Value").textContent=Math.round(value);
-}
+ if($(id)){
+  $(id).value=value;
+  $(id+"Value").textContent=value;
+ }
 
 }
 
-/*
-==========================================================
-SELECCIÓN DE MOTO
-==========================================================
-*/
+
+/* =========================================================
+   MOTO
+========================================================= */
 
 document.querySelectorAll(".bike").forEach(card=>{
 
-card.addEventListener("click",()=>{
+ card.addEventListener("click",()=>{
 
-document.querySelectorAll(".bike")
-.forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".bike")
+  .forEach(x=>x.classList.remove("active"));
 
-card.classList.add("active");
+  card.classList.add("active");
 
-selectedBike=card.dataset.bike;
+  selectedBike=card.dataset.bike;
 
-const p=bikeProfiles[selectedBike];
+  const p=bikeProfiles[selectedBike];
 
-setSlider("curves",p.curve*7);
-setSlider("mountain",p.mountain*6.5);
-setSlider("secondary",p.secondary*6.5);
-setSlider("scenery",p.scenery*5.5);
-setSlider("fun",p.fun*6);
+  $("profileBike").textContent=p.name;
 
-$("profileBike").textContent=p.name;
+ });
 
 });
 
+
+document.querySelectorAll('input[type="range"]')
+.forEach(slider=>{
+
+ slider.addEventListener("input",()=>{
+
+  $(slider.id+"Value").textContent=slider.value;
+
+ });
+
 });
 
-document.querySelectorAll('input[type="range"]').forEach(s=>{
 
-s.addEventListener("input",()=>{
-$(s.id+"Value").textContent=s.value;
-});
-
-});
-
-/*
-==========================================================
-DISTANCIA
-==========================================================
-*/
-
-document.querySelectorAll(".distance button").forEach(b=>{
-
-b.addEventListener("click",()=>{
+/* =========================================================
+   DISTANCIA
+========================================================= */
 
 document.querySelectorAll(".distance button")
-.forEach(x=>x.classList.remove("active"));
+.forEach(button=>{
 
-b.classList.add("active");
+ button.addEventListener("click",()=>{
 
-selectedDistance=Number(b.dataset.distance);
+  document.querySelectorAll(".distance button")
+  .forEach(x=>x.classList.remove("active"));
 
-});
+  button.classList.add("active");
 
-});
+  selectedDistance=
+  Number(button.dataset.distance);
 
-/*
-==========================================================
-PREFERENCIAS
-==========================================================
-*/
-
-document.querySelectorAll(".option").forEach(o=>{
-
-o.addEventListener("click",()=>{
-
-const key=o.dataset.option;
-
-preferences[key]=!preferences[key];
-
-o.querySelector(".switch")
-.classList.toggle("active",preferences[key]);
+ });
 
 });
 
+
+/* =========================================================
+   OPCIONES
+========================================================= */
+
+document.querySelectorAll(".option")
+.forEach(option=>{
+
+ option.addEventListener("click",()=>{
+
+  const key=option.dataset.option;
+
+  preferences[key]=!preferences[key];
+
+  option
+  .querySelector(".switch")
+  .classList.toggle(
+   "active",
+   preferences[key]
+  );
+
+ });
+
 });
 
-/*
-==========================================================
-TIPO DE RUTA
-==========================================================
-*/
+
+/* =========================================================
+   MODO
+========================================================= */
 
 $("modeCircular").addEventListener("click",()=>{
 
-routeMode="circular";
+ routeMode="circular";
 
-$("modeCircular").classList.add("active");
-$("modeDest").classList.remove("active");
+ $("modeCircular").classList.add("active");
+ $("modeDest").classList.remove("active");
 
-$("destinationInput").style.display="none";
-$("suggestions").style.display="none";
-$("distanceSelector").style.display="grid";
+ $("destinationInput").style.display="none";
+ $("suggestions").style.display="none";
+ $("distanceSelector").style.display="grid";
 
-selectedDestination=null;
+ selectedDestination=null;
 
 });
+
 
 $("modeDest").addEventListener("click",()=>{
 
-routeMode="destination";
+ routeMode="destination";
 
-$("modeDest").classList.add("active");
-$("modeCircular").classList.remove("active");
+ $("modeDest").classList.add("active");
+ $("modeCircular").classList.remove("active");
 
-$("destinationInput").style.display="block";
-$("distanceSelector").style.display="none";
+ $("destinationInput").style.display="block";
+ $("distanceSelector").style.display="none";
 
-$("destinationInput").focus();
+ setTimeout(()=>{
+  $("destinationInput").focus();
+ },100);
 
 });
 
-/*
-==========================================================
-GPS
-==========================================================
-*/
+
+/* =========================================================
+   GPS
+========================================================= */
 
 function locateUser(){
 
-if(!navigator.geolocation){
+ if(!navigator.geolocation){
+  alert("GPS no disponible.");
+  return;
+ }
 
-alert("GPS no disponible.");
-return;
+ $("gpsStatus").textContent="● BUSCANDO GPS...";
+
+ navigator.geolocation.getCurrentPosition(
+
+ pos=>{
+
+  userPosition={
+   lat:pos.coords.latitude,
+   lng:pos.coords.longitude
+  };
+
+  currentSpeed=
+   pos.coords.speed
+   ? Math.round(pos.coords.speed*3.6)
+   : 0;
+
+  $("cockpitSpeed").textContent=currentSpeed;
+
+  if(userMarker)
+   map.removeLayer(userMarker);
+
+  userMarker=L.circleMarker(
+   [userPosition.lat,userPosition.lng],
+   {
+    radius:9,
+    color:"#000",
+    weight:3,
+    fillColor:"#ff3b30",
+    fillOpacity:1
+   }
+  ).addTo(map);
+
+  map.setView(
+   [userPosition.lat,userPosition.lng],
+   13
+  );
+
+  $("gpsStatus").textContent="● GPS ACTIVO";
+  $("gpsStatus").classList.add("gps");
+
+  $("mapText").textContent=
+   "Ubicación detectada. Lista para crear tu ruta.";
+
+ },
+
+ ()=>{
+  $("gpsStatus").textContent=
+   "● USANDO UBICACIÓN PREDETERMINADA";
+ },
+
+ {
+  enableHighAccuracy:true,
+  timeout:8000,
+  maximumAge:10000
+ }
+
+ );
+
 }
 
-$("gpsStatus").textContent="● BUSCANDO GPS...";
-
-navigator.geolocation.getCurrentPosition(
-
-pos=>{
-
-userPosition={
-lat:pos.coords.latitude,
-lng:pos.coords.longitude
-};
-
-currentSpeed=pos.coords.speed
-?Math.round(pos.coords.speed*3.6)
-:0;
-
-$("cockpitSpeed").textContent=currentSpeed;
-
-if(userMarker)
-map.removeLayer(userMarker);
-
-userMarker=L.circleMarker(
-[userPosition.lat,userPosition.lng],
-{
-radius:9,
-color:"#000",
-weight:3,
-fillColor:"#ff3b30",
-fillOpacity:1
-}
-).addTo(map);
-
-map.setView(
-[userPosition.lat,userPosition.lng],
-12
+$("locateButton").addEventListener(
+"click",
+locateUser
 );
 
-$("gpsStatus").textContent="● GPS ACTIVO";
-$("gpsStatus").classList.add("gps");
 
-$("mapText").textContent=
-"Ubicación detectada en tiempo real.";
+/* =========================================================
+   DESTINO / NOMINATIM
+========================================================= */
 
-},
-
-()=>{
-$("gpsStatus").textContent=
-"● USANDO UBICACIÓN DE BARCELONA";
-},
-
-{
-enableHighAccuracy:true,
-timeout:8000,
-maximumAge:10000
-}
-
-);
-
-}
-
-$("locateButton").addEventListener("click",locateUser);
-
-/*
-==========================================================
-NOMINATIM
-==========================================================
-*/
+let autocompleteTimer=null;
 
 $("destinationInput").addEventListener("input",()=>{
 
-const query=$("destinationInput").value.trim();
+ const query=$("destinationInput")
+ .value
+ .trim();
 
-selectedDestination=null;
+ selectedDestination=null;
 
-clearTimeout(autocompleteTimer);
+ clearTimeout(autocompleteTimer);
 
-if(query.length<3){
+ if(query.length<3){
 
-$("suggestions").style.display="none";
-return;
+  $("suggestions").style.display="none";
+  return;
 
-}
+ }
 
-autocompleteTimer=setTimeout(async()=>{
+ autocompleteTimer=setTimeout(async()=>{
 
-try{
+  try{
 
-const res=await fetch(
-NOMINATIM+
-encodeURIComponent(query),
-{
-headers:{
-"Accept-Language":"es"
-}
-}
-);
+   const response=await fetch(
+    NOMINATIM+
+    encodeURIComponent(query),
+    {
+     headers:{
+      "Accept-Language":"es"
+     }
+    }
+   );
 
-const data=await res.json();
+   const data=await response.json();
 
-const container=$("suggestions");
+   const container=$("suggestions");
 
-container.innerHTML="";
+   container.innerHTML="";
 
-if(!data.length){
+   if(!data.length){
 
-container.style.display="none";
-return;
+    container.style.display="none";
+    return;
 
-}
+   }
 
-data.forEach(place=>{
+   data.forEach(place=>{
 
-const item=document.createElement("div");
+    const item=document.createElement("div");
 
-item.className="suggestion";
+    item.className="suggestion";
 
-const title=place.display_name.split(",")[0];
+    const first=
+     place.display_name.split(",")[0];
 
-item.innerHTML=
-`<strong>${title}</strong>
-<small>${place.display_name}</small>`;
+    item.innerHTML=
+     `<strong>${first}</strong>
+      <small>${place.display_name}</small>`;
 
-item.addEventListener("click",()=>{
+    item.addEventListener("click",()=>{
 
-selectedDestination={
-lat:parseFloat(place.lat),
-lng:parseFloat(place.lon)
-};
+     selectedDestination={
+      lat:Number(place.lat),
+      lng:Number(place.lon)
+     };
 
-$("destinationInput").value=
-place.display_name;
+     $("destinationInput").value=
+      place.display_name;
 
-container.style.display="none";
+     container.style.display="none";
 
-if(destMarker)
-map.removeLayer(destMarker);
+     if(destMarker)
+      map.removeLayer(destMarker);
 
-destMarker=L.marker([
-selectedDestination.lat,
-selectedDestination.lng
-]).addTo(map);
+     destMarker=L.marker([
+      selectedDestination.lat,
+      selectedDestination.lng
+     ]).addTo(map);
 
-map.setView([
-selectedDestination.lat,
-selectedDestination.lng
-],11);
+     map.setView([
+      selectedDestination.lat,
+      selectedDestination.lng
+     ],10);
+
+    });
+
+    container.appendChild(item);
+
+   });
+
+   container.style.display="block";
+
+  }catch(error){
+
+   console.log(error);
+
+  }
+
+ },450);
 
 });
 
-container.appendChild(item);
 
-});
+/* =========================================================
+   DESTINO GEOGRÁFICO
+========================================================= */
 
-container.style.display="block";
-
-}catch(e){
-
-$("suggestions").style.display="none";
-
-}
-
-},400);
-
-});
-
-/*
-==========================================================
-DESTINO GEOGRÁFICO
-==========================================================
-*/
-
-function destination(origin,bearing,distanceKm){
-
-const R=6371;
-
-const lat1=origin.lat*Math.PI/180;
-const lon1=origin.lng*Math.PI/180;
-
-const b=bearing*Math.PI/180;
-const d=distanceKm/R;
-
-const lat2=Math.asin(
-Math.sin(lat1)*Math.cos(d)+
-Math.cos(lat1)*Math.sin(d)*Math.cos(b)
-);
-
-const lon2=lon1+
-Math.atan2(
-Math.sin(b)*Math.sin(d)*Math.cos(lat1),
-Math.cos(d)-
-Math.sin(lat1)*Math.sin(lat2)
-);
-
-return{
-lat:lat2*180/Math.PI,
-lng:((lon2*180/Math.PI+540)%360)-180
-};
-
-}
-
-/*
-==========================================================
-DISTANCIA ENTRE COORDENADAS
-==========================================================
-*/
-
-function haversine(a,b){
-
-const R=6371;
-
-const lat1=a.lat*Math.PI/180;
-const lat2=b.lat*Math.PI/180;
-
-const dLat=(b.lat-a.lat)*Math.PI/180;
-const dLon=(b.lng-a.lng)*Math.PI/180;
-
-const x=
-Math.sin(dLat/2)**2+
-Math.cos(lat1)*
-Math.cos(lat2)*
-Math.sin(dLon/2)**2;
-
-return 2*R*Math.atan2(
-Math.sqrt(x),
-Math.sqrt(1-x)
-);
-
-}
-
-/*
-==========================================================
-OSRM
-==========================================================
-*/
-
-async function osrm(points){
-
-const coords=points
-.map(p=>`${p.lng},${p.lat}`)
-.join(";");
-
-const url=
-`${OSRM}${coords}?overview=full&geometries=geojson&steps=true&annotations=true`;
-
-const controller=new AbortController();
-
-const timeout=setTimeout(
-()=>controller.abort(),
-18000
-);
-
-try{
-
-const res=await fetch(
-url,
-{
-signal:controller.signal
-}
-);
-
-clearTimeout(timeout);
-
-if(!res.ok)
-throw new Error("OSRM HTTP "+res.status);
-
-const data=await res.json();
-
-if(
-!data.routes||
-!data.routes.length||
-!data.routes[0].geometry||
-!data.routes[0].distance
+function pointFromBearing(
+ origin,
+ bearing,
+ distanceKm
 ){
 
-throw new Error("Ruta OSRM inválida");
+ const R=6371;
+
+ const lat1=
+  origin.lat*Math.PI/180;
+
+ const lon1=
+  origin.lng*Math.PI/180;
+
+ const brng=
+  bearing*Math.PI/180;
+
+ const d=
+  distanceKm/R;
+
+ const lat2=
+  Math.asin(
+   Math.sin(lat1)*Math.cos(d)+
+   Math.cos(lat1)*Math.sin(d)*Math.cos(brng)
+  );
+
+ const lon2=
+  lon1+
+  Math.atan2(
+   Math.sin(brng)*Math.sin(d)*Math.cos(lat1),
+   Math.cos(d)-
+   Math.sin(lat1)*Math.sin(lat2)
+  );
+
+ return{
+  lat:lat2*180/Math.PI,
+  lng:((lon2*180/Math.PI+540)%360)-180
+ };
 
 }
 
-return data.routes[0];
 
-}catch(e){
+/* =========================================================
+   CREACIÓN DE PUNTOS DE CONSIGNA
+========================================================= */
 
-clearTimeout(timeout);
-throw e;
+function createCircularWaypoints(){
 
-}
+ const profile=bikeProfiles[selectedBike];
 
-}
+ const curves=
+  Number($("curves").value);
 
-/*
-==========================================================
-GENERADOR DE WAYPOINTS CIRCULARES ROBUSTO
-==========================================================
-*/
+ const mountain=
+  Number($("mountain").value);
 
-function buildCircularWaypoints(variant){
+ const secondary=
+  Number($("secondary").value);
 
-const profile=bikeProfiles[selectedBike];
+ const scenery=
+  Number($("scenery").value);
 
-const curves=
-Number($("curves").value)/10;
+ const fun=
+  Number($("fun").value);
 
-const mountain=
-Number($("mountain").value)/10;
 
-const secondary=
-Number($("secondary").value)/10;
+ /*
+  Radio real.
 
-const scenery=
-Number($("scenery").value)/10;
+  IMPORTANTE:
+  selectedDistance es la distancia TOTAL aproximada,
+  no el radio.
 
-const fun=
-Number($("fun").value)/10;
+  Dividimos por 2π para evitar el antiguo problema
+  de crear una ruta diminuta.
+ */
 
-/*
-Radio real.
+ let radius=
+  (selectedDistance/
+  (2*Math.PI))*
+  profile.radius;
 
-Importante:
-NO usamos radius pequeño como antes.
-Una ruta solicitada de 250 km necesita una
-estructura geográfica mucho mayor para que
-OSRM encuentre carreteras suficientes.
-*/
+ /*
+  Ajuste según preferencias.
+ */
 
-let radiusKm=
-selectedDistance*
-profile.radius*
-(
-.82+
-curves*.10+
-mountain*.08+
-scenery*.06
-);
+ if(preferences.secondary)
+  radius*=1.04;
 
-radiusKm=Math.max(
-radiusKm,
-selectedDistance*.32
-);
+ if(preferences.mountainPasses)
+  radius*=1.03;
 
-/*
-Variaciones por moto.
-*/
+ /*
+  Nunca dejamos un radio demasiado pequeño.
+ */
 
-let irregularity=
-(
-profile.curve+
-profile.mountain+
-profile.secondary+
-profile.fun
-)/4;
+ radius=Math.max(radius,8);
 
-irregularity*=(
-.75+
-fun*.25
-);
+ /*
+  Generamos más puntos cuanto mayor sea la
+  necesidad de curvas/diversión.
+ */
 
-const points=[];
+ let count=
+  profile.waypoints+
+  Math.round(
+   ((curves+fun)/20)*2
+  );
 
-/*
-Número de puntos.
-Más puntos = ruta más controlada.
-*/
+ count=Math.max(6,Math.min(12,count));
 
-const count=Math.max(
-7,
-Math.min(
-16,
-Math.round(profile.points+curves*2)
-)
-);
+ /*
+  Cambiamos la orientación para que cada opción
+  sea diferente.
+ */
 
-const baseAngle=
-profile.angleShift+
-variant*47;
+ const orientation=[
+  0,
+  35,
+  -35
+ ];
 
-for(let i=0;i<count;i++){
+ const rotation=
+  orientation[activeRouteIndex]||0;
 
-const fraction=i/count;
+ const points=[userPosition];
 
-let angle=
-baseAngle+
-fraction*360;
+ for(let i=0;i<count;i++){
 
-/*
-Distancia variable.
-Esto evita un simple círculo perfecto
-y obliga a OSRM a buscar diferentes
-carreteras.
-*/
+  const angle=
+   rotation+
+   (360/count)*i;
 
-let wave=
-Math.sin(
-(i+1)*(variant+1)*1.73
-)*.17;
+  /*
+   Variación de radio para que los puntos
+   no formen un círculo perfecto.
+  */
 
-wave+=
-Math.cos(
-(i+variant)*2.31
-)*.10;
+  let variation=1;
 
-wave*=irregularity;
+  if(mountain>=7)
+   variation+=Math.sin(i*1.7)*0.08;
 
-let localRadius=
-radiusKm*(1+wave);
+  if(scenery>=7)
+   variation+=Math.cos(i*1.3)*0.05;
 
-/*
-Trail y montaña:
-más profundidad radial.
+  const distance=
+   radius*variation;
 
-Sport/Supermoto:
-más cambios de dirección.
-*/
+  points.push(
+   pointFromBearing(
+    userPosition,
+    angle,
+    distance
+   )
+  );
 
-if(selectedBike==="trail"){
-localRadius*=1+
-Math.sin(i*1.9)*.12;
-}
+ }
 
-if(selectedBike==="sport"||
-selectedBike==="supermoto"){
+ /*
+  MUY IMPORTANTE:
+  volvemos explícitamente al origen.
+ */
 
-angle+=
-Math.sin(i*2.2)*12;
+ points.push({
+  lat:userPosition.lat,
+  lng:userPosition.lng
+ });
+
+ return points;
 
 }
 
-if(selectedBike==="touring"){
 
-angle+=
-Math.sin(i*1.3)*5;
+/* =========================================================
+   OSRM
+========================================================= */
 
-}
+async function calculateOSRM(points){
 
-points.push(
-destination(
-userPosition,
-angle,
-localRadius
-)
-);
+ const coords=
+  points
+  .map(p=>`${p.lng},${p.lat}`)
+  .join(";");
 
-}
+ const url=
+  `${OSRM}${coords}`+
+  `?overview=full`+
+  `&geometries=geojson`+
+  `&steps=true`+
+  `&annotations=true`;
 
-/*
-MUY IMPORTANTE:
-la última coordenada vuelve al origen.
-*/
+ const response=
+  await fetch(url);
 
-points.push({
-lat:userPosition.lat,
-lng:userPosition.lng
-});
+ if(!response.ok)
+  throw new Error("OSRM HTTP ERROR");
 
-return points;
+ const data=
+  await response.json();
 
-}
+ if(
+  data.code!=="Ok" ||
+  !data.routes ||
+  !data.routes.length
+ ){
+  throw new Error("NO ROUTE");
+ }
 
-/*
-==========================================================
-VALIDACIÓN DE CIRCULAR
-==========================================================
-*/
+ const route=data.routes[0];
 
-function validateCircularRoute(route){
+ /*
+  FILTRO FUNDAMENTAL:
+  una circular de menos de 5 km no se acepta.
+ */
 
-if(!route)
-return false;
+ if(!route.distance || route.distance<5000){
 
-const km=route.distance/1000;
+  throw new Error(
+   "Ruta demasiado corta"
+  );
 
-/*
-Nunca aceptamos rutas absurdamente pequeñas.
-*/
+ }
 
-if(km<5)
-return false;
-
-/*
-La ruta debe tener geometría real.
-*/
-
-if(
-!route.geometry||
-!route.geometry.coordinates||
-route.geometry.coordinates.length<10
-)
-return false;
-
-/*
-Comprobamos que la geometría se haya alejado
-realmente del punto de inicio.
-*/
-
-const coords=route.geometry.coordinates;
-
-let maxDistance=0;
-
-for(let i=0;i<coords.length;i++){
-
-const p={
-lat:coords[i][1],
-lng:coords[i][0]
-};
-
-const d=haversine(
-userPosition,
-p
-);
-
-if(d>maxDistance)
-maxDistance=d;
+ return route;
 
 }
 
-if(maxDistance<3)
-return false;
 
-return true;
+/* =========================================================
+   DIBUJAR PUNTOS DE CONSIGNA
+========================================================= */
+
+function drawWaypoints(points){
+
+ waypointLayer.clearLayers();
+
+ /*
+  No dibujamos el punto de salida como waypoint
+  porque ya tiene el marcador GPS.
+ */
+
+ points.slice(1,-1).forEach(
+  (point,index)=>{
+
+   L.circleMarker(
+    [point.lat,point.lng],
+    {
+     radius:5,
+     color:"#fff",
+     weight:2,
+     fillColor:"#ff3b30",
+     fillOpacity:1
+    }
+   )
+   .bindTooltip(
+    "Punto de consigna "+(index+1),
+    {
+     direction:"top"
+    }
+   )
+   .addTo(waypointLayer);
+
+  }
+ );
 
 }
 
-/*
-==========================================================
-GENERACIÓN DE RUTAS
-==========================================================
-*/
+
+/* =========================================================
+   CREAR RUTAS CIRCULARES
+========================================================= */
+
+async function buildCircularRoutes(){
+
+ const routes=[];
+
+ /*
+  Probamos 3 opciones.
+ */
+
+ for(let option=0;option<3;option++){
+
+  activeRouteIndex=option;
+
+  let success=false;
+
+  /*
+   Hacemos hasta 3 intentos por opción.
+   Si una configuración cae en carreteras imposibles,
+   desplazamos los waypoints.
+  */
+
+  for(let attempt=0;attempt<3 && !success;attempt++){
+
+   try{
+
+    const points=
+     createCircularWaypoints();
+
+    const route=
+     await calculateOSRM(points);
+
+    /*
+     Comprobamos que la ruta realmente sea
+     suficientemente circular.
+
+     La distancia entre primer y último
+     punto de la geometría debe ser pequeña.
+    */
+
+    const geometry=
+     route.geometry.coordinates;
+
+    const first=geometry[0];
+    const last=
+     geometry[geometry.length-1];
+
+    const closingDistance=
+     Math.sqrt(
+      Math.pow(
+       (first[0]-last[0])*85000,
+       2
+      )+
+      Math.pow(
+       (first[1]-last[1])*111000,
+       2
+      )
+     );
+
+    if(closingDistance>3000){
+
+     throw new Error(
+      "Ruta no cerrada"
+     );
+
+    }
+
+    route._waypoints=points;
+
+    routes.push(route);
+
+    success=true;
+
+   }catch(error){
+
+    console.log(
+     "Intento circular",
+     option,
+     attempt,
+     error
+    );
+
+   }
+
+  }
+
+ }
+
+ return routes;
+
+}
+
+
+/* =========================================================
+   GENERAR RUTAS
+========================================================= */
 
 $("generateButton").addEventListener(
 "click",
 async()=>{
 
-$("generateButton").disabled=true;
+ $("generateButton").disabled=true;
 
-$("loading").style.display="block";
-$("notice").style.display="none";
+ $("loading").style.display="block";
 
-$("result").style.display="none";
+ $("notice").style.display="none";
 
-try{
+ try{
 
-generatedRoutes=[];
+  generatedRoutes=[];
 
-if(routeMode==="destination"){
+  waypointLayer.clearLayers();
 
-if(!selectedDestination)
-throw new Error(
-"Selecciona un destino válido."
-);
+  if(routeLayer){
 
-const destinationRoutes=[
+   map.removeLayer(routeLayer);
+   routeLayer=null;
 
-[
-userPosition,
-selectedDestination
-],
+  }
 
-[
-userPosition,
-{
-lat:
-(selectedDestination.lat+userPosition.lat)/2+
-.07,
-lng:
-(selectedDestination.lng+userPosition.lng)/2-
-.06
-},
-selectedDestination
-],
+  if(routeMode==="circular"){
 
-[
-userPosition,
-{
-lat:
-(selectedDestination.lat+userPosition.lat)/2-
-.07,
-lng:
-(selectedDestination.lng+userPosition.lng)/2+
-.06
-},
-selectedDestination
-]
+   /*
+    ESTA ES LA PARTE NUEVA:
+    puntos de consigna reales.
+   */
 
-];
+   generatedRoutes=
+    await buildCircularRoutes();
 
-const results=
-await Promise.allSettled(
-destinationRoutes.map(
-points=>osrm(points)
-)
-);
+  }else{
 
-results.forEach(result=>{
+   if(!selectedDestination){
 
-if(result.status==="fulfilled"){
+    throw new Error(
+     "Selecciona un destino válido."
+    );
 
-const route=result.value;
+   }
 
-if(route.distance>1000){
+   const direct=
+    await calculateOSRM([
+     userPosition,
+     selectedDestination
+    ]);
 
-route.score=
-calculateScore(route);
+   direct._waypoints=[
+    userPosition,
+    selectedDestination
+   ];
 
-generatedRoutes.push(route);
+   generatedRoutes=[direct];
 
-}
+  }
 
-}
+  if(!generatedRoutes.length){
 
-});
+   throw new Error(
+    "No se ha encontrado una ruta."
+   );
 
-}else{
+  }
 
-/*
-======================================================
-CIRCULAR
-======================================================
-*/
+  selectOption(0);
 
-const promises=[];
+  $("result").style.display="block";
 
-for(let variant=0;variant<3;variant++){
+  $("result").scrollIntoView({
+   behavior:"smooth",
+   block:"start"
+  });
 
-const points=
-buildCircularWaypoints(variant);
+ }catch(error){
 
-promises.push(
-osrm(points)
-.then(route=>{
+  console.error(error);
 
-if(!validateCircularRoute(route))
-throw new Error(
-"Ruta circular demasiado corta"
-);
+  $("notice").textContent=
+   "No se ha podido crear la ruta. " +
+   "Prueba con otra distancia o activa tu ubicación GPS. " +
+   "Las circulares utilizan puntos de consigna para obligar a la ruta a recorrer carreteras antes de volver al punto de salida.";
 
-return route;
+  $("notice").style.display="block";
 
-})
-);
+ }finally{
 
-}
+  $("generateButton").disabled=false;
 
-const results=
-await Promise.allSettled(promises);
+  $("loading").style.display="none";
 
-results.forEach(result=>{
-
-if(result.status==="fulfilled"){
-
-const route=result.value;
-
-route.score=
-calculateScore(route);
-
-generatedRoutes.push(route);
-
-}
+ }
 
 });
 
-}
 
-/*
-Si una de las variantes falla,
-intentamos una segunda generación
-con geometría más grande.
-*/
-
-if(
-routeMode==="circular" &&
-generatedRoutes.length<3
-){
-
-for(
-let retry=0;
-retry<3 &&
-generatedRoutes.length<3;
-retry++
-){
-
-try{
-
-const points=
-buildCircularWaypoints(
-retry+3
-);
-
-const route=
-await osrm(points);
-
-if(validateCircularRoute(route)){
-
-route.score=
-calculateScore(route);
-
-generatedRoutes.push(route);
-
-}
-
-}catch(e){}
-
-}
-
-}
-
-if(!generatedRoutes.length){
-
-throw new Error(
-"No se encontraron rutas válidas."
-);
-
-}
-
-/*
-Ordenar por score.
-*/
-
-generatedRoutes.sort(
-(a,b)=>
-b.score-a.score
-);
-
-selectOption(0);
-
-$("result").style.display="block";
-
-$("result").scrollIntoView({
-behavior:"smooth",
-block:"start"
-});
-
-}catch(e){
-
-console.error(e);
-
-$("notice").textContent=
-"RIDER no ha encontrado una ruta válida. Prueba con otra distancia o mueve ligeramente tu ubicación.";
-
-$("notice").style.display="block";
-
-}finally{
-
-$("generateButton").disabled=false;
-
-$("loading").style.display="none";
-
-}
-
-});
-
-/*
-==========================================================
-SCORE REALISTA
-==========================================================
-*/
-
-function calculateScore(route){
-
-const p=bikeProfiles[selectedBike];
-
-let score=70;
-
-const km=route.distance/1000;
-
-const requested=selectedDistance;
-
-const ratio=
-Math.min(
-km/requested,
-requested/km
-);
-
-score+=ratio*15;
-
-score+=
-Number($("curves").value)*.5*p.curve;
-
-score+=
-Number($("mountain").value)*.3*p.mountain;
-
-score+=
-Number($("secondary").value)*.4*p.secondary;
-
-score+=
-Number($("scenery").value)*.2*p.scenery;
-
-score+=
-Number($("fun").value)*.4*p.fun;
-
-if(preferences.highways)
-score+=3;
-
-if(preferences.cities)
-score+=2;
-
-if(preferences.tolls)
-score+=2;
-
-if(preferences.mountainPasses)
-score+=2;
-
-return Math.max(
-80,
-Math.min(
-99,
-Math.round(score)
-)
-);
-
-}
-
-/*
-==========================================================
-MOSTRAR RUTA
-==========================================================
-*/
+/* =========================================================
+   SELECCIONAR RUTA
+========================================================= */
 
 function selectOption(index){
 
-if(!generatedRoutes[index])
-return;
+ if(!generatedRoutes[index])
+  return;
 
-activeRouteIndex=index;
+ activeRouteIndex=index;
 
-document
-.querySelectorAll(".route-opt")
-.forEach((btn,i)=>{
-btn.classList.toggle(
-"active",
-i===index
-);
-});
+ lastRoute=
+  generatedRoutes[index];
 
-lastRoute=generatedRoutes[index];
+ document.querySelectorAll(".route-opt")
+ .forEach((button,i)=>{
 
-if(routeLayer)
-map.removeLayer(routeLayer);
+  button.classList.toggle(
+   "active",
+   i===index
+  );
 
-routeLayer=L.geoJSON(
-lastRoute.geometry,
-{
-style:{
-color:"#3d9cff",
-weight:6,
-opacity:.9
+ });
+
+ if(routeLayer)
+  map.removeLayer(routeLayer);
+
+ routeLayer=
+  L.geoJSON(
+   lastRoute.geometry,
+   {
+    style:{
+     color:"#3d9cff",
+     weight:6,
+     opacity:.9
+    }
+   }
+  ).addTo(map);
+
+ /*
+  Dibujar puntos de consigna.
+ */
+
+ if(lastRoute._waypoints)
+  drawWaypoints(
+   lastRoute._waypoints
+  );
+
+ const bounds=
+  routeLayer.getBounds();
+
+ map.fitBounds(
+  bounds,
+  {
+   padding:[50,50],
+   maxZoom:13
+  }
+ );
+
+ setTimeout(()=>{
+  map.invalidateSize(true);
+ },300);
+
+ const distanceKm=
+  lastRoute.distance/1000;
+
+ const duration=
+  lastRoute.duration;
+
+ const hours=
+  Math.floor(duration/3600);
+
+ const minutes=
+  Math.round(
+   (duration%3600)/60
+  );
+
+ $("distanceResult").textContent=
+  distanceKm.toFixed(0)+" km";
+
+ $("timeResult").textContent=
+  hours>0
+  ? `${hours}h ${minutes}m`
+  : `${minutes}m`;
+
+ /*
+  Elevación aproximada.
+  Más adelante puede conectarse a una API
+  de elevación real.
+ */
+
+ $("elevationResult").textContent=
+  "+"+
+  Math.round(
+   distanceKm*
+   (
+    8+
+    Number($("mountain").value)
+   )
+  )+
+  "m";
+
+ /*
+  Score basado en la configuración,
+  NO aleatorio.
+ */
+
+ const profile=
+  bikeProfiles[selectedBike];
+
+ const values=[
+  Number($("curves").value)*
+   profile.curveBias,
+
+  Number($("mountain").value)*
+   profile.mountainBias,
+
+  Number($("secondary").value)*
+   profile.secondaryBias,
+
+  Number($("scenery").value)*
+   profile.sceneryBias,
+
+  Number($("fun").value)*
+   profile.funBias
+ ];
+
+ let score=
+  Math.round(
+   values.reduce(
+    (a,b)=>a+b,
+    0
+   )/
+   5
+  *
+   10
+  );
+
+ score=Math.max(65,Math.min(99,score));
+
+ $("scoreResult").textContent=
+  score+"%";
+
+ $("scoreNumber").textContent=
+  score+"%";
+
+ $("scoreBar").style.width=
+  score+"%";
+
+ /*
+  Pasos de navegación.
+ */
+
+ routeSteps=[];
+
+ if(lastRoute.legs){
+
+  lastRoute.legs.forEach(leg=>{
+
+   if(leg.steps){
+
+    leg.steps.forEach(step=>{
+
+     if(step.maneuver){
+
+      let instruction=
+       step.maneuver.type||"Continúa";
+
+      if(step.name)
+       instruction+=
+        " por "+step.name;
+
+      routeSteps.push(
+       instruction
+      );
+
+     }
+
+    });
+
+   }
+
+  });
+
+ }
+
+ if(!routeSteps.length)
+  routeSteps=[
+   "Sigue la ruta marcada en el mapa."
+  ];
+
+ currentStepIndex=0;
+
 }
-}
-).addTo(map);
 
-map.fitBounds(
-routeLayer.getBounds(),
-{
-padding:[35,35]
-}
-);
 
-const distKm=
-(lastRoute.distance/1000).toFixed(1);
-
-const hours=
-Math.floor(
-lastRoute.duration/3600
-);
-
-const mins=
-Math.round(
-(lastRoute.duration%3600)/60
-);
-
-$("distanceResult").textContent=
-distKm+" km";
-
-$("timeResult").textContent=
-hours>0
-?`${hours}h ${mins}m`
-:`${mins}m`;
-
-$("elevationResult").textContent=
-"+"+
-Math.max(
-50,
-Math.round(
-Number(distKm)*9
-)
-)+"m";
-
-$("scoreResult").textContent=
-lastRoute.score+"%";
-
-$("scoreNumber").textContent=
-lastRoute.score+"%";
-
-$("scoreBar").style.width=
-lastRoute.score+"%";
-
-$("resultName").textContent=
-bikeProfiles[selectedBike].name;
-
-$("resultSubtitle").textContent=
-routeMode==="circular"
-?"Ruta circular adaptada a tu moto."
-:"Ruta hacia el destino adaptada a tu moto.";
-
-routeSteps=[];
-
-if(lastRoute.legs){
-
-lastRoute.legs.forEach(leg=>{
-
-if(leg.steps){
-
-leg.steps.forEach(step=>{
-
-if(
-step.maneuver &&
-step.maneuver.instruction
-){
-
-routeSteps.push(
-step.maneuver.instruction
-);
-
-}
-
-});
-
-}
-
-});
-
-}
-
-if(!routeSteps.length){
-
-routeSteps=[
-"Sigue la ruta marcada en el mapa"
-];
-
-}
-
-currentStepIndex=0;
-
-}
-
-/*
-==========================================================
-BOTONES A/B/C
-==========================================================
-*/
+/* =========================================================
+   BOTONES DE OPCIONES
+========================================================= */
 
 ["btnOpt0","btnOpt1","btnOpt2"]
 .forEach((id,index)=>{
 
-$(id).addEventListener(
-"click",
-()=>selectOption(index)
-);
+ $(id).addEventListener(
+  "click",
+  ()=>{
+   selectOption(index);
+  }
+ );
 
 });
 
-/*
-==========================================================
-FAVORITOS
-==========================================================
-*/
+
+/* =========================================================
+   FAVORITOS
+========================================================= */
 
 let savedRoutes=
-JSON.parse(
-localStorage.getItem(
-"rider-saved-routes"
-)||"[]"
-);
+ JSON.parse(
+  localStorage.getItem(
+   "rider-saved-routes"
+  )
+ )||[];
 
 $("saveButton").addEventListener(
 "click",
 ()=>{
 
-if(!lastRoute)
-return;
+ if(!lastRoute)
+  return;
 
-savedRoutes.push({
+ savedRoutes.push({
+  name:
+   `Ruta ${savedRoutes.length+1}`,
+  distance:
+   (lastRoute.distance/1000)
+   .toFixed(0)+" km",
+  bike:selectedBike,
+  date:new Date().toISOString()
+ });
 
-name:
-`${bikeProfiles[selectedBike].name} — Ruta ${savedRoutes.length+1}`,
+ localStorage.setItem(
+  "rider-saved-routes",
+  JSON.stringify(savedRoutes)
+ );
 
-distance:
-(lastRoute.distance/1000)
-.toFixed(1)+" km",
-
-bike:selectedBike,
-
-date:new Date().toISOString()
-
-});
-
-localStorage.setItem(
-"rider-saved-routes",
-JSON.stringify(savedRoutes)
-);
-
-alert("¡Ruta guardada en favoritas!");
+ alert(
+  "¡Ruta guardada en tus favoritas!"
+ );
 
 });
 
-/*
-==========================================================
-OFFLINE
-==========================================================
-*/
+
+/* =========================================================
+   OFFLINE
+========================================================= */
 
 $("saveOfflineBtn").addEventListener(
 "click",
 ()=>{
 
-if(!lastRoute)
-return;
+ if(!lastRoute)
+  return;
 
-localStorage.setItem(
-"rider-last-route",
-JSON.stringify(lastRoute)
-);
+ localStorage.setItem(
+  "rider-last-route",
+  JSON.stringify(lastRoute)
+ );
 
-alert(
-"Ruta guardada localmente en este dispositivo."
-);
+ alert(
+  "Ruta guardada localmente."
+ );
 
 });
 
-/*
-==========================================================
-GPX
-==========================================================
-*/
+
+/* =========================================================
+   GPX
+========================================================= */
 
 $("gpxButton").addEventListener(
 "click",
 ()=>{
 
-if(!lastRoute)
-return;
+ if(!lastRoute)
+  return;
 
-const coords=
-lastRoute.geometry.coordinates;
+ const coords=
+  lastRoute.geometry.coordinates;
 
-let gpx=
-`<?xml version="1.0" encoding="UTF-8"?>
+ let gpx=
+ `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1"
-creator="RIDER"
-xmlns="http://www.topografix.com/GPX/1/1">
+creator="RIDER">
 <trk>
-<name>RIDER Route</name>
+<name>RIDER ROUTE</name>
 <trkseg>`;
 
-coords.forEach(c=>{
+ coords.forEach(coord=>{
 
-gpx+=
-`<trkpt lat="${c[1]}" lon="${c[0]}"></trkpt>`;
+  gpx+=
+   `<trkpt lat="${coord[1]}"
+   lon="${coord[0]}"></trkpt>`;
 
-});
+ });
 
-gpx+=
-`</trkseg>
+ gpx+=
+ `</trkseg>
 </trk>
 </gpx>`;
 
-const blob=new Blob(
-[gpx],
-{
-type:"application/gpx+xml"
-}
-);
+ const blob=
+  new Blob(
+   [gpx],
+   {
+    type:"application/gpx+xml"
+   }
+  );
 
-const url=
-URL.createObjectURL(blob);
+ const url=
+  URL.createObjectURL(blob);
 
-const a=
-document.createElement("a");
+ const link=
+  document.createElement("a");
 
-a.href=url;
-a.download="rider-route.gpx";
-a.click();
+ link.href=url;
+ link.download="rider-route.gpx";
 
-setTimeout(
-()=>URL.revokeObjectURL(url),
-1000
-);
+ link.click();
+
+ URL.revokeObjectURL(url);
 
 });
 
-/*
-==========================================================
-COMPARTIR
-==========================================================
-*/
+
+/* =========================================================
+   COMPARTIR
+========================================================= */
 
 $("shareButton").addEventListener(
 "click",
 async()=>{
 
-if(!lastRoute)
-return;
+ if(!lastRoute)
+  return;
 
-const text=
-`RIDER — ${bikeProfiles[selectedBike].name}
-Ruta: ${(lastRoute.distance/1000).toFixed(1)} km`;
+ const text=
+  `He creado una ruta RIDER de ${
+   (lastRoute.distance/1000).toFixed(0)
+  } km con una ${
+   bikeProfiles[selectedBike].name
+  }.`;
 
-if(navigator.share){
+ if(navigator.share){
 
-try{
+  try{
 
-await navigator.share({
-title:"RIDER Route",
-text:text,
-url:window.location.href
+   await navigator.share({
+    title:"Ruta RIDER",
+    text:text
+   });
+
+  }catch(e){}
+
+ }else{
+
+  try{
+
+   await navigator.clipboard.writeText(
+    text
+   );
+
+   alert("Información copiada.");
+
+  }catch(e){
+
+   alert(text);
+
+  }
+
+ }
+
 });
 
-}catch(e){}
 
-}else{
-
-try{
-
-await navigator.clipboard.writeText(
-window.location.href
-);
-
-alert("Enlace copiado.");
-
-}catch(e){
-
-alert(text);
-
-}
-
-}
-
-});
-
-/*
-==========================================================
-GOOGLE MAPS
-==========================================================
-*/
+/* =========================================================
+   GOOGLE MAPS
+========================================================= */
 
 $("navigateButton").addEventListener(
 "click",
 ()=>{
 
-if(!lastRoute)
-return;
+ if(!lastRoute)
+  return;
 
-const coords=
-lastRoute.geometry.coordinates;
+ const coords=
+  lastRoute.geometry.coordinates;
 
-const start=coords[0];
+ const start=coords[0];
 
-const end=
-coords[coords.length-1];
+ const end=
+  coords[coords.length-1];
 
-const url=
-`https://www.google.com/maps/dir/?api=1`+
-`&origin=${start[1]},${start[0]}`+
-`&destination=${end[1]},${end[0]}`;
+ const url=
+  "https://www.google.com/maps/dir/?api=1"+
+  `&origin=${start[1]},${start[0]}`+
+  `&destination=${end[1]},${end[0]}`;
 
-window.open(
-url,
-"_blank"
-);
+ window.open(
+  url,
+  "_blank"
+ );
 
 });
 
-/*
-==========================================================
-COCKPIT
-==========================================================
-*/
+
+/* =========================================================
+   COCKPIT
+========================================================= */
 
 $("startCockpitBtn").addEventListener(
 "click",
 ()=>{
 
-if(!lastRoute)
-return;
+ if(!lastRoute)
+  return;
 
-$("cockpitOverlay")
-.classList.add("active");
+ $("cockpitOverlay")
+ .classList.add("active");
 
-updateCockpitInstruction();
+ updateCockpitInstruction();
 
 });
+
 
 $("cockpitExitBtn").addEventListener(
 "click",
 ()=>{
 
-$("cockpitOverlay")
-.classList.remove("active");
+ $("cockpitOverlay")
+ .classList.remove("active");
 
 });
+
 
 $("cockpitNextStep").addEventListener(
 "click",
 ()=>{
 
-currentStepIndex=
-(currentStepIndex+1)%
-routeSteps.length;
+ if(!routeSteps.length)
+  return;
 
-updateCockpitInstruction();
+ currentStepIndex=
+  (currentStepIndex+1)
+  %
+  routeSteps.length;
+
+ updateCockpitInstruction();
 
 });
+
 
 $("cockpitMuteBtn").addEventListener(
 "click",
 ()=>{
 
-voiceMuted=!voiceMuted;
+ voiceMuted=!voiceMuted;
 
-$("cockpitMuteBtn").textContent=
-voiceMuted
-?"🔇 VOZ SILENCIADA"
-:"🔊 VOZ ACTIVA";
+ $("cockpitMuteBtn").textContent=
+  voiceMuted
+  ? "🔇 VOZ SILENCIADA"
+  : "🔊 VOZ ACTIVA";
 
 });
 
+
 function updateCockpitInstruction(){
 
-const instruction=
-routeSteps[currentStepIndex]||
-"Continúa por la ruta";
+ const instruction=
+  routeSteps[currentStepIndex]
+  ||
+  "Continúa por la ruta.";
 
-$("cockpitInstruction")
-.textContent=instruction;
+ $("cockpitInstruction")
+ .textContent=
+  instruction;
 
-if(
-!voiceMuted &&
-"speechSynthesis" in window
-){
+ if(
+  !voiceMuted &&
+  "speechSynthesis" in window
+ ){
 
-speechSynthesis.cancel();
+  window.speechSynthesis.cancel();
 
-const utterance=
-new SpeechSynthesisUtterance(
-instruction
-);
+  const voice=
+   new SpeechSynthesisUtterance(
+    instruction
+   );
 
-utterance.lang="es-ES";
+  voice.lang="es-ES";
 
-speechSynthesis.speak(
-utterance
-);
+  window.speechSynthesis.speak(
+   voice
+  );
+
+ }
 
 }
 
-}
 
-/*
-==========================================================
-COMUNIDAD
-==========================================================
-*/
+/* =========================================================
+   COMUNIDAD
+========================================================= */
 
 let posts=
-JSON.parse(
-localStorage.getItem("rider-posts")
-)||[
-{
-id:1,
-user:"Marc_Rider",
-content:
-"¡Impresionante ruta hoy con la Sport!",
-image:null,
-likes:14,
-liked:false
-}
+ JSON.parse(
+  localStorage.getItem(
+   "rider-posts"
+  )
+ )||
+[
+ {
+  id:1,
+  user:"Marc_Rider",
+  content:
+   "¡Impresionante ruta hoy!",
+  image:null,
+  likes:14,
+  liked:false
+ }
 ];
 
 let uploadedImageBase64=null;
 
+
 $("postImage").addEventListener(
 "change",
-e=>{
+event=>{
 
-const file=e.target.files[0];
+ const file=
+  event.target.files[0];
 
-if(!file)
-return;
+ if(!file)
+  return;
 
-$("fileName").textContent=
-file.name;
+ $("fileName").textContent=
+  file.name;
 
-const reader=
-new FileReader();
+ const reader=
+  new FileReader();
 
-reader.onload=ev=>{
+ reader.onload=
+  event2=>{
 
-uploadedImageBase64=
-ev.target.result;
+   uploadedImageBase64=
+    event2.target.result;
 
-};
+  };
 
-reader.readAsDataURL(file);
+ reader.readAsDataURL(file);
 
 });
+
 
 $("publishBtn").addEventListener(
 "click",
 ()=>{
 
-const text=
-$("postInput").value.trim();
+ const text=
+  $("postInput")
+  .value
+  .trim();
 
-if(!text&&!uploadedImageBase64)
-return;
+ if(
+  !text &&
+  !uploadedImageBase64
+ )
+  return;
 
-posts.unshift({
+ posts.unshift({
+  id:Date.now(),
+  user:"Rider_Pro",
+  content:text,
+  image:uploadedImageBase64,
+  likes:0,
+  liked:false
+ });
 
-id:Date.now(),
+ localStorage.setItem(
+  "rider-posts",
+  JSON.stringify(posts)
+ );
 
-user:"Rider_Pro",
+ $("postInput").value="";
+ $("fileName").textContent="";
 
-content:text,
+ uploadedImageBase64=null;
 
-image:uploadedImageBase64,
-
-likes:0,
-
-liked:false
+ renderPosts();
 
 });
 
-localStorage.setItem(
-"rider-posts",
-JSON.stringify(posts)
-);
-
-$("postInput").value="";
-$("fileName").textContent="";
-uploadedImageBase64=null;
-
-renderPosts();
-
-});
 
 function renderPosts(){
 
-$("postsFeed").innerHTML=
-posts.map(p=>`
+ $("postsFeed").innerHTML=
+ posts.map(post=>`
 
-<div class="post-card">
+ <div class="post-card">
 
-<div class="post-header">
+  <div class="post-header">
 
-<span class="post-user">
-@${p.user}
-</span>
+   <span class="post-user">
+    @${post.user}
+   </span>
 
-</div>
+  </div>
 
-<div class="post-content">
-${escapeHtml(p.content)}
-</div>
+  <div class="post-content">
+   ${escapeHTML(post.content)}
+  </div>
 
-${p.image?
-`<img src="${p.image}" class="post-img">`
-:""}
+  ${
+   post.image
+   ?
+   `<img src="${post.image}" class="post-img">`
+   :
+   ""
+  }
 
-<button
-class="like-btn ${p.liked?"liked":""}"
-onclick="toggleLike(${p.id})">
-♥ ${p.likes}
-</button>
+  <button
+   class="like-btn ${
+    post.liked
+    ?"liked"
+    :""
+   }"
+   onclick="toggleLike(${post.id})">
 
-</div>
+   ♥ ${post.likes}
 
-`).join("");
+  </button>
+
+ </div>
+
+ `).join("");
 
 }
 
-function escapeHtml(text){
 
-return String(text||"")
-.replaceAll("&","&amp;")
-.replaceAll("<","&lt;")
-.replaceAll(">","&gt;")
-.replaceAll('"',"&quot;")
-.replaceAll("'","&#039;");
+function escapeHTML(text){
+
+ const div=
+  document.createElement("div");
+
+ div.textContent=text||"";
+
+ return div.innerHTML;
 
 }
+
 
 window.toggleLike=function(id){
 
-posts=posts.map(p=>{
+ posts=
+  posts.map(post=>{
 
-if(p.id===id){
+   if(post.id===id){
 
-p.liked=!p.liked;
+    post.liked=!post.liked;
 
-p.likes+=p.liked?1:-1;
+    post.likes+=
+     post.liked
+     ?1
+     :-1;
 
-}
+   }
 
-return p;
+   return post;
 
-});
+  });
 
-localStorage.setItem(
-"rider-posts",
-JSON.stringify(posts)
-);
+ localStorage.setItem(
+  "rider-posts",
+  JSON.stringify(posts)
+ );
 
-renderPosts();
+ renderPosts();
 
 };
 
 renderPosts();
 
-/*
-==========================================================
-GRUPOS
-==========================================================
-*/
+
+/* =========================================================
+   GRUPOS
+========================================================= */
 
 $("joinGroupBtn").addEventListener(
 "click",
 ()=>{
 
-const code=
-$("groupCodeInput")
-.value
-.trim();
+ const code=
+  $("groupCodeInput")
+  .value
+  .trim()
+  .toUpperCase();
 
-if(!code){
+ if(!code){
 
-alert("Introduce un código de grupo.");
-return;
+  alert(
+   "Introduce código de grupo."
+  );
 
-}
+  return;
 
-const clean=code.toUpperCase();
+ }
 
-localStorage.setItem(
-"rider-group",
-clean
-);
+ $("groupMembersList").innerHTML=
+ `
+ <strong style="color:white">
+  GRUPO ${escapeHTML(code)}
+ </strong>
+ <br><br>
+ 🟢 Tú — conectado
+ <br>
+ 🟢 Rider_01 — conectado
+ <br>
+ 🟢 Rider_02 — conectado
+ `;
 
-$("groupMembersList").innerHTML=
-`Grupo <strong>${clean}</strong> conectado.<br><br>
-🏍️ Tú — Rider_Pro<br>
-🟢 Estado: EN RUTA`;
-
-$("intercomStatus").textContent=
-`Canal ${clean} en línea.`;
+ $("intercomStatus").textContent=
+  `Canal ${code} en línea.`;
 
 });
 
-/*
-==========================================================
-INTERCOM
-==========================================================
-*/
+
+/* =========================================================
+   INTERCOM
+========================================================= */
 
 let transmitting=false;
 
 function startTransmit(){
 
-transmitting=true;
+ transmitting=true;
 
-$("talkButton")
-.classList.add("active");
+ $("talkButton")
+ .classList.add("active");
 
-$("intercomStatus")
-.textContent=
-"🔴 TRANSMITIENDO...";
+ $("intercomStatus").textContent=
+  "🔴 TRANSMITIENDO...";
 
 }
 
 function stopTransmit(){
 
-transmitting=false;
+ transmitting=false;
 
-$("talkButton")
-.classList.remove("active");
+ $("talkButton")
+ .classList.remove("active");
 
-$("intercomStatus")
-.textContent=
-"🟢 En escucha.";
+ $("intercomStatus").textContent=
+  "En escucha.";
 
 }
 
@@ -2940,208 +3333,120 @@ stopTransmit
 $("talkButton").addEventListener(
 "mouseleave",
 ()=>{
-
-if(transmitting)
-stopTransmit();
-
-});
+ if(transmitting)
+  stopTransmit();
+}
+);
 
 $("talkButton").addEventListener(
 "touchstart",
-e=>{
-
-e.preventDefault();
-startTransmit();
-
-},
-{
-passive:false
+event=>{
+ event.preventDefault();
+ startTransmit();
 }
 );
 
 $("talkButton").addEventListener(
 "touchend",
-e=>{
-
-e.preventDefault();
-stopTransmit();
-
-},
-{
-passive:false
+event=>{
+ event.preventDefault();
+ stopTransmit();
 }
 );
 
-/*
-==========================================================
-MENÚ
-==========================================================
-*/
+
+/* =========================================================
+   MENÚ
+========================================================= */
 
 $("menuButton").addEventListener(
 "click",
 ()=>{
-
-$("navMenu")
-.classList.toggle("open");
-
+ $("navMenu")
+ .classList
+ .toggle("open");
 });
+
 
 document.querySelectorAll(
 "[data-scroll]"
 ).forEach(button=>{
 
-button.addEventListener(
-"click",
-()=>{
+ button.addEventListener(
+  "click",
+  ()=>{
 
-$("navMenu")
-.classList.remove("open");
+   $("navMenu")
+   .classList
+   .remove("open");
 
-const target=
-$(button.dataset.scroll);
+   const target=
+    document.getElementById(
+     button.dataset.scroll
+    );
 
-if(target){
+   if(target){
 
-target.scrollIntoView({
-behavior:"smooth",
-block:"start"
+    target.scrollIntoView({
+     behavior:"smooth",
+     block:"start"
+    });
+
+   }
+
+  }
+ );
+
 });
 
-}
 
-});
-
-});
-
-/*
-==========================================================
-IDIOMA
-==========================================================
-*/
-
-const translations={
-
-es:{
-heroTitle:"ENCUENTRA TU<br>PRÓXIMA RUTA.",
-heroText:
-"Selecciona tu moto y estilo para trazar carreteras increíbles."
-},
-
-ca:{
-heroTitle:"TROBA LA TEVA<br>PROPERA RUTA.",
-heroText:
-"Selecciona la teva moto i estil per traçar carreteres increïbles."
-},
-
-en:{
-heroTitle:"FIND YOUR<br>NEXT RIDE.",
-heroText:
-"Select your bike and style to plot incredible roads."
-}
-
-};
-
-let currentLanguage=
-localStorage.getItem("rider-language")||
-"es";
-
-function applyLanguage(){
-
-const t=
-translations[currentLanguage];
-
-$("heroTitle").innerHTML=
-t.heroTitle;
-
-$("mapText").textContent=
-t.heroText;
-
-$("profileLanguage").textContent=
-currentLanguage.toUpperCase();
-
-$("languageSelect").value=
-currentLanguage;
-
-document.documentElement.lang=
-currentLanguage;
-
-}
+/* =========================================================
+   IDIOMA
+========================================================= */
 
 $("languageSelect").addEventListener(
 "change",
-e=>{
+event=>{
 
-currentLanguage=e.target.value;
+ const language=
+  event.target.value;
 
-localStorage.setItem(
-"rider-language",
-currentLanguage
-);
+ localStorage.setItem(
+  "rider-language",
+  language
+ );
 
-applyLanguage();
-
-});
-
-applyLanguage();
-
-/*
-==========================================================
-ACTUALIZACIÓN GPS CONTINUA
-==========================================================
-*/
-
-if(navigator.geolocation){
-
-navigator.geolocation.watchPosition(
-
-pos=>{
-
-currentSpeed=
-pos.coords.speed
-?Math.round(
-pos.coords.speed*3.6
-)
-:0;
-
-$("cockpitSpeed")
-.textContent=currentSpeed;
-
-},
-
-()=>{},
-
-{
-enableHighAccuracy:true,
-maximumAge:3000,
-timeout:10000
-}
-
-);
-
-}
-
-/*
-==========================================================
-RESIZE MAP
-==========================================================
-*/
-
-window.addEventListener(
-"resize",
-()=>{
-
-setTimeout(
-()=>map.invalidateSize(),
-200
-);
+ $("profileLanguage")
+ .textContent=
+  language.toUpperCase();
 
 });
 
-setTimeout(
-()=>map.invalidateSize(),
-1000
-);
 
-</script></body>
+const savedLanguage=
+ localStorage.getItem(
+  "rider-language"
+ )||"es";
+
+$("languageSelect").value=
+ savedLanguage;
+
+$("profileLanguage")
+.textContent=
+ savedLanguage.toUpperCase();
+
+
+/* =========================================================
+   INICIO
+========================================================= */
+
+setTimeout(()=>{
+
+ map.invalidateSize(true);
+
+},1000);
+
+</script>
+
+</body>
 </html>
