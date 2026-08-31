@@ -957,6 +957,12 @@ input[type=range]::-webkit-slider-thumb{
     font-size:14px;
 }
 
+
+/* MODO MANILLAR: navegación integrada */
+.cockpit-map-wrap{position:relative;flex:1;min-height:240px;margin:12px 0;border-radius:20px;overflow:hidden;border:2px solid #1e293b;background:#0f172a}
+#cockpitMap{width:100%;height:100%;min-height:240px}.cockpit-gps-status{position:absolute;top:10px;left:10px;z-index:1000;background:rgba(2,6,23,.88);padding:7px 10px;border-radius:999px;font-size:10px;font-weight:900;color:#e2e8f0}
+@media(max-width:700px){.cockpit-overlay{padding:12px}.cockpit-map-wrap,#cockpitMap{min-height:210px}.speed-number{font-size:70px!important}}
+
 /* COCKPIT */
 
 .cockpit-overlay{
@@ -1785,6 +1791,11 @@ footer{
 
     </div>
 
+    <div class="cockpit-map-wrap">
+        <div id="cockpitMap"></div>
+        <div class="cockpit-gps-status" id="cockpitGpsStatus">● GPS PREPARADO</div>
+    </div>
+
     <div class="cockpit-controls">
 
         <button
@@ -1858,6 +1869,16 @@ let voiceMuted = false;
 let autocompleteTimer = null;
 
 let transmitting = false;
+
+/* Navegación integrada del Modo Manillar */
+let cockpitMap = null;
+let cockpitRouteLayer = null;
+let cockpitUserMarker = null;
+let cockpitNextMarker = null;
+let cockpitWatchId = null;
+let cockpitLastSample = null;
+let cockpitVoiceStages = new Set();
+let cockpitRouteCoords = [];
 
 
 /* =========================================================
@@ -2837,12 +2858,15 @@ function selectRoute(index){
                                 step.maneuver.type
                             ){
 
-                                let text =
-                                buildInstruction(step);
-
-                                routeSteps.push(
-                                    text
-                                );
+                                const loc = step.maneuver.location;
+                                routeSteps.push({
+                                    instruction:buildInstruction(step),
+                                    lat:Number(loc[1]),
+                                    lng:Number(loc[0]),
+                                    type:step.maneuver.type || "continue",
+                                    modifier:step.maneuver.modifier || "",
+                                    name:step.name || ""
+                                });
 
                             }
 
@@ -2858,12 +2882,11 @@ function selectRoute(index){
 
     if(!routeSteps.length){
 
-        routeSteps = [
-            "Continúa por la ruta marcada",
-            "Mantén la carretera",
-            "Sigue hacia el siguiente punto",
-            "Continúa hasta el destino"
-        ];
+        const coords = (lastRoute.geometry && lastRoute.geometry.coordinates) || [];
+        routeSteps = coords.length ? [
+            {instruction:"Continúa por la ruta marcada",lat:coords[0][1],lng:coords[0][0],type:"depart",modifier:"",name:""},
+            {instruction:"Has llegado al destino",lat:coords[coords.length-1][1],lng:coords[coords.length-1][0],type:"arrive",modifier:"",name:""}
+        ] : [];
 
     }
 
@@ -3960,142 +3983,81 @@ $("navigateButton")
 
 
 /* =========================================================
-   COCKPIT
+   COCKPIT — MODO MANILLAR INTEGRADO
 ========================================================= */
 
-$("startCockpitBtn")
-.addEventListener(
-    "click",
-    function(){
-
-        if(!lastRoute){
-            return;
-        }
-
-        $("cockpitOverlay")
-        .classList.add("active");
-
-        updateCockpitInstruction();
-
-    }
-);
-
-
-$("cockpitExitBtn")
-.addEventListener(
-    "click",
-    function(){
-
-        $("cockpitOverlay")
-        .classList.remove("active");
-
-        if(
-            "speechSynthesis" in window
-        ){
-            speechSynthesis.cancel();
-        }
-
-    }
-);
-
-
-$("cockpitNextStep")
-.addEventListener(
-    "click",
-    function(){
-
-        if(!routeSteps.length){
-            return;
-        }
-
-        currentStepIndex =
-        (
-            currentStepIndex + 1
-        ) %
-        routeSteps.length;
-
-        updateCockpitInstruction();
-
-    }
-);
-
-
-$("cockpitMuteBtn")
-.addEventListener(
-    "click",
-    function(){
-
-        voiceMuted =
-        !voiceMuted;
-
-        this.textContent =
-        voiceMuted
-        ? "🔇 VOZ SILENCIADA"
-        : "🔊 VOZ ACTIVA";
-
-        if(voiceMuted){
-
-            if(
-                "speechSynthesis" in window
-            ){
-                speechSynthesis.cancel();
-            }
-
-        }
-
-    }
-);
-
-
-function updateCockpitInstruction(){
-
-    const instruction =
-    routeSteps[
-        currentStepIndex
-    ] ||
-    "Continúa por la ruta";
-
-    $("cockpitInstruction")
-    .textContent =
-    instruction;
-
-    $("cockpitNextStreet")
-    .textContent =
-    `Paso ${currentStepIndex+1} de ${routeSteps.length}`;
-
-    if(
-        !voiceMuted &&
-        "speechSynthesis" in window
-    ){
-
-        speechSynthesis.cancel();
-
-        const utterance =
-        new SpeechSynthesisUtterance(
-            instruction
-        );
-
-        utterance.lang =
-        currentLanguage === "es"
-        ? "es-ES"
-        : currentLanguage === "ca"
-        ? "ca-ES"
-        : currentLanguage === "fr"
-        ? "fr-FR"
-        : currentLanguage === "it"
-        ? "it-IT"
-        : currentLanguage === "de"
-        ? "de-DE"
-        : "en-US";
-
-        speechSynthesis.speak(
-            utterance
-        );
-
-    }
-
+function navDistance(a,b){
+    const R=6371000, dLat=(b.lat-a.lat)*Math.PI/180, dLng=(b.lng-a.lng)*Math.PI/180;
+    const x=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+    return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
+function navFormat(m){return m<1000?Math.round(m)+" m":(m/1000).toFixed(1)+" km";}
+function navIcon(step){
+    if(!step)return "↑"; const m=step.modifier||"", type=step.type||"";
+    if(type==="arrive")return "✓"; if(type==="roundabout"||type==="rotary")return "⟳";
+    if(m.includes("sharp left")||type==="uturn")return "↩"; if(m.includes("sharp right"))return "↪";
+    if(m.includes("left"))return "←"; if(m.includes("right"))return "→"; return "↑";
+}
+function cockpitSpeak(text){
+    if(voiceMuted||!("speechSynthesis" in window)||!text)return;
+    speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text);
+    u.lang=currentLanguage==="es"?"es-ES":currentLanguage==="ca"?"ca-ES":currentLanguage==="fr"?"fr-FR":currentLanguage==="it"?"it-IT":currentLanguage==="de"?"de-DE":"en-US";
+    u.rate=.95; speechSynthesis.speak(u);
+}
+function initCockpitMap(){
+    if(cockpitMap)return;
+    cockpitMap=L.map("cockpitMap",{zoomControl:false,attributionControl:false});
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(cockpitMap);
+}
+function drawCockpitRoute(){
+    if(!cockpitMap||!lastRoute||!lastRoute.geometry)return;
+    if(cockpitRouteLayer)cockpitMap.removeLayer(cockpitRouteLayer);
+    cockpitRouteLayer=L.geoJSON(lastRoute.geometry,{style:{color:"#3d9cff",weight:7,opacity:.95}}).addTo(cockpitMap);
+    cockpitRouteCoords=lastRoute.geometry.coordinates.map(c=>({lat:c[1],lng:c[0]}));
+    const b=cockpitRouteLayer.getBounds(); if(b.isValid())cockpitMap.fitBounds(b,{padding:[25,25],maxZoom:16});
+}
+function updateCockpitInstruction(distance){
+    const step=routeSteps[currentStepIndex];
+    if(!step){$("cockpitInstruction").textContent="Ruta finalizada";$("cockpitDist").textContent="✓";$("cockpitTurnIcon").textContent="✓";return;}
+    $("cockpitInstruction").textContent=step.instruction;
+    $("cockpitNextStreet").textContent=step.name||`Paso ${currentStepIndex+1} de ${routeSteps.length}`;
+    $("cockpitTurnIcon").textContent=navIcon(step);
+    $("cockpitDist").textContent=Number.isFinite(distance)?navFormat(distance):"EN RUTA";
+    if(cockpitMap){
+        const ll=[step.lat,step.lng];
+        if(!cockpitNextMarker)cockpitNextMarker=L.circleMarker(ll,{radius:7,color:"#fff",weight:2,fillColor:"#10b981",fillOpacity:1}).addTo(cockpitMap);else cockpitNextMarker.setLatLng(ll);
+    }
+}
+function cockpitGpsUpdate(pos){
+    const point={lat:pos.coords.latitude,lng:pos.coords.longitude};
+    userPosition={lat:point.lat,lng:point.lng};
+    let kmh=typeof pos.coords.speed==="number"&&pos.coords.speed>=0?pos.coords.speed*3.6:0;
+    if(!kmh&&cockpitLastSample){const sec=Math.max(.001,(pos.timestamp-cockpitLastSample.t)/1000);kmh=navDistance(cockpitLastSample.p,point)/sec*3.6;if(kmh>250)kmh=0;}
+    cockpitLastSample={p:point,t:pos.timestamp}; currentSpeed=Math.round(kmh);$("cockpitSpeed").textContent=currentSpeed;
+    const ll=[point.lat,point.lng];
+    if(!cockpitUserMarker)cockpitUserMarker=L.circleMarker(ll,{radius:10,color:"#fff",weight:3,fillColor:"#ff3b30",fillOpacity:1}).addTo(cockpitMap);else cockpitUserMarker.setLatLng(ll);
+    cockpitMap.panTo(ll,{animate:true,duration:.3}); $("cockpitGpsStatus").textContent="● GPS ACTIVO";
+    const step=routeSteps[currentStepIndex]; if(!step)return;
+    const d=navDistance(point,step); updateCockpitInstruction(d);
+    [[500,"500"],[200,"200"],[80,"80"]].forEach(([limit,key])=>{const id=currentStepIndex+":"+key;if(d<=limit&&!cockpitVoiceStages.has(id)){cockpitVoiceStages.add(id);cockpitSpeak(`En ${limit} metros, ${step.instruction.toLowerCase()}`);}});
+    const radius=currentSpeed>60?45:currentSpeed>30?30:20;
+    if(d<=radius){const id=currentStepIndex+":now";if(!cockpitVoiceStages.has(id)){cockpitVoiceStages.add(id);cockpitSpeak(step.instruction);if(currentStepIndex<routeSteps.length-1){setTimeout(()=>{currentStepIndex++;updateCockpitInstruction();},900);}}}
+}
+function startCockpitGps(){
+    if(!navigator.geolocation){$("cockpitGpsStatus").textContent="⚠ GPS NO DISPONIBLE";return;}
+    if(cockpitWatchId!==null)return; $("cockpitGpsStatus").textContent="● BUSCANDO GPS...";
+    cockpitWatchId=navigator.geolocation.watchPosition(cockpitGpsUpdate,()=>{$("cockpitGpsStatus").textContent="⚠ SIN SEÑAL GPS";},{enableHighAccuracy:true,timeout:15000,maximumAge:1000});
+}
+function stopCockpitGps(){if(cockpitWatchId!==null){navigator.geolocation.clearWatch(cockpitWatchId);cockpitWatchId=null;}cockpitLastSample=null;}
 
+$("startCockpitBtn").addEventListener("click",function(){
+    if(!lastRoute)return; currentStepIndex=0;cockpitVoiceStages=new Set();
+    $("cockpitOverlay").classList.add("active");
+    setTimeout(()=>{initCockpitMap();cockpitMap.invalidateSize();drawCockpitRoute();updateCockpitInstruction();cockpitSpeak(routeSteps[0]&&routeSteps[0].instruction);startCockpitGps();},120);
+});
+$("cockpitExitBtn").addEventListener("click",function(){$("cockpitOverlay").classList.remove("active");stopCockpitGps();if("speechSynthesis" in window)speechSynthesis.cancel();});
+$("cockpitNextStep").addEventListener("click",function(){if(currentStepIndex<routeSteps.length-1){currentStepIndex++;updateCockpitInstruction();}});
+$("cockpitMuteBtn").addEventListener("click",function(){voiceMuted=!voiceMuted;this.textContent=voiceMuted?"🔇 VOZ SILENCIADA":"🔊 VOZ ACTIVA";if(voiceMuted&&"speechSynthesis" in window)speechSynthesis.cancel();});
 
 /* =========================================================
    COMUNIDAD
