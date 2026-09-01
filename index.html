@@ -1047,6 +1047,10 @@ input[type=range]::-webkit-slider-thumb{
     border-color:#ef4444;
 }
 
+
+/* PLANIFICADOR RIDER + POI */
+.planning-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.planning-tab{border:1px solid #334155;background:#111827;color:#cbd5e1;padding:12px 14px;border-radius:12px;font-weight:800}.planning-tab.active{background:#ff3b30;color:#fff;border-color:#ff3b30}.planning-panel{margin:10px 0;padding:14px;border:1px solid #1e293b;border-radius:16px;background:#0f172a}.time-selector,.poi-categories{display:flex;gap:8px;flex-wrap:wrap}.time-selector button,.poi-categories button{padding:9px 11px;border-radius:10px;border:1px solid #334155;background:#111827;color:#e2e8f0;font-weight:700}.time-selector button.active,.poi-categories button.active{background:#1d4ed8;border-color:#3b82f6}.poi-panel{margin-top:18px}.poi-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.poi-status{font-size:12px;color:#94a3b8;margin-top:8px}.poi-popup-btn{display:block;width:100%;margin-top:6px;padding:7px;border:0;border-radius:8px;background:#2563eb;color:white;font-weight:700}
+
 /* SOS */
 
 .sos-modal{
@@ -1392,6 +1396,20 @@ footer{
 
     </div>
 
+    <div class="planning-tabs">
+        <button class="planning-tab active" id="planDistanceBtn">📏 POR KM</button>
+        <button class="planning-tab" id="planTimeBtn">⏱️ POR TIEMPO</button>
+    </div>
+    <div class="planning-panel" id="timePlanner" style="display:none">
+        <strong>¿CUÁNTO TIEMPO TIENES?</strong>
+        <div class="time-selector" id="timeSelector" style="margin-top:10px">
+            <button data-minutes="60">1 H</button><button data-minutes="120">2 H</button>
+            <button data-minutes="180" class="active">3 H</button><button data-minutes="240">4 H</button>
+            <button data-minutes="360">6 H</button><button data-minutes="480">8 H</button>
+        </div>
+        <div class="poi-status">RIDER convertirá el tiempo disponible en una distancia objetivo según el tipo de ruta y carreteras.</div>
+    </div>
+
 </section>
 
 <!-- TERRENO -->
@@ -1440,6 +1458,19 @@ footer{
 
     </div>
 
+</section>
+
+<section class="planning-panel poi-panel">
+    <strong>📍 PUNTOS DE INTERÉS</strong>
+    <div class="poi-toolbar" style="margin-top:10px">
+        <button class="planning-tab" id="poiNearBtn">📍 CERCA DE MÍ</button>
+        <button class="planning-tab" id="poiRouteBtn">🛣️ CERCA DE MI RUTA</button>
+        <button class="planning-tab" id="poiClearBtn">🧹 LIMPIAR</button>
+    </div>
+    <div class="poi-categories" id="poiCategories" style="margin-top:10px">
+        <button data-poi="fuel">⛽ Gasolina</button><button data-poi="food">🍽️ Comer</button><button data-poi="cafe">☕ Café</button><button data-poi="viewpoint">📸 Miradores</button><button data-poi="nature">🏞️ Naturaleza</button><button data-poi="lodging">🏕️ Dormir</button><button data-poi="moto">🏍️ Moto</button>
+    </div>
+    <div class="poi-status" id="poiStatus">Selecciona categorías y busca puntos en el mapa.</div>
 </section>
 
 <button class="generate" id="generateButton">
@@ -1851,6 +1882,11 @@ let lastRoute = null;
 let selectedBike = "sport";
 let selectedDistance = 250;
 let routeMode = "circular";
+let planningMode = "distance";
+let selectedDurationMinutes = 180;
+let poiLayer = null;
+let activePoiCategories = new Set();
+let poiRequestController = null;
 
 let selectedDestination = null;
 
@@ -1995,6 +2031,17 @@ const bikeProfiles = {
     }
 };
 
+
+/* =========================================================
+   PLANIFICACIÓN POR KM / TIEMPO Y POI
+========================================================= */
+$("planDistanceBtn").addEventListener("click",()=>{planningMode="distance";$("planDistanceBtn").classList.add("active");$("planTimeBtn").classList.remove("active");$("distanceSelector").style.display="flex";$("timePlanner").style.display="none";});
+$("planTimeBtn").addEventListener("click",()=>{planningMode="time";$("planTimeBtn").classList.add("active");$("planDistanceBtn").classList.remove("active");$("distanceSelector").style.display="none";$("timePlanner").style.display="block";});
+document.querySelectorAll(".time-selector button").forEach(b=>b.addEventListener("click",function(){document.querySelectorAll(".time-selector button").forEach(x=>x.classList.remove("active"));this.classList.add("active");selectedDurationMinutes=Number(this.dataset.minutes); }));
+document.querySelectorAll("#poiCategories button").forEach(b=>b.addEventListener("click",function(){const k=this.dataset.poi;if(activePoiCategories.has(k)){activePoiCategories.delete(k);this.classList.remove("active");}else{activePoiCategories.add(k);this.classList.add("active");}}));
+$("poiNearBtn").addEventListener("click",()=>loadPois(false));
+$("poiRouteBtn").addEventListener("click",()=>loadPois(true));
+$("poiClearBtn").addEventListener("click",()=>{clearPoi();$("poiStatus").textContent='POI eliminados del mapa.';});
 
 /* =========================================================
    PREFERENCIAS
@@ -2163,7 +2210,21 @@ function destinationPoint(origin,bearing,distanceKm){
   - tenga suficientes coordenadas
 */
 
-function buildCircularWaypoints(variant){
+function getTargetDistanceKm(){
+    if(planningMode === "distance") return Math.max(30, Number(selectedDistance)||250);
+    const style = (Number($("curves").value)+Number($("mountain").value)+Number($("secondary").value)+Number($("scenery").value)+Number($("fun").value))/50;
+    let avgKmh = routeMode === "circular" ? 52 : 65;
+    if(preferences.highways) avgKmh -= 6;
+    if(preferences.cities) avgKmh -= 4;
+    avgKmh -= style*8;
+    const p=bikeProfiles[selectedBike];
+    if(p && p.name && p.name.includes("SCOOTER")) avgKmh-=8;
+    return Math.max(25, Math.round((selectedDurationMinutes/60)*Math.max(30,avgKmh)));
+}
+
+function routeDistanceError(route){ return Math.abs((route.distance/1000)-getTargetDistanceKm()); }
+
+function buildCircularWaypoints(variant, scale=1){
 
     const profile =
     bikeProfiles[selectedBike];
@@ -2193,11 +2254,7 @@ function buildCircularWaypoints(variant){
       Nunca será cero.
     */
 
-    const requestedDistance =
-    Math.max(
-        50,
-        Number(selectedDistance) || 250
-    );
+    const requestedDistance = getTargetDistanceKm();
 
     /*
       El radio depende del tipo de moto.
@@ -2229,10 +2286,7 @@ function buildCircularWaypoints(variant){
     styleFactor * 0.30;
 
     radius =
-    Math.max(
-        15,
-        Math.min(radius,140)
-    );
+    Math.max(15, Math.min(radius * scale, 160));
 
     const count =
     Math.max(
@@ -2424,129 +2478,27 @@ async function requestRoute(points){
 ========================================================= */
 
 async function createCircularRoutes(){
-
-    const routes = [];
-
-    /*
-      Intentamos primero tres variantes.
-
-      Si alguna falla, se prueban
-      configuraciones alternativas.
-    */
-
-    const attempts = [
-        0,1,2
-    ];
-
-    for(const variant of attempts){
-
-        try{
-
-            const points =
-            buildCircularWaypoints(
-                variant
-            );
-
-            const route =
-            await requestRoute(points);
-
-            route.variant = variant;
-
-            routes.push(route);
-
-        }catch(error){
-
-            console.warn(
-                "Variante circular fallida:",
-                error
-            );
-
-        }
-
-    }
-
-    /*
-      Si no hay ninguna, hacemos
-      un segundo intento con un radio
-      diferente.
-    */
-
-    if(routes.length === 0){
-
+    const candidates=[];
+    // Ajuste iterativo: probamos radios y nos quedamos con los que mejor cumplen los KM objetivo.
+    const scales=[0.58,0.72,0.86,1,1.16,1.34,1.55];
+    for(const scale of scales){
         for(let variant=0;variant<3;variant++){
-
             try{
-
-                const profile =
-                bikeProfiles[selectedBike];
-
-                const points = [];
-
-                const fallbackRadius =
-                Math.max(
-                    20,
-                    Math.min(
-                        100,
-                        selectedDistance *
-                        profile.radius *
-                        .32
-                    )
-                );
-
-                const angles =
-                [
-                    0,
-                    60,
-                    120,
-                    180,
-                    240,
-                    300
-                ];
-
-                angles.forEach(
-                    (angle,index)=>{
-
-                        points.push(
-                            destinationPoint(
-                                userPosition,
-                                angle + variant*15,
-                                fallbackRadius *
-                                (
-                                    1 +
-                                    (index%2)*.15
-                                )
-                            )
-                        );
-
-                    }
-                );
-
-                points.push({
-                    lat:userPosition.lat,
-                    lng:userPosition.lng
-                });
-
-                const route =
-                await requestRoute(points);
-
-                routes.push(route);
-
-            }catch(error){
-
-                console.warn(
-                    "Fallback circular fallido",
-                    error
-                );
-
-            }
-
+                const route=await requestRoute(buildCircularWaypoints(variant,scale));
+                route.variant=variant; route.targetDistanceKm=getTargetDistanceKm();
+                candidates.push(route);
+            }catch(e){ console.warn('Intento circular fallido',e); }
         }
-
     }
-
-    return routes;
+    candidates.sort((a,b)=>routeDistanceError(a)-routeDistanceError(b));
+    // alternativas distintas, pero todas razonablemente próximas al objetivo
+    const chosen=[];
+    for(const route of candidates){
+        if(!chosen.some(r=>Math.abs(r.distance-route.distance)<4000)) chosen.push(route);
+        if(chosen.length===3) break;
+    }
+    return chosen;
 }
-
 
 /* =========================================================
    RUTAS POR DESTINO
@@ -2806,6 +2758,13 @@ function selectRoute(index){
 
     $("distanceResult").textContent =
     distanceText;
+
+    if(routeMode === "circular"){
+        const target=getTargetDistanceKm();
+        const actual=distanceKm;
+        $("notice").textContent = planningMode === "time" ? `Objetivo por tiempo: ~${target} km (${selectedDurationMinutes/60} h). Ruta calculada: ${Math.round(actual)} km.` : `Objetivo: ${target} km · Ruta calculada: ${Math.round(actual)} km.`;
+        $("notice").style.display="block";
+    }
 
     $("timeResult").textContent =
     hours > 0
@@ -3077,6 +3036,40 @@ async function generateRoutes(){
 
 }
 
+
+/* =========================================================
+   POI — OPENSTREETMAP / OVERPASS
+========================================================= */
+const POI_QUERIES={
+ fuel:['node[amenity="fuel"]','way[amenity="fuel"]'],
+ food:['node[amenity="restaurant"]','node[amenity="fast_food"]','way[amenity="restaurant"]'],
+ cafe:['node[amenity="cafe"]','way[amenity="cafe"]'],
+ viewpoint:['node[tourism="viewpoint"]','way[tourism="viewpoint"]'],
+ nature:['node[natural="water"]','way[natural="water"]','node[waterway]'],
+ lodging:['node[tourism="camp_site"]','node[tourism="hotel"]','node[tourism="guest_house"]'],
+ moto:['node[amenity="motorcycle_parking"]','node[shop="motorcycle"]','node[amenity="motorcycle_rental"]']
+};
+function clearPoi(){ if(poiLayer){map.removeLayer(poiLayer);poiLayer=null;} }
+function poiBounds(aroundRoute=false){
+ if(aroundRoute && lastRoute && routeLayer){ const b=routeLayer.getBounds(); return `${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()}`; }
+ const b=map.getBounds(); return `${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()}`;
+}
+async function loadPois(aroundRoute=false){
+ if(!activePoiCategories.size){$("poiStatus").textContent='Selecciona al menos una categoría.';return;}
+ clearPoi(); if(poiRequestController) poiRequestController.abort(); poiRequestController=new AbortController();
+ $("poiStatus").textContent='Buscando POI en la zona…';
+ const bbox=poiBounds(aroundRoute);
+ const parts=[...activePoiCategories].flatMap(k=>POI_QUERIES[k]||[]).map(q=>`${q}(${bbox});`).join('');
+ const query=`[out:json][timeout:20];(${parts});out center 300;`;
+ try{
+  const res=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:query,signal:poiRequestController.signal});
+  if(!res.ok) throw new Error('POI HTTP '+res.status); const data=await res.json();
+  poiLayer=L.layerGroup().addTo(map); let count=0;
+  for(const el of data.elements||[]){ const lat=el.lat??el.center?.lat, lng=el.lon??el.center?.lon; if(lat==null||lng==null)continue; const t=el.tags||{}; const name=t.name||t.amenity||t.tourism||t.natural||'Punto de interés';
+   const m=L.circleMarker([lat,lng],{radius:6,weight:2,color:'#fff',fillColor:'#2563eb',fillOpacity:.95}).bindPopup(`<strong>${String(name).replace(/</g,'&lt;')}</strong><br><small>${t.address||''}</small>`); m.addTo(poiLayer);count++; }
+  $("poiStatus").textContent=`${count} puntos cargados. Pulsa un marcador para ver información.`;
+ }catch(e){if(e.name!=='AbortError'){$("poiStatus").textContent='No se pudieron cargar los POI ahora mismo.';console.warn(e);}}
+}
 
 /* =========================================================
    GPS
