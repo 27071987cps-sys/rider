@@ -1870,7 +1870,7 @@ let autocompleteTimer = null;
 
 let transmitting = false;
 
-/* Navegación integrada del Modo Manillar */
+/* Navegación integrada del Modo Manillar — motor automático y ligero */
 let cockpitMap = null;
 let cockpitRouteLayer = null;
 let cockpitUserMarker = null;
@@ -1879,9 +1879,18 @@ let cockpitWatchId = null;
 let cockpitLastSample = null;
 let cockpitVoiceStages = new Set();
 let cockpitRouteCoords = [];
-let cockpitRouteProgressIndex = 0;
-let cockpitStepRouteIndexes = [];
+let cockpitRouteCum = [];
+let cockpitRouteProgressMeters = 0;
+let cockpitStepProgress = [];
 let cockpitNavigationStarted = false;
+let cockpitLastRenderAt = 0;
+let cockpitLastMapPanAt = 0;
+let cockpitOffRouteHits = 0;
+let cockpitRerouting = false;
+let cockpitLastRerouteAt = 0;
+let cockpitWakeLock = null;
+let cockpitPendingPosition = null;
+let cockpitRenderScheduled = false;
 
 
 /* =========================================================
@@ -2342,7 +2351,7 @@ function buildCircularWaypoints(variant){
 
 async function requestRoute(points){
 
-    if(!points || points.length < 3){
+    if(!points || points.length < 2){
         throw new Error("Pocos puntos");
     }
 
@@ -4000,16 +4009,18 @@ function navDistance(a,b){
 
 function navFormat(m){
     if(!Number.isFinite(m)) return "—";
-    return m<1000 ? Math.round(m)+" m" : (m/1000).toFixed(1)+" km";
+    return m<1000 ? Math.max(0,Math.round(m))+" m" : (m/1000).toFixed(1)+" km";
 }
 
 function navIcon(step){
     if(!step) return "↑";
-    const m=step.modifier||"", type=step.type||"";
+    const m=(step.modifier||"").toLowerCase(), type=(step.type||"").toLowerCase();
     if(type==="arrive") return "✓";
     if(type==="roundabout"||type==="rotary") return "⟳";
-    if(m.includes("sharp left")||type==="uturn") return "↩";
+    if(type==="uturn"||m.includes("sharp left")) return "↩";
     if(m.includes("sharp right")) return "↪";
+    if(m.includes("slight left")) return "↖";
+    if(m.includes("slight right")) return "↗";
     if(m.includes("left")) return "←";
     if(m.includes("right")) return "→";
     return "↑";
@@ -4017,40 +4028,74 @@ function navIcon(step){
 
 function cockpitSpeak(text){
     if(voiceMuted||!("speechSynthesis" in window)||!text) return;
-    speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
     u.lang=currentLanguage==="es"?"es-ES":currentLanguage==="ca"?"ca-ES":currentLanguage==="fr"?"fr-FR":currentLanguage==="it"?"it-IT":currentLanguage==="de"?"de-DE":"en-US";
-    u.rate=.95;
+    u.rate=.92;
     speechSynthesis.speak(u);
 }
 
-function initCockpitMap(){
-    if(cockpitMap) return;
-    cockpitMap=L.map("cockpitMap",{zoomControl:false,attributionControl:false});
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(cockpitMap);
+async function requestCockpitWakeLock(){
+    try{
+        if("wakeLock" in navigator && !cockpitWakeLock){
+            cockpitWakeLock=await navigator.wakeLock.request("screen");
+            cockpitWakeLock.addEventListener("release",()=>{cockpitWakeLock=null;});
+        }
+    }catch(e){ console.warn("No se pudo activar el bloqueo de pantalla",e); }
 }
 
-function nearestRouteIndex(point, fromIndex=0){
-    if(!cockpitRouteCoords.length) return -1;
-    let best=-1, bestDistance=Infinity;
-    const start=Math.max(0,fromIndex-30);
-    const end=Math.min(cockpitRouteCoords.length,fromIndex+1200);
-    for(let i=start;i<end;i++){
-        const d=navDistance(point,cockpitRouteCoords[i]);
-        if(d<bestDistance){bestDistance=d;best=i;}
+async function releaseCockpitWakeLock(){
+    try{ if(cockpitWakeLock) await cockpitWakeLock.release(); }catch(e){}
+    cockpitWakeLock=null;
+}
+
+document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="visible"&&cockpitNavigationStarted) requestCockpitWakeLock();
+});
+
+function initCockpitMap(){
+    if(cockpitMap) return;
+    cockpitMap=L.map("cockpitMap",{zoomControl:false,attributionControl:false,preferCanvas:true});
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,updateWhenIdle:true,keepBuffer:2}).addTo(cockpitMap);
+}
+
+function projectPointToSegmentMeters(p,a,b){
+    const lat0=((a.lat+b.lat+p.lat)/3)*Math.PI/180;
+    const mx=111320*Math.cos(lat0), my=110540;
+    const ax=a.lng*mx, ay=a.lat*my, bx=b.lng*mx, by=b.lat*my, px=p.lng*mx, py=p.lat*my;
+    const dx=bx-ax, dy=by-ay, len2=dx*dx+dy*dy;
+    let t=len2?((px-ax)*dx+(py-ay)*dy)/len2:0;
+    t=Math.max(0,Math.min(1,t));
+    const qx=ax+t*dx,qy=ay+t*dy;
+    return {t,distance:Math.hypot(px-qx,py-qy),point:{lat:qy/my,lng:qx/mx}};
+}
+
+function nearestRouteProjection(point, hintMeters=0){
+    if(cockpitRouteCoords.length<2) return null;
+    let start=0,end=cockpitRouteCoords.length-2;
+    if(Number.isFinite(hintMeters)&&cockpitRouteCum.length){
+        const hintIndex=Math.max(0,cockpitRouteCum.findIndex(v=>v>=hintMeters)-1);
+        start=Math.max(0,hintIndex-80);
+        end=Math.min(end,hintIndex+1200);
+    }
+    let best=null;
+    for(let i=start;i<=end;i++){
+        const r=projectPointToSegmentMeters(point,cockpitRouteCoords[i],cockpitRouteCoords[i+1]);
+        if(!best||r.distance<best.distance){
+            best={...r,index:i,progress:cockpitRouteCum[i]+r.t*(cockpitRouteCum[i+1]-cockpitRouteCum[i])};
+        }
     }
     return best;
 }
 
 function prepareCockpitNavigation(){
-    cockpitRouteProgressIndex=0;
-    cockpitStepRouteIndexes=[];
-    if(!cockpitRouteCoords.length) return;
-    let searchFrom=0;
-    routeSteps.forEach(step=>{
-        const idx=nearestRouteIndex({lat:step.lat,lng:step.lng},searchFrom);
-        cockpitStepRouteIndexes.push(idx<0?searchFrom:idx);
-        if(idx>=0) searchFrom=idx;
+    cockpitRouteCum=[0];
+    for(let i=1;i<cockpitRouteCoords.length;i++){
+        cockpitRouteCum[i]=cockpitRouteCum[i-1]+navDistance(cockpitRouteCoords[i-1],cockpitRouteCoords[i]);
+    }
+    cockpitRouteProgressMeters=0;
+    cockpitStepProgress=routeSteps.map(step=>{
+        const hit=nearestRouteProjection({lat:step.lat,lng:step.lng},0);
+        return hit?hit.progress:0;
     });
 }
 
@@ -4062,6 +4107,35 @@ function drawCockpitRoute(){
     prepareCockpitNavigation();
     const b=cockpitRouteLayer.getBounds();
     if(b.isValid()) cockpitMap.fitBounds(b,{padding:[25,25],maxZoom:16});
+}
+
+function buildRouteSteps(route){
+    const steps=[];
+    if(route&&route.legs){
+        route.legs.forEach(leg=>{
+            (leg.steps||[]).forEach(step=>{
+                if(step.maneuver&&step.maneuver.type){
+                    const loc=step.maneuver.location;
+                    if(!loc) return;
+                    steps.push({
+                        instruction:buildInstruction(step),
+                        lat:Number(loc[1]),lng:Number(loc[0]),
+                        type:step.maneuver.type||"continue",
+                        modifier:step.maneuver.modifier||"",
+                        name:step.name||""
+                    });
+                }
+            });
+        });
+    }
+    if(!steps.length&&route&&route.geometry&&route.geometry.coordinates){
+        const c=route.geometry.coordinates;
+        if(c.length) steps.push(
+            {instruction:"Continúa por la ruta marcada",lat:c[0][1],lng:c[0][0],type:"depart",modifier:"",name:""},
+            {instruction:"Has llegado al destino",lat:c[c.length-1][1],lng:c[c.length-1][0],type:"arrive",modifier:"",name:""}
+        );
+    }
+    return steps;
 }
 
 function updateCockpitInstruction(distance){
@@ -4084,34 +4158,29 @@ function updateCockpitInstruction(distance){
     }
 }
 
-function routeDistanceToStep(progressIndex, stepIndex){
-    const target=cockpitStepRouteIndexes[stepIndex];
-    if(!Number.isFinite(target)||target<progressIndex) return 0;
-    let total=0;
-    for(let i=progressIndex;i<target&&i<cockpitRouteCoords.length-1;i++){
-        total+=navDistance(cockpitRouteCoords[i],cockpitRouteCoords[i+1]);
-    }
-    return total;
+function distanceToCurrentStep(){
+    const target=cockpitStepProgress[currentStepIndex];
+    if(!Number.isFinite(target)) return Infinity;
+    return Math.max(0,target-cockpitRouteProgressMeters);
 }
 
-function advanceToCurrentRouteProgress(){
-    if(!routeSteps.length) return;
-    // Saltamos automáticamente salida y maniobras que ya han quedado detrás.
+function syncCurrentStep(){
     while(currentStepIndex<routeSteps.length-1){
-        const stepRouteIndex=cockpitStepRouteIndexes[currentStepIndex];
-        if(!Number.isFinite(stepRouteIndex) || stepRouteIndex>cockpitRouteProgressIndex+8) break;
+        const target=cockpitStepProgress[currentStepIndex];
+        if(!Number.isFinite(target)||cockpitRouteProgressMeters<target+12) break;
         currentStepIndex++;
     }
 }
 
 function announceApproach(distance){
     const step=routeSteps[currentStepIndex];
-    if(!step) return;
-    [[500,"500"],[200,"200"],[80,"80"]].forEach(([limit,key])=>{
-        const id=currentStepIndex+":"+key;
+    if(!step||!Number.isFinite(distance)) return;
+    const thresholds=currentSpeed>=80?[1000,500,200]:currentSpeed>=40?[700,300,100]:[400,150,50];
+    thresholds.forEach(limit=>{
+        const id=currentStepIndex+":"+limit;
         if(distance<=limit&&!cockpitVoiceStages.has(id)){
             cockpitVoiceStages.add(id);
-            cockpitSpeak(`En ${limit} metros, ${step.instruction.toLowerCase()}`);
+            cockpitSpeak(`En ${navFormat(limit)}, ${step.instruction.toLowerCase()}`);
         }
     });
 }
@@ -4124,59 +4193,122 @@ function finishCurrentManeuver(){
         cockpitVoiceStages.add(id);
         cockpitSpeak(step.instruction);
     }
-    if(currentStepIndex<routeSteps.length-1){
-        currentStepIndex++;
-        updateCockpitInstruction();
-    }else{
-        updateCockpitInstruction();
-        cockpitSpeak("Has llegado al destino");
+    if(currentStepIndex<routeSteps.length-1) currentStepIndex++;
+    updateCockpitInstruction(distanceToCurrentStep());
+}
+
+function updateGpsMarker(point){
+    if(!cockpitMap) return;
+    const ll=[point.lat,point.lng];
+    if(!cockpitUserMarker) cockpitUserMarker=L.circleMarker(ll,{radius:10,color:"#fff",weight:3,fillColor:"#ff3b30",fillOpacity:1}).addTo(cockpitMap);
+    else cockpitUserMarker.setLatLng(ll);
+    const now=Date.now();
+    if(now-cockpitLastMapPanAt>900){
+        cockpitMap.panTo(ll,{animate:true,duration:.35});
+        cockpitLastMapPanAt=now;
     }
 }
 
-function cockpitGpsUpdate(pos){
+async function rerouteFromPosition(point){
+    const now=Date.now();
+    if(cockpitRerouting||now-cockpitLastRerouteAt<15000) return;
+    cockpitRerouting=true; cockpitLastRerouteAt=now;
+    $("cockpitGpsStatus").textContent="● RECALCULANDO RUTA...";
+    try{
+        // Conserva el tramo restante: siguiente maniobra + puntos espaciados + final.
+        const remaining=[];
+        const startProgress=cockpitRouteProgressMeters;
+        const total=cockpitRouteCum[cockpitRouteCum.length-1]||0;
+        const nextTarget=cockpitStepProgress[currentStepIndex];
+        if(Number.isFinite(nextTarget)&&nextTarget>startProgress+50){
+            const idx=cockpitRouteCum.findIndex(v=>v>=nextTarget);
+            if(idx>0) remaining.push(cockpitRouteCoords[idx]);
+        }
+        const samples=4;
+        for(let s=1;s<=samples;s++){
+            const target=startProgress+(total-startProgress)*(s/(samples+1));
+            const idx=cockpitRouteCum.findIndex(v=>v>=target);
+            if(idx>0&&idx<cockpitRouteCoords.length-1) remaining.push(cockpitRouteCoords[idx]);
+        }
+        remaining.push(cockpitRouteCoords[cockpitRouteCoords.length-1]);
+        const dedup=[];
+        [point,...remaining].forEach(q=>{
+            if(!dedup.length||navDistance(dedup[dedup.length-1],q)>250) dedup.push({lat:q.lat,lng:q.lng});
+        });
+        if(dedup.length<2) throw new Error("No hay destino para recalcular");
+        const route=await requestRoute(dedup);
+        lastRoute=route;
+        routeSteps=buildRouteSteps(route);
+        currentStepIndex=0;
+        cockpitVoiceStages=new Set();
+        drawCockpitRoute();
+        const hit=nearestRouteProjection(point,0);
+        cockpitRouteProgressMeters=hit?hit.progress:0;
+        syncCurrentStep();
+        updateCockpitInstruction(distanceToCurrentStep());
+        cockpitOffRouteHits=0;
+        cockpitSpeak("Ruta recalculada. Continúa por la nueva ruta.");
+        $("cockpitGpsStatus").textContent="● GPS ACTIVO · RUTA RECALCULADA";
+    }catch(e){
+        console.warn("Error recalculando ruta",e);
+        $("cockpitGpsStatus").textContent="⚠ NO SE PUDO RECALCULAR";
+    }finally{
+        cockpitRerouting=false;
+    }
+}
+
+function processCockpitPosition(pos){
     if(!cockpitNavigationStarted) return;
     const point={lat:pos.coords.latitude,lng:pos.coords.longitude};
     userPosition={lat:point.lat,lng:point.lng};
-
     let kmh=typeof pos.coords.speed==="number"&&pos.coords.speed>=0?pos.coords.speed*3.6:0;
     if(!kmh&&cockpitLastSample){
-        const sec=Math.max(.001,(pos.timestamp-cockpitLastSample.t)/1000);
+        const sec=Math.max(.25,(pos.timestamp-cockpitLastSample.t)/1000);
         kmh=navDistance(cockpitLastSample.p,point)/sec*3.6;
-        if(kmh>250) kmh=0;
+        if(kmh>220) kmh=0;
     }
     cockpitLastSample={p:point,t:pos.timestamp};
     currentSpeed=Math.max(0,Math.round(kmh));
     $("cockpitSpeed").textContent=currentSpeed;
-
-    const ll=[point.lat,point.lng];
-    if(!cockpitUserMarker) cockpitUserMarker=L.circleMarker(ll,{radius:10,color:"#fff",weight:3,fillColor:"#ff3b30",fillOpacity:1}).addTo(cockpitMap);
-    else cockpitUserMarker.setLatLng(ll);
-    cockpitMap.panTo(ll,{animate:true,duration:.3});
+    updateGpsMarker(point);
     $("cockpitGpsStatus").textContent="● GPS ACTIVO";
 
-    // Seguimos el avance sobre la geometría de la ruta, no solo la distancia en línea recta.
-    const nearest=nearestRouteIndex(point,cockpitRouteProgressIndex);
-    if(nearest>=0){
-        cockpitRouteProgressIndex=Math.max(cockpitRouteProgressIndex,nearest);
-        advanceToCurrentRouteProgress();
+    const hit=nearestRouteProjection(point,cockpitRouteProgressMeters);
+    if(hit){
+        // No retrocedemos por ruido GPS salvo si la ruta acaba de recalcularse.
+        cockpitRouteProgressMeters=Math.max(cockpitRouteProgressMeters,hit.progress);
+        const accuracy=Math.max(10,Number(pos.coords.accuracy)||20);
+        const offThreshold=Math.max(35,Math.min(90,accuracy*1.8+(currentSpeed>70?25:0)));
+        if(hit.distance>offThreshold) cockpitOffRouteHits++;
+        else cockpitOffRouteHits=0;
+
+        if(cockpitOffRouteHits>=3) rerouteFromPosition(point);
+        syncCurrentStep();
     }
 
     const step=routeSteps[currentStepIndex];
     if(!step) return;
-    const routeDistance=routeDistanceToStep(cockpitRouteProgressIndex,currentStepIndex);
+    const routeDistance=distanceToCurrentStep();
+    updateCockpitInstruction(routeDistance);
+    announceApproach(routeDistance);
+
     const straightDistance=navDistance(point,step);
-    const displayDistance=routeDistance>0?routeDistance:straightDistance;
+    const passRadius=Math.max(18,Math.min(55,(Number(pos.coords.accuracy)||15)+15));
+    const target=cockpitStepProgress[currentStepIndex];
+    const passed=Number.isFinite(target)&&cockpitRouteProgressMeters>=target+passRadius;
+    if(straightDistance<=passRadius||passed) finishCurrentManeuver();
+}
 
-    updateCockpitInstruction(displayDistance);
-    announceApproach(displayDistance);
-
-    const radius=currentSpeed>60?50:currentSpeed>30?35:25;
-    const stepRouteIndex=cockpitStepRouteIndexes[currentStepIndex];
-    const passedByProgress=Number.isFinite(stepRouteIndex)&&cockpitRouteProgressIndex>=stepRouteIndex+5;
-
-    if(straightDistance<=radius||passedByProgress){
-        finishCurrentManeuver();
-    }
+function cockpitGpsUpdate(pos){
+    cockpitPendingPosition=pos;
+    if(cockpitRenderScheduled) return;
+    cockpitRenderScheduled=true;
+    requestAnimationFrame(()=>{
+        cockpitRenderScheduled=false;
+        const sample=cockpitPendingPosition;
+        cockpitPendingPosition=null;
+        if(sample) processCockpitPosition(sample);
+    });
 }
 
 function startCockpitGps(){
@@ -4186,7 +4318,7 @@ function startCockpitGps(){
     cockpitWatchId=navigator.geolocation.watchPosition(
         cockpitGpsUpdate,
         ()=>{$("cockpitGpsStatus").textContent="⚠ SIN SEÑAL GPS";},
-        {enableHighAccuracy:true,timeout:15000,maximumAge:1000}
+        {enableHighAccuracy:true,timeout:20000,maximumAge:500}
     );
 }
 
@@ -4194,23 +4326,29 @@ function stopCockpitGps(){
     if(cockpitWatchId!==null){navigator.geolocation.clearWatch(cockpitWatchId);cockpitWatchId=null;}
     cockpitLastSample=null;
     cockpitNavigationStarted=false;
+    cockpitOffRouteHits=0;
+    cockpitPendingPosition=null;
+    releaseCockpitWakeLock();
 }
 
 function startNavigation(){
     if(!routeSteps.length){alert("Primero selecciona una ruta.");return;}
     currentStepIndex=0;
     cockpitVoiceStages=new Set();
-    cockpitRouteProgressIndex=0;
+    cockpitRouteProgressMeters=0;
+    cockpitOffRouteHits=0;
     cockpitNavigationStarted=true;
     $("cockpitNextStep").textContent="● RUTA EN CURSO";
     $("cockpitNextStep").disabled=true;
     $("cockpitGpsStatus").textContent="● BUSCANDO GPS...";
+    requestCockpitWakeLock();
     startCockpitGps();
     cockpitSpeak("Navegación iniciada. Sigue la ruta.");
 }
 
 $("startCockpitBtn").addEventListener("click",function(){
     if(!lastRoute) return;
+    routeSteps=buildRouteSteps(lastRoute);
     currentStepIndex=0;
     cockpitVoiceStages=new Set();
     cockpitNavigationStarted=false;
